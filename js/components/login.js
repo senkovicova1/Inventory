@@ -1,59 +1,65 @@
-import React, {Component} from 'react';
-import {Text, View, Button, Alert} from 'react-native';
+import React, { Component } from 'react';
+import { Container, Header, Title, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
+import firebase from 'firebase';
+
+
+const ACC_VIO = 'rgb(124, 90, 150)';
+const ACC_CREAM = 'rgb(252, 244, 217)';
+const ACC_PEACH = 'rgb(255, 184, 95)';
+const ACC_DARK_PEACH = 'rgb(255, 122, 90)';
+const ACC_TEAL = 'rgb(142, 210, 210)';
+const ACC_DARK_TEAL = 'rgb(0, 170, 160)';
 
 export default class Login extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      recipes: [],
+      email:'',
+      password:'',
+      token:null
     };
+
+    this.register.bind(this);
+    this.login.bind(this);
   }
+
+  login(){
+      firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password).then((res)=>{
+        this.setState({token:res});
+        console.log("REGISTERED");
+        console.log(res);
+      }).catch(error=>{console.log(error)});
+    }
+
+    register(){
+      firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
+    }
 
   render() {
     return (
-      <View>
-        <Text>RECIPEEEEES</Text>
-          <Button
-            onPress={() => {
-              Alert.alert('You tapped the button!');
-            }}
-            title="Press Me"
-          />
-
-          <Button
-            title="Go to Recipes"
-            onPress={() => this.props.navigation.navigate('Recipes')}
-          />
-          <Button
-            title="Go to Inventory"
-            onPress={() => this.props.navigation.navigate('Inventory')}
-          />
-          <Button
-            title="Go to Recipe"
-            onPress={() => this.props.navigation.navigate('Recipe')}
-          />
-          <Button
-            title="Go to AddRecipe"
-            onPress={() => this.props.navigation.navigate('AddRecipe')}
-          />
-          <Button
-            title="Go to AddInventory"
-            onPress={() => this.props.navigation.navigate('AddInventory')}
-          />
-          <Button
-            title="Go to AddIngredient"
-            onPress={() => this.props.navigation.navigate('AddIngredient')}
-          />
-          <Button
-            title="Go to EditRecipe"
-            onPress={() => this.props.navigation.navigate('EditRecipe')}
-          />
-          <Button
-            title="Go to EditInventory"
-            onPress={() => this.props.navigation.navigate('EditInventory')}
-          />
-      </View>
+      <Container style={{backgroundColor:'white'}}>
+        <Content>
+          <Input
+            placeholder="E-mail"
+            type="email"
+            onChangeText={(text) => this.setState({email: text})}/>
+          <Input
+            placeholder="Password"
+            type="password"
+            onChangeText={(text) => this.setState({password: text})}/>
+          <Button onPress={this.login.bind(this)} >
+            <Text>
+            Login
+          </Text>
+          </Button>
+          <Button onPress={this.register.bind(this)} >
+            <Text>
+            Register
+          </Text>
+          </Button>
+        </Content>
+        </Container>
     );
   }
 }

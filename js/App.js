@@ -59,7 +59,7 @@ const AppNavigator = createStackNavigator(
     EditInventory: EditInventory,
   },
   {
-    initialRouteName: "Recipes",
+    initialRouteName: "Login",
     defaultNavigationOptions: {
       header: null,
    },
