@@ -16,15 +16,3 @@ db.settings(settings);
 export let rebase = Rebase.createClass(db);*/
 
 AppRegistry.registerComponent('Inventory', () => App);
-
-/*Navigation.registerComponent(`navigation.playground.WelcomeScreen`, () => App);
-
-Navigation.events().registerAppLaunchedListener(() => {
-  Navigation.setRoot({
-    root: {
-      component: {
-        name: "navigation.playground.WelcomeScreen"
-      }
-    }
-  });
-});*/
