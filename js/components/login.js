@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Container, Header, Title, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
 import firebase from 'firebase';
 
+import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
 
 const ACC_VIO = 'rgb(124, 90, 150)';
 const ACC_CREAM = 'rgb(252, 244, 217)';
@@ -17,7 +18,8 @@ export default class Login extends Component {
     this.state = {
       email:'',
       password:'',
-      token:null
+      token:null,
+
     };
 
     this.register.bind(this);
@@ -36,11 +38,45 @@ export default class Login extends Component {
       firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
     }
 
+    onLoginOrRegister = () => {
+      console.log("trying");
+      GoogleSignin.signIn()
+        .then((data) => {
+          // Create a new Firebase credential with the token
+          const credential = firebase.auth.GoogleAuthProvider.credential(data.idToken, data.accessToken);
+          // Login with the credential
+          console.log("credential");
+          console.log(credential);
+          return firebase.auth().signInWithCredential(credential);
+        })
+        .then((user) => {
+          console.log("user");
+          console.log(user);
+          // If you need to do anything with the user, do it here
+          // The user will be logged in automatically by the
+          // `onAuthStateChanged` listener we set up in App.js earlier
+        })
+        .catch((error) => {
+          const { code, message } = error;
+          console.log(code);
+          console.log(message);
+          // For details of error codes, see the docs
+          // The message contains the default Firebase string
+          // representation of the error
+        });
+    }
+
   render() {
     return (
       <Container style={{backgroundColor:'white'}}>
         <Content>
-          <Input
+          <GoogleSigninButton
+            style={{ width: 192, height: 48 }}
+            size={GoogleSigninButton.Size.Wide}
+            color={GoogleSigninButton.Color.Dark}
+            onPress={() => this.onLoginOrRegister()}
+            disabled={false} />
+          {/*        <Input
             placeholder="E-mail"
             type="email"
             onChangeText={(text) => this.setState({email: text})}/>
@@ -57,7 +93,7 @@ export default class Login extends Component {
             <Text>
             Register
           </Text>
-          </Button>
+        </Button>*/}
         </Content>
         </Container>
     );
