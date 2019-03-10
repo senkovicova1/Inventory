@@ -24,7 +24,7 @@ export default class ListRecipes extends Component {
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
-        content={<Sidebar navigator={this.navigator} />}
+        content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
         onClose={() => this.closeDrawer()} >
         <View>
           <Button
