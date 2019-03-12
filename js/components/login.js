@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { Container, Header, Title, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
+
 import firebase from 'firebase';
-
-import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
-
 import { LoginButton, AccessToken } from 'react-native-fbsdk';
+
+//import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
 
 const ACC_VIO = 'rgb(124, 90, 150)';
 const ACC_CREAM = 'rgb(252, 244, 217)';
