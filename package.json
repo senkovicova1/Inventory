@@ -12,7 +12,9 @@
     "re-base": "^4.0.0",
     "react": "16.6.3",
     "react-native": "0.58.6",
+    "react-native-fbsdk": "^0.8.0",
     "react-native-gesture-handler": "^1.1.0",
+    "react-native-google-signin": "^1.2.1",
     "react-navigation": "^3.3.2"
   },
   "devDependencies": {
