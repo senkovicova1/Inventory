@@ -3,27 +3,8 @@ import {Text, View, Button, Alert} from 'react-native';
 
 import Navigator from './navigation';
 
-export default class App extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      recipes: [],
-    };
-  }
-
-  render() {
-    return (
-      <View>
-      <Text>assadada</Text>
-        <Navigator />
-        <Text>assadada</Text>
-      </View>
-    );
-  }
-}*/
-
-import React from "react";
+*/
+import React, {Component} from "react";
 import { View, Text, Button } from "react-native";
 import { createStackNavigator, createAppContainer } from "react-navigation";
 
