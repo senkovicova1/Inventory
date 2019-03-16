@@ -9,6 +9,7 @@ import { View, Text, Button } from "react-native";
 import { createStackNavigator, createAppContainer } from "react-navigation";
 
 import Login from './components/login';
+import Settings from './components/settings';
 
 import ListRecipes from './components/listRecipes';
 
@@ -26,6 +27,7 @@ import EditInventory from './components/editInventory';
 const AppNavigator = createStackNavigator(
   {
     Login: Login,
+    Settings: Settings,
 
     Recipes: ListRecipes,
 

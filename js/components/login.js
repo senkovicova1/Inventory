@@ -1,8 +1,14 @@
 import React, { Component } from 'react';
-import { Container, Header, Title, Card, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
+import { Container, Content, Header, Title, Card, CardItem, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
+
+import store from "../store/index";
+import { logUser, logOffUser } from "../actions/index";
 
 import firebase from 'firebase';
+import { rebase } from '../../index.android';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
+
+import {isEmail} from '../helperFiles/helperFunctions.js';
 
 //import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
 
@@ -14,14 +20,18 @@ export default class Login extends Component {
     super(props);
     this.state = {
       email:'',
-      password:'',
+      password1:'',
+      password2:'',
       username: '',
       token:null,
       avatar: null,
       loading: true,
       showStuff: false,
       showSignUp: false,
+      showNotAllFieldsFilled: false,
+      validMail: false,
     };
+
 
     this.register.bind(this);
     this.login.bind(this);
@@ -29,75 +39,76 @@ export default class Login extends Component {
     this.initUser.bind(this);
   }
 
-  /**
-     * When the App component mounts, we listen for any authentication
-     * state changes in Firebase.
-     * Once subscribed, the 'user' parameter will either be null
-     * (logged out) or an Object (logged in)
-     */
   componentDidMount() {
-    console.log("eh");
       this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
-        this.setState({
-          loading: false,
-          user,
-        });
+        console.log('USER');
+        console.log(firebase.auth().currentUser);
+        store.dispatch(logUser({user, withFB: false}));
       });
+      if (store.getState().user !== null){
+        this.props.navigation.push('Recipes');
+      }
     }
-  /**
-   * Don't forget to stop listening for authentication state changes
-   * when the component unmounts.
-   */
+
   componentWillUnmount() {
     this.authSubscription();
   }
 
-  login(){
-      firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password).then((res)=>{
+    login(){
+      firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
+      .then((res)=>{
         this.setState({token:res});
         console.log("REGISTERED");
         console.log(res);
       }).catch(error=>{console.log(error)});
     }
-
+//r9WmspdO8QalOLN0oU90SFG8CRu2
     register(){
-      firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password);
+      if (this.state.username.length === 0
+      || this.state.email.length === 0
+      || !this.state.validMail
+      || this.state.password1.length === 0
+      || this.state.password2.length === 0
+      || this.state.password1 !== this.state.password2){
+        this.setState({showNotAllFieldsFilled: true});
+        return;
+      }
+
+      firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password1)
+      .then((user) => {
+        store.dispatch(logUser({user, withFB: false}));
+        let id = Date.now().toString(16).toUpperCase();
+        rebase.post(`users/${id}`, {
+          data: {username: this.state.username, withFB: false}
+        });
+      });
+
     }
 
     onLoginOrRegister(){
-      console.log("ugh");
       LoginManager.logInWithReadPermissions(['public_profile', 'email'])
       .then((result) => {
-        console.log('here');
         if (result.isCancelled) {
           console.log('The user cancelled the request');
           return Promise.reject(new Error('The user cancelled the request'));
         }
-        // Retrieve the access token
-        console.log("worked maybe");
         return AccessToken.getCurrentAccessToken();
       })
       .then((data) => {
-        console.log('maaaaaaaaaaaaybe?');
-        // Create a new Firebase credential with the token
         const credential = firebase.auth.FacebookAuthProvider.credential(data.accessToken);
-        // Login with the credential
-        console.log("cred");
-        console.log(credential);
         return firebase.auth().signInWithCredential(credential);
       })
       .then((user) => {
-        console.log('yaaay');
-        console.log(user);
-        // If you need to do anything with the user, do it here
-        // The user will be logged in automatically by the
-        // `onAuthStateChanged` listener we set up in App.js earlier
+        store.dispatch(logUser({user, withFB: true}));
+        const USER = store.getState().user !== null;
+        if (USER){
+          this.props.navigation.navigate('Settings');
+        }
       })
       .catch((error) => {
         const { code, message } = error;
-        // For details of error codes, see the docs
-        // The message contains the default Firebase string
-        // representation of the error
+        console.log(code);
+        console.log(message);
       });
     }
 
@@ -106,15 +117,6 @@ export default class Login extends Component {
       fetch('https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' + token)
       .then((response) => response.json())
       .then((json) => {
-        // Some user object has been set up somewhere, build that user here
-    /*    user.name = json.name
-        user.id = json.id
-        user.user_friends = json.friends
-        user.email = json.email
-        user.username = json.name
-        user.loading = false
-        user.loggedIn = true
-        user.avatar = setAvatar(json.id)*/
         this.setState({
           email: json.email,
           username: json.name,
@@ -132,24 +134,8 @@ export default class Login extends Component {
     }
 
     render() {
-      // The application is initialising
-/*      console.log('STATES');
-      console.log(this.state.loading);
-      console.log(this.state.user);
-      console.log(this.state.user !== null && this.state.user !== undefined);
+      console.log(store.getState());
 
-      if (this.state.loading) return (
-        <Container>
-        <Content>
-          <Text>Loading</Text>
-        </Content>
-        </Container>
-      );
-      // The user exists, so they're logged in
-      if (this.state.user !== null && this.state.user !== undefined) {
-        this.props.navigation.navigate('Recipes');
-      }*/
-      // The user is null, so they're logged out
       return (
         <Container>
           <Content
@@ -157,14 +143,14 @@ export default class Login extends Component {
               <Text style={{...styles.loginTextWelcome, ...styles.center}}>Welcome to Inventory</Text>
               <Text>obr</Text>
 
-              <Button
-                onPress={this.onLoginOrRegister.bind(this)}
-                style={{...styles.fbLoginButton, ...styles.center}} >
-                <Icon active name='logo-facebook' />
-                <Text>
-                Sigh In with Facebook
-              </Text>
-              </Button>
+                <Button
+                  onPress={this.onLoginOrRegister.bind(this)}
+                  style={{...styles.fbLoginButton, ...styles.center}} >
+                  <Icon active name='logo-facebook' />
+                  <Text>
+                  Sigh In with Facebook
+                </Text>
+                </Button>
 
               <Text style={{...styles.loginText, ...styles.center}}>
                 {"Or use your Inventory account - "}
@@ -181,7 +167,23 @@ export default class Login extends Component {
                 </Text>
               </Text>
 
+        {(this.state.showStuff || this.state.showSignUp)
+          &&
           <Card>
+            <CardItem header>
+              <Text>User data</Text>
+            </CardItem>
+            <CardItem>
+              <Body>
+
+              {this.state.showNotAllFieldsFilled
+              &&
+              <Item error>
+                <Icon active name='md-alert' />
+                <Label>All fields have to be filled!</Label>
+              </Item>
+              }
+
             { (this.state.showStuff && this.state.showSignUp)
               &&
               <Item  floatingLabel>
@@ -200,17 +202,28 @@ export default class Login extends Component {
                 <Label>E-mail</Label>
                 <Input
                   type="email"
-                  onChangeText={(text) => this.setState({email: text})}/>
-              </Item>
+                  onChangeText={(text) => this.setState({email: text, validMail: isEmail(text)})}/>
+
+            </Item>
             }
+            {(this.state.email.length > 0
+              && !this.state.validMail)
+            &&
+            <Item error style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>
+              <Icon active name='md-alert' style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}/>
+              <Label style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>This is not a valid e-mail address!</Label>
+            </Item>
+          }
+
               { this.state.showStuff
                 &&
               <Item floatingLabel>
                 <Icon active name='md-lock' />
                 <Label>Password</Label>
                 <Input
-                  type="password"
-                  onChangeText={(text) => this.setState({password: text})}/>
+                  secureTextEntry={true}
+                  type="password1"
+                  onChangeText={(text) => this.setState({password1: text})}/>
               </Item>
             }
 
@@ -220,38 +233,61 @@ export default class Login extends Component {
                 <Icon active name='md-lock' />
                 <Label>Repeat Password</Label>
                 <Input
+                  secureTextEntry={true}
                   type="password2"
                   onChangeText={(text) => this.setState({password2: text})}/>
               </Item>
             }
-          </Card>
+            </Body>
+          </CardItem>
 
-{(this.showStuff && !this.showSignUp)
-  &&
-                  <Button
-                    onPress={this.login.bind(this)}
-                    style={{...styles.logInOutButton, ...styles.center}}>
-                    <Body>
-                      <Text
-                        style={{...styles.logInOutButtonText, ...styles.center}}>
-                        Login
-                      </Text>
-                    </Body>
-                  </Button>
-                }
-                { (this.showStuff && this.showSignUp)
-                  &&
-                  <Button
-                    onPress={this.register.bind(this)}
-                    style={{...styles.signUpButton, ...styles.center}}>
-                    <Body>
-                      <Text
-                        style={{...styles.signUpButtonText, ...styles.center}}>
-                        Sign Up
-                      </Text>
-                    </Body>
-                  </Button>
-                }
+          <CardItem footer>
+          { (this.state.password1.length > 0 && this.state.password2.length > 0 && this.state.password1 !== this.state.password2)
+            &&
+            <Item error style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>
+              <Icon active name='md-alert' style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}/>
+              <Label style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>Passwords do not match!</Label>
+            </Item>
+          }
+        </CardItem>
+          </Card>
+}
+          {(this.state.email.length !== 0
+            && this.state.validMail
+          && this.state.password1.length !== 0
+          && !this.state.showSignUp)
+            &&
+            <Button
+              onPress={this.login.bind(this)}
+              style={{...styles.logInOutButton, ...styles.center}}>
+              <Body>
+                <Text
+                  style={{...styles.logInOutButtonText, ...styles.center}}>
+                  Login
+                </Text>
+              </Body>
+            </Button>
+          }
+
+          { (this.state.username.length !== 0
+          && this.state.email.length !== 0
+          && this.state.validMail
+          && this.state.password1.length !== 0
+          && this.state.password2.length !== 0
+          && this.state.password1 === this.state.password2
+          && this.state.showSignUp)
+            &&
+            <Button
+              onPress={this.register.bind(this)}
+              style={{...styles.logInOutButton, ...styles.center}}>
+              <Body>
+                <Text
+                  style={{...styles.logInOutButtonText, ...styles.center}}>
+                  Sign Up
+                </Text>
+              </Body>
+            </Button>
+          }
 
 
           </Content>
@@ -259,16 +295,6 @@ export default class Login extends Component {
       );
     }
 }
-
-/*
-
-        <Button
-          onPress={() => firebase.auth().signOut().then((stuff) => console.log("eh" + stuff + "eh"))} >
-          <Text>
-          Sign out
-          </Text>
-        </Button>
-*/
 
 /*
   <LoginButton

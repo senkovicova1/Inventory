@@ -48,10 +48,11 @@ export default {
   },
   logInOutButton: {
     backgroundColor: colours.ACC_DARK_TEAL,
-    width: 100,
+    width: deviceWidth,
   },
   logInOutButtonText: {
     color: colours.ACC_CREAM,
+    fontSize: 25,
   },
   signUpButton: {
     backgroundColor: 'transparent',
