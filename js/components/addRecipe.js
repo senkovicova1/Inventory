@@ -371,12 +371,13 @@ export default class AddRecipe extends Component {
                           <Icon name='md-add' style={{ ...styles.minusIngredient }} onPress={this.addNewIngredient.bind(this)}/>
 
                       </Item>
-                        <Textarea
-                          rowSpan={5}
-                          bordered
-                          placeholder="Steps"
-                          onChangeText={(text) => this.setState({body: text})}
-                          value={this.state.body}/>
+                      
+                  <Textarea
+                    rowSpan={5}
+                    bordered
+                    placeholder="Steps"
+                    onChangeText={(text) => this.setState({body: text})}
+                    value={this.state.body}/>
 
 
                 </Form>

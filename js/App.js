@@ -21,7 +21,6 @@ import AddInventory from './components/addInventory';
 import AddIngredient from './components/addIngredient';
 
 import EditRecipe from './components/editRecipe';
-import EditInventory from './components/editInventory';
 
 
 const AppNavigator = createStackNavigator(
@@ -39,7 +38,6 @@ const AppNavigator = createStackNavigator(
     AddIngredient: AddIngredient,
 
     EditRecipe: EditRecipe,
-    EditInventory: EditInventory,
   },
   {
     initialRouteName: "Login",

@@ -92,12 +92,33 @@ export default {
   },
   minusIngredientButton: {
     marginBottom: 2,
-    borderBottomWidth: 10,    
+    borderBottomWidth: 10,
     borderColor: colours.ACC_CREAM
   },
   detailRecipeRowText: {
       marginLeft: 10,
-     color: colours.ACC_PEACH,
+      color: colours.ACC_PEACH,
+  },
+  genericInput: {
+    backgroundColor: colours.ACC_WHITE,
+    color: colours.ACC_PEACH,
+    borderWidth: 2,
+    borderColor: colours.ACC_PEACH,
+    borderRadius: 5,
+  },
+  genericInputStretched: {
+    backgroundColor: colours.ACC_WHITE,
+    color: colours.ACC_PEACH,
+    borderWidth: 2,
+    borderColor: colours.ACC_PEACH,
+    borderRadius: 5,
+    width: deviceWidth*0.85    
+  },
+  formInvTitle:{
+    color: colours.ACC_DARK_PEACH
+  },
+  formInvNotes: {
+    color: colours.ACC_PEACH
   },
   text: {
     fontWeight: (Platform.OS === 'ios') ? '500' : '400',
