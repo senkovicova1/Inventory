@@ -36,18 +36,16 @@ export default class Login extends Component {
     this.register.bind(this);
     this.login.bind(this);
     this.onLoginOrRegister.bind(this);
-    this.initUser.bind(this);
   }
 
   componentDidMount() {
       this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
-        console.log('USER');
-        console.log(firebase.auth().currentUser);
-        store.dispatch(logUser({user, withFB: false}));
+        store.dispatch(logUser({user: firebase.auth().currentUser}));
+
+        if (store.getState().user !== null){
+          this.props.navigation.push('Recipes');
+        }
       });
-      if (store.getState().user !== null){
-        this.props.navigation.push('Recipes');
-      }
     }
 
   componentWillUnmount() {
@@ -55,14 +53,15 @@ export default class Login extends Component {
   }
 
     login(){
-      firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password)
+      firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password1)
       .then((res)=>{
-        this.setState({token:res});
-        console.log("REGISTERED");
-        console.log(res);
+        store.dispatch(logUser({user: firebase.auth().currentUser}));
+        if (store.getState().user !== null){
+          this.props.navigation.push('Recipes');
+        }
       }).catch(error=>{console.log(error)});
     }
-//r9WmspdO8QalOLN0oU90SFG8CRu2
+
     register(){
       if (this.state.username.length === 0
       || this.state.email.length === 0
@@ -74,15 +73,21 @@ export default class Login extends Component {
         return;
       }
 
-      firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password1)
-      .then((user) => {
-        store.dispatch(logUser({user, withFB: false}));
-        let id = Date.now().toString(16).toUpperCase();
-        rebase.post(`users/${id}`, {
-          data: {username: this.state.username, withFB: false}
-        });
-      });
+        firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password1)
+        .then((user) => {
 
+            store.dispatch(logUser({user: firebase.auth().currentUser}));
+
+            let id = firebase.auth().currentUser.uid;
+
+            rebase.post(`users/${id}`, {
+              data: {username: this.state.username}
+            }).then((data) => {
+                if (store.getState().user !== null){
+                  this.props.navigation.push('Recipes');
+                };
+            });
+        });
     }
 
     onLoginOrRegister(){
@@ -99,10 +104,23 @@ export default class Login extends Component {
         return firebase.auth().signInWithCredential(credential);
       })
       .then((user) => {
-        store.dispatch(logUser({user, withFB: true}));
-        const USER = store.getState().user !== null;
-        if (USER){
-          this.props.navigation.navigate('Settings');
+        store.dispatch(logUser({user: firebase.auth().currentUser}));
+
+        const USER_ID = store.getState().user.uid;
+        rebase.fetch(`users/${USER_ID}`, {
+          context: this,
+        }).then((data) => {
+          if (data.length === undefined){
+            let id = Date.now().toString(16).toUpperCase();
+
+            rebase.post(`users/${USER_ID}`, {
+              data: {username: store.getState().user.displayName}
+            });
+          }
+        });
+
+        if (store.getState().user !== null){
+          this.props.navigation.navigate('Recipes');
         }
       })
       .catch((error) => {
@@ -112,30 +130,7 @@ export default class Login extends Component {
       });
     }
 
-
-    initUser(token) {
-      fetch('https://graph.facebook.com/v2.5/me?fields=email,name,friends&access_token=' + token)
-      .then((response) => response.json())
-      .then((json) => {
-        this.setState({
-          email: json.email,
-          username: json.name,
-          avatar: setAvatar(json.id),
-          id: json.id,
-        });
-        console.log("info ");
-        console.log(json.email);
-        console.log(json.name);
-        console.log(json.id);
-      })
-      .catch(() => {
-        console.log('ERROR GETTING DATA FROM FACEBOOK');
-      })
-    }
-
     render() {
-      console.log(store.getState());
-
       return (
         <Container>
           <Content

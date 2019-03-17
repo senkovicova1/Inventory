@@ -16,62 +16,27 @@ export default class Settings extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      email:'',
-      password:'',
-      username: '',
-      token:null,
-      avatar: null,
     };
-
-    const USER = store.getState().user === null;
-    if (USER){
-      this.props.navigation.navigate('Login');
-    }
-
     this.signOut.bind(this);
-  }
-
-  /**
-     * When the App component mounts, we listen for any authentication
-     * state changes in Firebase.
-     * Once subscribed, the 'user' parameter will either be null
-     * (logged out) or an Object (logged in)
-     */
-  componentDidMount() {
-      this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
-        this.setState({
-          user,
-        });
-      });
-    }
-  /**
-   * Don't forget to stop listening for authentication state changes
-   * when the component unmounts.
-   */
-  componentWillUnmount() {
-    this.authSubscription();
   }
 
 
   signOut(){
     firebase.auth().signOut();
     store.dispatch(logOffUser(null));
-    const USER = store.getState().user === null;
     this.props.navigation.push('Login');
-
   }
 
-
     render() {
-      console.log(store.getState());
-      const WITH_FB = store.getState().withFB === true;
+      console.log("settings");
+      console.log(store.getState().user.providerData);
       return (
         <Container>
           <Content
               style={styles.login}>
               <Text>Settings</Text>
 
-            {WITH_FB
+            {(store.getState().user.providerData[0].providerId === 'facebook.com')
               &&
               <LoginButton
                 readPermissions={['public_profile', 'email']}
@@ -82,7 +47,7 @@ export default class Settings extends Component {
                 }
                 onLogoutFinished={() => this.signOut()}/>
             }
-            {!WITH_FB
+            {(store.getState().user.providerData[0].providerId !== 'facebook.com')
               &&
               <Button
                 onPress={() => this.signOut()} >
