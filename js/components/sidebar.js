@@ -74,7 +74,7 @@ export default class Sidebar extends Component {
             this.state.showStuff &&
               <List
               dataArray={this.state.inventories} renderRow={data =>
-                <ListItem button noBorder  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Recipes'); }}>
+                <ListItem button noBorder  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Inventory', {title: data.name, id: data.key, notes: data.notes}); }}>
                   <Left>
                     <Thumbnail
                       style={styles.stretch}
@@ -87,7 +87,7 @@ export default class Sidebar extends Component {
 
               {
                 this.state.showStuff &&
-                    <Button block style={{ ...styles.sidebarAddInvButton}}  onPress={()=>{ Actions.addInv(); this.props.closeDrawer();}} >
+                    <Button block style={{ ...styles.sidebarAddInvButton}}  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('AddInventory');}} >
                      <Icon active name='md-add' style={{ ...styles.sidebarAddInvIcon}} />
                     </Button>
               }
