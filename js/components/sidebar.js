@@ -3,6 +3,7 @@ import {Image, Platform} from 'react-native';
 import { Content, Text, List, ListItem, Icon, Container, Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 
 import { rebase } from '../../index.android';
+import store from "../store/index";
 
 import styles from '../style';
 
@@ -16,7 +17,6 @@ export default class Sidebar extends Component {
       showStuff: false,
 
       inventories: [],
-      userID: 1,
     };
 
 
@@ -25,6 +25,8 @@ export default class Sidebar extends Component {
   }
 
   fetch(){
+    const USER_ID = store.getState().user.uid;
+
     rebase.fetch(`inventories`, {
       context: this,
       withIds: true,
@@ -35,7 +37,7 @@ export default class Sidebar extends Component {
         withIds: true,
         asArray: true
       }).then((invAcc) => {
-        let accessGranted = invAcc.filter(inventoryAcc => inventoryAcc.userID === this.state.userID).map(invAcc => invAcc.invID.toString());
+        let accessGranted = invAcc.filter(inventoryAcc => inventoryAcc.userID === USER_ID).map(invAcc => invAcc.invID.toString());
         let availableInv = inv.filter(inventory => accessGranted.includes(inventory.key));
         this.setState({
           inventories: availableInv,
@@ -83,6 +85,24 @@ export default class Sidebar extends Component {
                 </ListItem> } />
               }
 
+              {
+                this.state.showStuff &&
+                    <Button block style={{ ...styles.sidebarAddInvButton}}  onPress={()=>{ Actions.addInv(); this.props.closeDrawer();}} >
+                     <Icon active name='md-add' style={{ ...styles.sidebarAddInvIcon}} />
+                    </Button>
+              }
+
+              <ListItem  noBorder >
+              </ListItem>
+
+            <ListItem button noBorder onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Settings');}} >
+              <Left>
+                <Icon active name='md-settings' style={styles.sidebarIcon} />
+                <Text style={styles.text}>Nastavenia</Text>
+              </Left>
+              <Right style={{ flex: 1 }}>
+              </Right>
+            </ListItem>
         </List>
 
         </Content>
