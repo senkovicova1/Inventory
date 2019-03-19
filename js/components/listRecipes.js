@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Text, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import { Drawer,  Card, Content, Header, Body, Title, Text, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index.android';
@@ -60,7 +60,7 @@ export default class ListRecipes extends Component {
 
                 this.setState({
                   recipes: rec.filter(recipe => accGrantedRec.includes(recipe.key)),
-                  inventories: inv.filter(inventory => accGrantedInv.includes(parseInt(inventory.key))),
+                  inventories: inv.filter(inventory => accGrantedInv.includes(inventory.key)),
                 });
               })
             })
@@ -150,28 +150,28 @@ export default class ListRecipes extends Component {
               }
             </Picker>
 
+            <Card transparent style={{ ...styles.listCard }}>
+               <List
+                 dataArray={this.state.recipes.filter(rec => rec.name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))}
+                 renderRow={data =>
+                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {rec: data, userID: store.getState().user.uid}) }>
+                     <Left>
+                       <Thumbnail
+                         style={{ ...styles.stretch }}
+                         source={require('../helperFiles/sushi.jpg')}
+                       />
+                     <Text style={{ ...styles.listText }}>{data.name}</Text></Left>
+                     <Right>
+                         <Badge style={{ ...styles.listTextBadge }}>
+                           <Text style={{ ...styles.listTextBadgeText }}> </Text>
 
-           <List
-             dataArray={this.state.recipes.filter(rec => rec.name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))}
-             renderRow={data =>
-               <ListItem button noBorder onPress={() => this.props.navigation.navigate('Recipe', {rec: data, userID: this.state.userID}) }>
-                 <Left>
-                   <Thumbnail
-                     style={{ ...styles.stretch }}
-                     source={require('../helperFiles/sushi.jpg')}
-                   />
-                 <Text style={{ ...styles.listText }}>{data.name}</Text></Left>
-                 <Right>
-                     <Badge style={{ ...styles.listTextBadge }}>
-                       <Text style={{ ...styles.listTextBadgeText }}> </Text>
-
-                   { /*   <Text style={{ color: ACC_CREAM }}>{data.id} {data.id == 1 ? "porcia" : (data.id <= 4? "porcie" : "porcií")}</Text>*/}
-                  </Badge>
-                 </Right>
-               </ListItem>
-             }
-           />
-
+                       { /*   <Text style={{ color: ACC_CREAM }}>{data.id} {data.id == 1 ? "porcia" : (data.id <= 4? "porcie" : "porcií")}</Text>*/}
+                      </Badge>
+                     </Right>
+                   </ListItem>
+                 }
+               />
+           </Card>
 
          </Content>
        </Container>

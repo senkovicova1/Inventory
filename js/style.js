@@ -38,13 +38,20 @@ export default {
   },
   picker: {
     color: colours.ACC_TEAL,
+    marginLeft: deviceWidth*0.01,
+    marginRight: deviceWidth*0.01,
+  },
+  listItem:{
+    margin: -3,
+    padding: 0
   },
   listText: {
     color: colours.ACC_DARK_PEACH,
+    marginLeft: 8,
   },
   listTextBadge: {
     borderRadius: 3,
-    backgroundColor: colours.ACC_VIO
+    backgroundColor: colours.ACC_VIO,
   },
   listTextBadgeText: {
     color: colours.ACC_CREAM,
@@ -53,6 +60,7 @@ export default {
     height: deviceHeight*0.2,
     width: deviceWidth*0.9,
     alignSelf: 'center',
+    borderRadius: 15,
   },
   stretch: {
     width: 30,
@@ -65,39 +73,74 @@ export default {
     alignSelf: 'flex-end',
   },
   acordionButton: {
-    backgroundColor: colours.ACC_PEACH
+    backgroundColor: colours.ACC_PEACH,
+    marginTop: deviceWidth*0.01,
+    marginLeft: deviceWidth*0.01,
+    marginRight: deviceWidth*0.01,
   },
   acordionButtonText: {
     color: colours.ACC_DARK_PEACH
   },
   acordionText: {
     backgroundColor: colours.ACC_WHITE,
-    color: colours.ACC_PEACH
+    color: colours.ACC_DARK_PEACH,
+    placeholderTextColor: colours.ACC_PEACH,
+  },
+  formTitle: {
+    margin: deviceWidth*0.02,
+    marginRight: deviceWidth*0.04,
+    marginBottom: deviceWidth*0.04,
+    backgroundColor: colours.ACC_CREAM,
+    color: colours.ACC_DARK_PEACH,
+    borderBottomWidth: 2,
+    borderColor: colours.ACC_DARK_PEACH,
   },
   ingredientPicker: {
-     width: "40%",
-     color: colours.ACC_DARK_PEACH
+     color: colours.ACC_DARK_PEACH,
   },
   amountInput: {
-     width: '30%',
-     backgroundColor: colours.ACC_TEAL,
-     color: colours.ACC_PEACH
+     color: colours.ACC_DARK_PEACH,
+     borderColor: colours.ACC_PEACH,
+     borderRightWidth: 2,
+     borderLeftWidth: 2,
+     paddingLeft: 15,
   },
   unitPicker: {
-     width: '20%',
-     color: colours.ACC_TEAL
+     color: colours.ACC_DARK_PEACH,
+     borderColor: colours.ACC_PEACH,
+     borderRightWidth: 2,
+  },
+  ah: {
+    backgroundColor: colours.ACC_VIO
   },
   minusIngredient: {
     color: colours.ACC_DARK_PEACH,
+    marginTop: 12,
+    alignSelf: 'center'
   },
   minusIngredientButton: {
     marginBottom: 2,
     borderBottomWidth: 10,
-    borderColor: colours.ACC_CREAM
+    borderColor: 'transparent'
+  },
+  textArea:{
+    backgroundColor: colours.ACC_PEACH_A,
+    borderWidth: 2,
+    borderColor: colours.ACC_PEACH_A,
+    borderRadius: 5,
+    color: colours.ACC_DARK_PEACH
+  },
+  ingredientRow:{
+    borderWidth: 2,
+    borderColor: colours.ACC_DARK_PEACH,
+    borderRadius: 5,
   },
   detailRecipeRowText: {
       marginLeft: 10,
       color: colours.ACC_PEACH,
+  },
+  listItemInRecipe:{
+      height: 50,
   },
   genericInput: {
     backgroundColor: colours.ACC_WHITE,
@@ -112,7 +155,7 @@ export default {
     borderWidth: 2,
     borderColor: colours.ACC_PEACH,
     borderRadius: 5,
-    width: deviceWidth*0.85    
+    width: deviceWidth*0.85
   },
   formInvTitle:{
     color: colours.ACC_DARK_PEACH
@@ -141,36 +184,130 @@ export default {
   },
   logInOutButton: {
     backgroundColor: colours.ACC_DARK_TEAL,
-    width: deviceWidth,
+    marginLeft: deviceWidth*0.08,
+    marginRight: deviceWidth*0.08,
+    borderRadius: 8,
   },
   logInOutButtonText: {
     color: colours.ACC_CREAM,
     fontSize: 25,
   },
   signUpButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: colours.ACC_DARK_TEAL,
-    width: 100,
+    backgroundColor: colours.ACC_VIO,
+    marginLeft: deviceWidth*0.08,
+    marginRight: deviceWidth*0.08,
+    borderRadius: 8,
   },
   signUpButtonText: {
     color: colours.ACC_DARK_TEAL,
   },
+  fbLoginButton: {
+    color: 'rgb(66, 103, 178)',
+    height: 30,
+    borderRadius: 5,
+    marginTop: deviceHeight*0.05
+  },
+  loginTextWelcomeInventory:{
+    color: colours.ACC_DARK_PEACH,
+    fontSize: 30,
+    marginTop: deviceHeight*0.03,
+  },
   loginTextWelcome:{
     color: colours.ACC_DARK_PEACH,
     fontSize: 26,
+    marginTop: deviceHeight*0.03,
   },
   loginText:{
     color: colours.ACC_PEACH,
     fontSize: 16,
+    marginTop: deviceHeight*0.05,
+  },
+  loginTextOr:{
+    color: colours.ACC_PEACH,
+    fontSize: 16,
+  },
+  inventoryLogo: {
+    width: deviceHeight*0.3,
+    height: deviceHeight*0.3,
+    marginTop: deviceHeight*0.05,
   },
   createOrLog: {
     color: colours.ACC_DARK_PEACH,
     textDecorationLine: 'underline',
     borderColor: colours.ACC_DARK_PEACH,
   },
+  floatingLabelLog:{
+    marginTop: 10,
+    borderBottomWidth: 1,
+    borderColor: "grey"
+  },
+  welcomeCard:{
+    marginLeft: deviceWidth*0.1,
+    marginRight: deviceWidth*0.1,
+    marginTop: deviceWidth*0.07,
+    paddingBottom: deviceWidth*0.07,
+    backgroundColor: colours.ACC_PEACH_A,
+    borderWidth: 0,
+    borderRadius: 15,
+  },
+  listCard:{
+    marginLeft: deviceWidth*0.01,
+    marginRight: deviceWidth*0.01,
+    marginTop: deviceWidth*0.02,
+    paddingTop: deviceWidth*0.02,
+    paddingBottom: deviceWidth*0.02,
+    backgroundColor: colours.ACC_PEACH_A,
+    borderWidth: 0,
+    borderRadius: 15,
+  },
+  logCard: {
+    marginTop: deviceWidth*0.08,
+    marginLeft: deviceWidth*0.08,
+    marginRight: deviceWidth*0.08,
+    backgroundColor: colours.ACC_PEACH_A,
+    borderWidth: 0,
+    borderRadius: 15,
+    padding: deviceWidth*0.06,
+    paddingTop: 5,
+    paddingBottom: 5,
+  },
+  formCard: {
+    marginTop: deviceWidth*0.04,
+    marginLeft: deviceWidth*0.04,
+    marginRight: deviceWidth*0.04,
+    backgroundColor: colours.ACC_PEACH_A,
+    borderWidth: 0,
+    borderRadius: 15,
+    padding: 10,
+  },
+  stepsCardHeader:{
+    color: colours.ACC_PEACH,
+    fontSize: 20,
+    marginLeft: deviceHeight*0.02,
+  },
+  stepsCardBody:{
+    margin: deviceHeight*0.02,
+    padding: deviceHeight*0.01,
+    color: colours.ACC_DARK_PEACH,
+    backgroundColor: colours.ACC_PEACH_A,
+    borderRadius: 5,
+  },
+  errorItem: {
+    color: 'rgb(255, 255, 255)',
+    backgroundColor: 'rgb(180, 0, 0)',
+    paddingLeft: 6,
+    borderRadiusBottomLeft: 5,
+    borderRadiusBottomLeft: 5
+  },
+  errorText:{
+    fontSize: 15,
+    color: colours.ACC_WHITE,
+  },
   thumbnl: {
     height: 30,
     width: 30
   },
+  DARK_PEACH: {
+    color: colours.ACC_DARK_PEACH,
+  }
 }

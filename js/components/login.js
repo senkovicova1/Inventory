@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import {Image, Platform} from 'react-native';
 import { Container, Content, Header, Title, Card, CardItem, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
 
 import store from "../store/index";
@@ -135,156 +136,148 @@ export default class Login extends Component {
         <Container>
           <Content
               style={styles.login}>
-              <Text style={{...styles.loginTextWelcome, ...styles.center}}>Welcome to Inventory</Text>
-              <Text>obr</Text>
+              <Image
+                style={{ ...styles.inventoryLogo, ...styles.center }}
+                source={require('../helperFiles/sushi.jpg')}
+                />
+              <Text style={{...styles.loginTextWelcomeInventory, ...styles.center}}>Inventory</Text>
 
-                <Button
-                  onPress={this.onLoginOrRegister.bind(this)}
-                  style={{...styles.fbLoginButton, ...styles.center}} >
-                  <Icon active name='logo-facebook' />
-                  <Text>
-                  Sigh In with Facebook
+              <Card transparent style={{...styles.welcomeCard}}>
+                  <Text style={{...styles.loginTextWelcome, ...styles.center}}>Welcome</Text>
+
+                  <Button
+                    onPress={this.onLoginOrRegister.bind(this)}
+                    style={{...styles.fbLoginButton, ...styles.center}} >
+                    <Icon active style={{fontSize: 20}} name='logo-facebook' />
+                    <Text>
+                    Sign In with Facebook
+                  </Text>
+                  </Button>
+
+                <Text style={{...styles.loginText, ...styles.center}}>
+                  {"Or use your Inventory account "}
                 </Text>
-                </Button>
-
-              <Text style={{...styles.loginText, ...styles.center}}>
-                {"Or use your Inventory account - "}
-                <Text
-                  style={{...styles.createOrLog}}
-                  onPress={() => this.setState({showStuff: true, showSignUp: true})}>
-                  create one
+                  <Text style={{...styles.loginTextOr, ...styles.center}}>
+                       <Text
+                    style={{...styles.createOrLog}}
+                    onPress={() => this.setState({showStuff: true, showSignUp: true})}>
+                    create one
+                  </Text>
+                  {" or "}
+                  <Text
+                    style={{...styles.createOrLog}}
+                    onPress={() => this.setState({showStuff: true, showSignUp: false})}>
+                    log in
+                  </Text>
                 </Text>
-                {" or "}
-                <Text
-                  style={{...styles.createOrLog}}
-                  onPress={() => this.setState({showStuff: true, showSignUp: false})}>
-                  log in
-                </Text>
-              </Text>
 
-        {(this.state.showStuff || this.state.showSignUp)
-          &&
-          <Card>
-            <CardItem header>
-              <Text>User data</Text>
-            </CardItem>
-            <CardItem>
-              <Body>
-
-              {this.state.showNotAllFieldsFilled
-              &&
-              <Item error>
-                <Icon active name='md-alert' />
-                <Label>All fields have to be filled!</Label>
-              </Item>
-              }
-
-            { (this.state.showStuff && this.state.showSignUp)
-              &&
-              <Item  floatingLabel>
-                <Icon active name='md-person' />
-                <Label>Username</Label>
-                <Input
-                  type="name"
-                  onChangeText={(text) => this.setState({username: text})}/>
-              </Item>
-            }
-
-            { this.state.showStuff
-              &&
-              <Item  floatingLabel>
-                <Icon active name='md-mail' />
-                <Label>E-mail</Label>
-                <Input
-                  type="email"
-                  onChangeText={(text) => this.setState({email: text, validMail: isEmail(text)})}/>
-
-            </Item>
-            }
-            {(this.state.email.length > 0
-              && !this.state.validMail)
-            &&
-            <Item error style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>
-              <Icon active name='md-alert' style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}/>
-              <Label style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>This is not a valid e-mail address!</Label>
-            </Item>
-          }
-
-              { this.state.showStuff
-                &&
-              <Item floatingLabel>
-                <Icon active name='md-lock' />
-                <Label>Password</Label>
-                <Input
-                  secureTextEntry={true}
-                  type="password1"
-                  onChangeText={(text) => this.setState({password1: text})}/>
-              </Item>
-            }
-
-            { (this.state.showStuff && this.state.showSignUp)
-              &&
-              <Item floatingLabel>
-                <Icon active name='md-lock' />
-                <Label>Repeat Password</Label>
-                <Input
-                  secureTextEntry={true}
-                  type="password2"
-                  onChangeText={(text) => this.setState({password2: text})}/>
-              </Item>
-            }
-            </Body>
-          </CardItem>
-
-          <CardItem footer>
-          { (this.state.password1.length > 0 && this.state.password2.length > 0 && this.state.password1 !== this.state.password2)
-            &&
-            <Item error style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>
-              <Icon active name='md-alert' style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}/>
-              <Label style={{color: 'rgb(255, 255, 255)', backgroundColor: 'rgb(255, 0, 0)'}}>Passwords do not match!</Label>
-            </Item>
-          }
-        </CardItem>
-          </Card>
-}
-          {(this.state.email.length !== 0
-            && this.state.validMail
-          && this.state.password1.length !== 0
-          && !this.state.showSignUp)
-            &&
-            <Button
-              onPress={this.login.bind(this)}
-              style={{...styles.logInOutButton, ...styles.center}}>
-              <Body>
-                <Text
-                  style={{...styles.logInOutButtonText, ...styles.center}}>
-                  Login
-                </Text>
-              </Body>
-            </Button>
-          }
-
-          { (this.state.username.length !== 0
-          && this.state.email.length !== 0
-          && this.state.validMail
-          && this.state.password1.length !== 0
-          && this.state.password2.length !== 0
-          && this.state.password1 === this.state.password2
-          && this.state.showSignUp)
-            &&
-            <Button
-              onPress={this.register.bind(this)}
-              style={{...styles.logInOutButton, ...styles.center}}>
-              <Body>
-                <Text
-                  style={{...styles.logInOutButtonText, ...styles.center}}>
-                  Sign Up
-                </Text>
-              </Body>
-            </Button>
-          }
+                {(this.state.showStuff || this.state.showSignUp)
+                  &&
+                  <Card transparent style={{...styles.logCard}}>
 
 
+                    { (this.state.showStuff && this.state.showSignUp)
+                      &&
+                      <Item  floatingLabel style={{...styles.floatingLabelLog}}>
+                        <Icon active name='md-person' />
+                        <Label>Username</Label>
+                        <Input
+                          type="name"
+                          onChangeText={(text) => this.setState({username: text})}/>
+                      </Item>
+                    }
+
+                    { this.state.showStuff
+                      &&
+                      <Item  floatingLabel style={{...styles.floatingLabelLog}}>
+                        <Icon active name='md-mail' />
+                        <Label>E-mail</Label>
+                        <Input
+                          type="email"
+                          onChangeText={(text) => this.setState({email: text, validMail: isEmail(text)})}/>
+
+                    </Item>
+                    }
+                    {(this.state.email.length > 0
+                      && !this.state.validMail)
+                    &&
+                    <Item error style={{...styles.errorItem}}>
+                      <Icon active name='md-alert' style={{...styles.errorText}}/>
+                      <Label style={{...styles.errorText}}>This is not a valid e-mail address!</Label>
+                    </Item>
+                  }
+
+                      { this.state.showStuff
+                        &&
+                      <Item floatingLabel style={{...styles.floatingLabelLog}}>
+                        <Icon active name='md-lock' />
+                        <Label>Password</Label>
+                        <Input
+                          secureTextEntry={true}
+                          type="password1"
+                          onChangeText={(text) => this.setState({password1: text})}/>
+                      </Item>
+                    }
+
+                    { (this.state.showStuff && this.state.showSignUp)
+                      &&
+                      <Item floatingLabel style={{...styles.floatingLabelLog}}>
+                        <Icon active name='md-lock' />
+                        <Label>Repeat Password</Label>
+                        <Input
+                          secureTextEntry={true}
+                          type="password2"
+                          onChangeText={(text) => this.setState({password2: text})}/>
+                      </Item>
+                    }
+
+                  { (this.state.password1.length > 0 && this.state.password2.length > 0 && this.state.password1 !== this.state.password2)
+                    &&
+                    <Item style={{ ...styles.errorItem }}>
+                      <Icon active name='md-alert' style={{ ...styles.errorText }}/>
+                      <Label style={{...styles.errorText }}>Passwords do not match!</Label>
+                    </Item>
+                  }
+                  </Card>
+                }
+
+                {(this.state.email.length !== 0
+                  && this.state.validMail
+                && this.state.password1.length !== 0
+                && !this.state.showSignUp)
+                  &&
+                  <Button
+                    onPress={this.login.bind(this)}
+                    style={{...styles.logInOutButton, ...styles.center}}>
+                    <Body>
+                      <Text
+                        style={{...styles.logInOutButtonText, ...styles.center}}>
+                        Login
+                      </Text>
+                    </Body>
+                  </Button>
+                }
+
+                { (this.state.username.length !== 0
+                && this.state.email.length !== 0
+                && this.state.validMail
+                && this.state.password1.length !== 0
+                && this.state.password2.length !== 0
+                && this.state.password1 === this.state.password2
+                && this.state.showSignUp)
+                  &&
+                  <Button
+                    onPress={this.register.bind(this)}
+                    style={{...styles.signUpButton, ...styles.center}}>
+                    <Body>
+                      <Text
+                        style={{...styles.logInOutButtonText, ...styles.center}}>
+                        Sign Up
+                      </Text>
+                    </Body>
+                  </Button>
+                }
+              </Card>
           </Content>
           </Container>
       );
