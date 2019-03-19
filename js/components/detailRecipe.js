@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Card, CardItem, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Card, CardItem, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index.android';
@@ -38,6 +38,16 @@ export default class DetailRecipe extends Component {
        });
   }
 
+  componentWillReceiveProps(){
+    this.state = {
+      showID: false,
+        name: this.props.navigation.getParam('rec', 'NO-ID').name,
+        key: this.props.navigation.getParam('rec', 'NO-ID').key,
+        body: this.props.navigation.getParam('rec', 'NO-ID').body,
+        ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients,
+    };
+  }
+
   closeDrawer = () => {
     this.drawer._root.close()
   };
@@ -72,64 +82,54 @@ export default class DetailRecipe extends Component {
 
           <Content padder style={{ ...styles.content }}>
 
-           <List>
-              <ListItem
-                noBorder
-                 key="obr"
-                 style={{ ...styles.center }}>
-                <Image
-                    style={{ ...styles.image }}
-                    source={require('../helperFiles/sushi.jpg')}
-                  />
-              </ListItem>
-              <ListItem
-                noBorder
-                 key="title">
-                 <Left>
-                   <Text style={{ ...styles.minusIngredient, marginLeft: 40 }}>Ingredient</Text>
-                 </Left>
-                <Body>
-                  <Text style={{ ...styles.minusIngredient, marginLeft: 60 }}>Amount</Text>
-                </Body>
-              </ListItem>
-           {
+              <Image
+                style={{ ...styles.image, ...styles.center }}
+                source={require('../helperFiles/sushi.jpg')}
+                />
+           <Card transparent style={{ ...styles.listCard }}>
+             <List >
+               <ListItem noBorder key="title">
+                <Left>
+                  <Text style={{ ...styles.minusIngredient, fontSize: 20, marginLeft: 40 }}>Ingredient</Text>
+                </Left>
+               <Body>
+                 <Text style={{ ...styles.minusIngredient, fontSize: 20, marginLeft: 45 }}>Amount</Text>
+               </Body>
+             </ListItem>
+              {
              Object.keys(this.state.ingredients)
              .map(item =>
-               <ListItem noBorder key={this.state.ingredients[item].key}>
+                <ListItem noBorder key={this.state.ingredients[item].key} style={{...styles.listItemInRecipe}}>
                      <Left>
-                     <Thumbnail
-                       style={{ ...styles.thumbnl }}
-                       source={require('../helperFiles/sushi.jpg')}
-                     />
-                   <Text style={{ ...styles.detailRecipeRowText }}>{this.state.ingredients[item].name}</Text>
-                       </Left>
+                       <Thumbnail
+                         style={{ ...styles.thumbnl }}
+                         source={require('../helperFiles/sushi.jpg')}
+                       />
+                       <Text style={{ ...styles.detailRecipeRowText }}>{this.state.ingredients[item].name}</Text>
+
+                      </Left>
                     <Right>
-                        <Button transparent><Text style={{ ...styles.minusIngredient }}>{this.state.ingredients[item].amount + "   "} </Text>
-                        <Icon name="md-remove-circle" style={{ ...styles.minusIngredient }}/></Button>
-                    </Right>
-                  </ListItem>)
-          }
-
-            <ListItem style={{ ...styles.right, ...styles.minusIngredientButton }}>
-              <Button
-                transparent
-                >
-                <Text style={{ ...styles.minusIngredient }}> Odobrať všetky </Text>
-                <Icon name="md-remove-circle" style={{ ...styles.minusIngredient }}/>
-              </Button>
-            </ListItem>
+                   <Button transparent style={{ margin: 0, padding: 0}}>
+                     <Text style={{ ...styles.minusIngredient,  marginTop: -5, padding: 0,}}>{this.state.ingredients[item].amount + "   "} </Text>
+                     <Icon name="md-remove-circle" style={{ ...styles.minusIngredient,  marginTop: -5, padding: 0,}}/>
+                  </Button>
+                 </Right>
+                </ListItem>
+             )
+              }
+              <ListItem style={{ ...styles.right, ...styles.minusIngredientButton }}>
+                <Button transparent>
+                  <Text style={{ ...styles.minusIngredient }}> Odobrať všetky </Text>
+                  <Icon name="md-remove-circle" style={{ ...styles.minusIngredient }}/>
+                </Button>
+              </ListItem>
           </List>
+        </Card>
 
 
-          <Card>
-            <CardItem header>
-              <Text>Steps</Text>
-            </CardItem>
-            <CardItem>
-              <Body>
-                <Text> {this.state.body}</Text>
-              </Body>
-            </CardItem>
+          <Card transparent style={{ ...styles.listCard}}>
+              <Text style={{ ...styles.stepsCardHeader}}> Steps</Text>
+                <Text style={{ ...styles.stepsCardBody}}> {this.state.body}</Text>
           </Card>
 
           </Content>

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import { Drawer, Card, Content, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index.android';
@@ -141,15 +141,38 @@ export default class EditRecipes extends Component {
             <Form>
                <Item>
                  <Input
-                   style={{  ...styles.acordionText }}
+                   style={{  ...styles.formTitle }}
                    placeholder="Enter name"
+                   placeholderTextColor='rgb(255, 184, 95)'
                    value={this.state.name}
                    onChangeText={(text) => this.setState({name: text})}/>
                </Item>
+               <Card transparent style={{ ...styles.formCard}}>
+                 <Grid >
+                   <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
+                     <Col size={35}>
+                       <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
+                         Ingredient
+                       </Text>
+                     </Col>
+                   <Col size={30}>
+                     <Text style={{marginLeft: 15, ...styles.DARK_PEACH}}>
+                       Amount
+                     </Text>
+                   </Col>
+                     <Col size={25}>
+                       <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
+                         Unit
+                       </Text>
+                     </Col>
+                    <Col size={10}>
+                    </Col>
 
+                 </Row>
                   {
                     Object.keys(this.state.ingredientsInRecipe).map(key =>
-                      <Item>
+                      <Row size={10} >
+                        <Col size={35}>
                         <Picker
                           mode="dropdown"
                           style={{ ...styles.ingredientPicker }}
@@ -164,7 +187,9 @@ export default class EditRecipes extends Component {
                           }>
                           {PICKER_ITEMS}
                           </Picker>
+                        </Col>
 
+                        <Col size={30}>
                           <Input
                            style={{ ...styles.amountInput }}
                            value={this.state.ingredientsInRecipe[key].amount.substring(0, this.state.ingredientsInRecipe[key].amount.indexOf(" "))}
@@ -178,7 +203,9 @@ export default class EditRecipes extends Component {
                                  });
                              }
                            }/>
+                         </Col>
 
+                         <Col size={25}>
                            <Picker
                                mode="dropdown"
                                style={{ ...styles.unitPicker }}
@@ -209,34 +236,43 @@ export default class EditRecipes extends Component {
 
                             <Picker.Item key="9" label="cup" value="cup"/>
                            </Picker>
+                         </Col>
 
+                         <Col size={10}>
                            <Icon name='md-remove-circle' style={{ ...styles.minusIngredient }} onPress={() => this.removeIngredient(key)}/>
 
-                      </Item>
+                           </Col>
+                       </Row>
                     )}
 
-                    <Item>
-                     <Picker
-                       mode="dropdown"
-                       style={{ ...styles.ingredientPicker }}
-                       selectedValue={this.state.newIngredientName}
-                       onValueChange={(itemValue, itemIndex) =>
-                                         this.setState({
-                                           newIngredientName: itemValue
-                                         })
-                       }>
+                    <Row size={10}>
+                      <Col size={35}>
+                       <Picker
+                         mode="dropdown"
+                         style={{ ...styles.ingredientPicker }}
+                         selectedValue={this.state.newIngredientName}
+                         onValueChange={(itemValue, itemIndex) =>
+                                           this.setState({
+                                             newIngredientName: itemValue
+                                           })
+                         }>
 
-                       {PICKER_ITEMS}
-                      </Picker>
-                        <Input
-                         style={{ ...styles.amountInput }}
-                         value={this.state.newIgredientAmount}
-                         onChangeText={(text) =>
-                           this.setState({
-                             newIngredientAmount: text
-                           })
-                         }/>
+                         {PICKER_ITEMS}
+                        </Picker>
+                      </Col>
 
+                       <Col size={30}>
+                          <Input
+                           style={{ ...styles.amountInput }}
+                           value={this.state.newIgredientAmount}
+                           onChangeText={(text) =>
+                             this.setState({
+                               newIngredientAmount: text
+                             })
+                           }/>
+                       </Col>
+
+                       <Col size={25}>
                          <Picker
                             mode="dropdown"
                             style={{ ...styles.unitPicker }}
@@ -263,16 +299,26 @@ export default class EditRecipes extends Component {
 
                            <Picker.Item key="9" label="cup" value="cup"/>
                           </Picker>
+                         </Col>
 
-                         <Icon name='md-add' style={{ ...styles.minusIngredient }} onPress={this.addNewIngredient.bind(this)}/>
+                        <Col size={10}>
+                          <Icon name='md-add' style={{ ...styles.minusIngredient }} onPress={this.addNewIngredient.bind(this)}/>
+                        </Col>
 
-                      </Item>
-                      <Textarea
-                       rowSpan={5}
-                       bordered
-                       placeholder="Steps"
-                       onChangeText={(text) => this.setState({body: text})}
-                       value={this.state.body}/>
+                        </Row>
+                       </Grid>
+                     </Card>
+
+                     <Card transparent style={{ ...styles.formCard}}>
+                        <Textarea
+                         rowSpan={5}
+                         bordered
+                         placeholder="Steps"
+                         placeholderTextColor='rgb(255, 184, 95)'
+                         style={{...styles.textArea}}
+                         onChangeText={(text) => this.setState({body: text})}
+                         value={this.state.body}/>
+                     </Card>
                 </Form>
 
             </Content>
