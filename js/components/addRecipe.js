@@ -368,9 +368,7 @@ export default class AddRecipe extends Component {
                           <Col size={30}>
                             <Input
                               style={{ ...styles.amountInput }}
-                              placeholder=""
-                              placeholderTextColor='rgb(255, 122, 90)'
-                              value={this.state.newIgredientAmount}
+                              value={this.state.newIngredientAmount}
                               onChangeText={(text) =>
                                 this.setState({
                                   newIngredientAmount: text

@@ -121,7 +121,7 @@ export default class Login extends Component {
         });
 
         if (store.getState().user !== null){
-          this.props.navigation.navigate('Recipes');
+          this.props.navigation.push('Recipes');
         }
       })
       .catch((error) => {
@@ -231,7 +231,7 @@ export default class Login extends Component {
                       </Item>
                     }
 
-                  { (this.state.password1.length > 0 && this.state.password2.length > 0 && this.state.password1 !== this.state.password2)
+                  { (this.state.showSignUp && this.state.password1.length > 0 && this.state.password2.length > 0 && this.state.password1 !== this.state.password2)
                     &&
                     <Item style={{ ...styles.errorItem }}>
                       <Icon active name='md-alert' style={{ ...styles.errorText }}/>

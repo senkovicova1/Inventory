@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import { Drawer,  Content, Card, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index.android';
@@ -86,6 +86,7 @@ export default class DetailInventory extends Component {
        FOOD = this.state.ingredients.filter(ing => Object.keys(this.state.foodInInventory).includes(ing.key)).map(ing => ({key: ing.key, name: ing.name, amount: this.state.foodInInventory[ing.key]}));
      }
 
+
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -105,12 +106,13 @@ export default class DetailInventory extends Component {
                }
                {(this.state.searchOpen)
                  &&
-                 <Item>
-                 <Input
-                   style={{ ...styles.headerItem}}
-                   placeholder="search"
-                   onChangeText={(text) => this.setState({searchedWord: text})}/>
-                 </Item>
+                   <View>
+                     <Input
+                       style={{ ...styles.headerItem}}
+                       placeholder="search"
+                       placeholderTextColor='rgb(0, 170, 160)'
+                       onChangeText={(text) => this.setState({searchedWord: text})}/>
+                   </View>
                }
                {(this.state.editTitle)
                  &&
@@ -147,7 +149,7 @@ export default class DetailInventory extends Component {
            </Header>
 
            <Content padder style={{ ...styles.content}}>
-             <Item>
+             <Item style={{ ...styles.formTitle }}>
                { !this.state.editNotes
                  &&
                <Text style={{ ...styles.formInvNotes }}>{this.state.notes}</Text>
@@ -157,12 +159,13 @@ export default class DetailInventory extends Component {
                  <Textarea
                    rowSpan={6}
                    style={{ ...styles.genericInputStretched }}
+
                    bordered
                    placeholder="Notes"
                    value={this.state.notes}
                    onChangeText={(text) => this.setState({notes: text})} />
                  }
-               <Right>
+                 <Right>
                  {
                    !this.state.editNotes
                    &&
@@ -173,22 +176,22 @@ export default class DetailInventory extends Component {
                      <Icon name="md-checkmark" style={{ ...styles.formInvNotes, fontSize: 20}} onPress={() => this.submitInv()}/>
                  }
                </Right>
-             </Item>
+               </Item>
 
-             <Text>{"   "}</Text>
-
-             <Button style={{ ...styles.acordionButton }} full onPress={()=> this.props.navigation.navigate('AddIngredient')} >
+             <Button style={{ ...styles.acordionButton }} full onPress={()=> this.props.navigation.navigate('AddIngredient', {inventoryId: this.state.key})} >
                <Icon active name='md-add' style={{ ...styles.acordionButtonText, fontSize: 26}} />
              </Button>
 
-             <List
-               dataArray={FOOD.filter(ing => ing.name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))} renderRow={data =>
-                 <ListItem noBorder>
-                   <Left><Text style={{ ...styles.detailRecipeRowText }}>{data.name}</Text></Left>
-                   <Right><Text style={{ ...styles.detailRecipeRowText }}>{data.amount}</Text></Right>
-                 </ListItem>
-               }
-             />
+             <Card transparent style={{ ...styles.listCard}}>
+               <List
+                 dataArray={FOOD.filter(ing => ing.name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))} renderRow={data =>
+                   <ListItem noBorder>
+                     <Left><Text style={{ ...styles.detailRecipeRowText }}>{data.name}</Text></Left>
+                     <Right><Text style={{ ...styles.detailRecipeRowTextAmount }}>{data.amount}</Text></Right>
+                   </ListItem>
+                 }
+               />
+             </Card>
            </Content>
          </Container>
        </Drawer>

@@ -55,8 +55,6 @@ export default class EditRecipes extends Component {
      }
 
    submit(){
-     console.log("meh");
-
      let ings = {};
      Object.keys(this.state.ingredientsInRecipe).map(key =>
        ings[this.state.ingredientsInRecipe[key].key] = this.state.ingredientsInRecipe[key].amount);
@@ -110,6 +108,8 @@ export default class EditRecipes extends Component {
    };
 
   render() {
+    console.log(this.state.ingredientsInRecipe);
+
     const PICKER_ITEMS = this.state.ingredients.map(ingredient =>
                <Picker.Item key={ingredient.key} label={ingredient.name} value={ingredient.name} />
            );
@@ -264,7 +264,7 @@ export default class EditRecipes extends Component {
                        <Col size={30}>
                           <Input
                            style={{ ...styles.amountInput }}
-                           value={this.state.newIgredientAmount}
+                           value={this.state.newIngredientAmount}
                            onChangeText={(text) =>
                              this.setState({
                                newIngredientAmount: text

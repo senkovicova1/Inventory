@@ -10,7 +10,10 @@ export default {
   sidebar: {
     flex: 1,
     backgroundColor: colours.ACC_VIO,
-    top: -1
+  },
+  sidebarList: {
+    marginTop: 10,
+    height: deviceHeight*0.85,
   },
   sidebarIcon: {
     fontSize: 26,
@@ -20,12 +23,30 @@ export default {
     backgroundColor: 'transparent',
     alignSelf: 'center',
   },
+  sidebarInvList: {
+    width: '94%',
+    backgroundColor: colours.ACC_VIO_LIGHT,
+    borderRadius: 15,
+    alignSelf: 'center',
+    paddingTop: 15,
+    paddingBottom: 15
+  },
+  sidebarInvItem: {
+    marginLeft: 25,
+    height: 50,
+  },
   sidebarAddInvButton: {
     backgroundColor: colours.ACC_PEACH,
+    width: '94%',
+    alignSelf: 'center',
+    borderRadius: 8,
   },
   sidebarAddInvIcon: {
      color: colours.ACC_VIO,
      fontSize: 26,
+  },
+  sidebarSettings: {
+    bottom:0,
   },
   header: {
     backgroundColor: colours.ACC_TEAL,
@@ -77,6 +98,7 @@ export default {
     marginTop: deviceWidth*0.01,
     marginLeft: deviceWidth*0.01,
     marginRight: deviceWidth*0.01,
+    borderRadius: 8,
   },
   acordionButtonText: {
     color: colours.ACC_DARK_PEACH
@@ -136,6 +158,10 @@ export default {
     borderRadius: 5,
   },
   detailRecipeRowText: {
+      marginLeft: 10,
+      color: colours.ACC_DARK_PEACH,
+  },
+  detailRecipeRowTextAmount: {
       marginLeft: 10,
       color: colours.ACC_PEACH,
   },

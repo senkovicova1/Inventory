@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform} from 'react-native';
-import { Content, Text, List, ListItem, Icon, Container, Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import { Content, Text, List, ListItem, Card, Icon, Container, Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 
 import { rebase } from '../../index.android';
 import store from "../store/index";
@@ -53,7 +53,8 @@ export default class Sidebar extends Component {
           bounces={false}
           style={styles.sidebar}
         >
-        <List>
+
+        <List style={{ ...styles.sidebarList}}>
           <ListItem button noBorder onPress={() => { this.props.closeDrawer(); this.props.navigation.navigate('Recipes'); }} >
             <Left>
               <Icon active name='md-book' style={styles.sidebarIcon} />
@@ -70,40 +71,41 @@ export default class Sidebar extends Component {
             </Left>
 
           </ListItem>
+
           {
             this.state.showStuff &&
-              <List
-              dataArray={this.state.inventories} renderRow={data =>
-                <ListItem button noBorder  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Inventory', {title: data.name, id: data.key, notes: data.notes}); }}>
-                  <Left>
-                    <Thumbnail
-                      style={styles.stretch}
-                      source={require('../helperFiles/sushi.jpg')}
-                    />
-                  <Text style={styles.text}>{data.name}</Text>
-                  </Left>
-                </ListItem> } />
+                <Button block style={{ ...styles.sidebarAddInvButton}}  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('AddInventory');}} >
+                  <Icon active name='md-add' style={{ ...styles.sidebarAddInvIcon}} />
+                </Button>
+          }
+          {
+            this.state.showStuff &&
+                <Card style={{ ...styles.sidebarInvList}} transparent >
+                  <List
+                  dataArray={this.state.inventories}
+                  renderRow={data =>
+                    <ListItem button style={{...styles.sidebarInvItem}} noBorder  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Inventory', {title: data.name, id: data.key, notes: data.notes}); }}>
+                      <Left>
+                        <Thumbnail
+                          style={styles.stretch}
+                          source={require('../helperFiles/sushi.jpg')}
+                        />
+                      <Text style={styles.text}>{data.name}</Text>
+                      </Left>
+                    </ListItem> } />
+                </Card>
               }
 
-              {
-                this.state.showStuff &&
-                    <Button block style={{ ...styles.sidebarAddInvButton}}  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('AddInventory');}} >
-                     <Icon active name='md-add' style={{ ...styles.sidebarAddInvIcon}} />
-                    </Button>
-              }
+          </List>
 
-              <ListItem  noBorder >
-              </ListItem>
-
-            <ListItem button noBorder onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Settings');}} >
-              <Left>
-                <Icon active name='md-settings' style={styles.sidebarIcon} />
-                <Text style={styles.text}>Nastavenia</Text>
-              </Left>
-              <Right style={{ flex: 1 }}>
-              </Right>
-            </ListItem>
-        </List>
+          <ListItem button noBorder style={{...styles.sidebarSettings}} onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Settings');}} >
+            <Left>
+              <Icon active name='md-settings' style={{...styles.sidebarIcon}} />
+              <Text style={{...styles.text}}>Nastavenia</Text>
+            </Left>
+            <Right style={{ flex: 1 }}>
+            </Right>
+          </ListItem>
 
         </Content>
       </Container>

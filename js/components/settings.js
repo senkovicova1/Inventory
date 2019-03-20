@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
-import { Container, Header, Title, Card, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
+import {Image, Platform} from 'react-native';
+import { Container, Drawer, Header, View, Title, Card, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
+
+import Sidebar from './sidebar';
 
 import store from "../store/index";
 import { logUser, logOffUser } from "../actions/index";
 
 import firebase from 'firebase';
+import { rebase } from '../../index.android';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 //import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
@@ -27,17 +31,39 @@ export default class Settings extends Component {
     this.props.navigation.push('Login');
   }
 
+  closeDrawer = () => {
+    this.drawer._root.close()
+  };
+  openDrawer = () => {
+    this.drawer._root.open()
+  };
+
     render() {
       console.log("settings");
       console.log(store.getState().user.providerData);
       return (
+        <Drawer
+          ref={(ref) => { this.drawer = ref; }}
+          content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
+          onClose={() => this.closeDrawer()} >
+
         <Container>
-          <Content
-              style={styles.login}>
-              <Text>Settings</Text>
+          <Header style={{ ...styles.header }}>
+            <Left>
+              <Button transparent  onPress={() => this.openDrawer()}>
+                <Icon name="menu" style={{ ...styles.headerItem }}/>
+              </Button>
+            </Left>
+            <Body>
+                <Title style={{ ...styles.headerItem }}> Settings</Title>
+            </Body>
+          </Header>
+
+          <Content style={styles.content}>
 
             {(store.getState().user.providerData[0].providerId === 'facebook.com')
               &&
+              <View style={{ alignSelf: 'center'}}>
               <LoginButton
                 readPermissions={['public_profile', 'email']}
                 onLoginFinished={
@@ -46,12 +72,14 @@ export default class Settings extends Component {
                   }
                 }
                 onLogoutFinished={() => this.signOut()}/>
+            </ View>
             }
             {(store.getState().user.providerData[0].providerId !== 'facebook.com')
               &&
               <Button
-                onPress={() => this.signOut()} >
-                <Text>
+                onPress={() => this.signOut()}
+                styles={{...styles.signUpButton, ...styles.center}}>
+                <Text style={{...styles.logInOutButtonText, ...styles.center}}>
                 Sign out
                 </Text>
               </Button>
@@ -59,6 +87,7 @@ export default class Settings extends Component {
 
           </Content>
           </Container>
+        </Drawer>
       );
     }
 }
