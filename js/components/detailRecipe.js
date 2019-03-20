@@ -16,7 +16,7 @@ export default class DetailRecipe extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showID: false,
+        showID: false,
         name: this.props.navigation.getParam('rec', 'NO-ID').name,
         key: this.props.navigation.getParam('rec', 'NO-ID').key,
         body: this.props.navigation.getParam('rec', 'NO-ID').body,
@@ -37,15 +37,28 @@ export default class DetailRecipe extends Component {
          })
        });
   }
-
   componentWillReceiveProps(){
-    this.state = {
+    this.setState({
       showID: false,
         name: this.props.navigation.getParam('rec', 'NO-ID').name,
         key: this.props.navigation.getParam('rec', 'NO-ID').key,
         body: this.props.navigation.getParam('rec', 'NO-ID').body,
         ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients,
-    };
+    });
+
+    rebase.fetch(`ingredients`, {
+         context: this,
+         withIds: true,
+         asArray: true,
+       }).then((ings) => {
+         let actualIngs = Object.keys(this.state.ingredients).map(key => {
+           let name = ings.filter(ingredient => ingredient.key === key.toString()).map(ingredient => ingredient.name)[0];
+           return ({name, amount: this.state.ingredients[key], key: key.toString()});
+         });
+         this.setState({
+           ingredients: actualIngs,
+         })
+       });
   }
 
   closeDrawer = () => {
@@ -56,6 +69,7 @@ export default class DetailRecipe extends Component {
   };
 
   render() {
+
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}

@@ -1,6 +1,7 @@
 import React from 'react';
 
 export const ACC_VIO = 'rgb(124, 90, 150)';
+export const ACC_VIO_LIGHT = 'rgb(104, 70, 130)';
 export const ACC_CREAM = 'rgb(252, 244, 217)';
 export const ACC_PEACH = 'rgb(255, 184, 95)';
 export const ACC_PEACH_A = 'rgba(255, 184, 95, 0.2)';
