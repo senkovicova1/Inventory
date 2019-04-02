@@ -1,4 +1,4 @@
-import {AppRegistry} from 'react-native';
+import {AppRegistry, YellowBox} from 'react-native';
 
 import config from './js/firebase-config';
 import App from './js/App';
@@ -7,6 +7,13 @@ import * as firebase from 'firebase';
 import Rebase from 're-base';
 import 'firebase/firestore';
 
+YellowBox.ignoreWarnings([
+  'Setting a timer',
+  'ListView is deprecated',
+  'Warning: Each child',
+])
+
+//console.disableYellowBox = true;
 
 /*import { GoogleSignin } from 'react-native-google-signin';
 

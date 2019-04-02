@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
-import {Image, Platform} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
+import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
+//import { RNCamera } from 'react-native-camera';
+
 import Sidebar from './sidebar';
 
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import firebase from 'firebase';
 
 import store from "../store/index";
@@ -28,7 +30,15 @@ export default class AddIngredient extends Component {
 
         viaBarcode: false,
         viaForm: false,
+
+
+        showUnsaved: false,
+        changed: false,
     };
+
+    this.handleBackPress.bind(this);
+
+    this.takePicture.bind(this);
 
     this.addNewIngredient.bind(this);
     this.toggleCode.bind(this);
@@ -83,6 +93,7 @@ export default class AddIngredient extends Component {
               viaBarcode: false,
               viaForm: false,
 
+              changed: false,
             });
         });
       }
@@ -115,10 +126,13 @@ export default class AddIngredient extends Component {
       };
       this.setState({
         chosenIngredients: newChosenIngredients,
+
         newIngredientName: "",
         newIngredientUnit: "",
         newIngredientAmount: "",
         newIngredientId: "",
+
+        changed: true
       });
     }
 
@@ -127,8 +141,29 @@ export default class AddIngredient extends Component {
       delete newChosenIngredients[key];
         this.setState({
           newChosenIngredients: chosenIngredients,
+
+          changed: true
         });
     }
+
+  componentDidMount() {
+      BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+    }
+
+  componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+  }
+
+  handleBackPress = () => {
+    if (this.state.changed && !this.state.showUnsaved){
+      this.setState({
+        showUnsaved: true
+      });
+      return true;
+    } else if (this.state.showUnsaved || !this.state.changed){
+      return false;
+    }
+  }
 
   closeDrawer = () => {
     this.drawer._root.close()
@@ -137,14 +172,23 @@ export default class AddIngredient extends Component {
     this.drawer._root.open()
   };
 
+/*  takePicture = async function() {
+    console.log("hum?");
+      if (this.camera) {
+        console.log("here");
+        const options = { quality: 0.5, base64: true };
+        const data = await this.camera.takePictureAsync(options);
+        console.log(data.uri);
+      }
+    };*/
+
   render() {
-    console.log("loggin");
     const PICKER_ITEMS = this.state.ingredients.map(ingredient =>
                 <Picker.Item key={ingredient.key} label={ingredient.name} value={ingredient.name} />
             );
            PICKER_ITEMS.unshift(<Picker.Item key="0" label="" value=""/>);
-           console.log(this.state.ingredients);
-Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngredients[key]));
+      //     console.log(this.state.ingredients);
+      //     Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngredients[key]));
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -153,7 +197,7 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
-              <Button transparent onPress={() => this.props.navigation.goBack()}>
+              <Button transparent onPress={() => this.handleBackPress()}>
                 <Icon name="md-close" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
@@ -172,18 +216,46 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
 
           <Content style={{ ...styles.content}} >
 
+            {this.state.showUnsaved
+              &&
+              Toast.show({
+                text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                duration: 4000,
+                type: 'danger'
+              })
+            }
+
             <Button block style={{ ...styles.acordionButton }} onPress={() => this.setState({viaBarcode: !this.state.viaBarcode})}>
                 <Text style={{ ...styles.acordionButtonText }}>Scan barcode</Text>
             </Button>
 
             {
-              this.state.viaBarcode
-              &&
-              <Item>
-                <Text>Here be barcode scanner</Text>
-              </Item>
+          //    this.state.viaBarcode
+            //  &&
             }
 
+        {/*    <View style={{flex: 1, flexDirection: 'column', backgroundColor: 'black'}}>
+            <RNCamera
+              ref={ref => {
+                console.log("uh");
+                this.camera = ref;
+              }}
+              style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'center'}}
+              type={RNCamera.Constants.Type.back}
+              flashMode={RNCamera.Constants.FlashMode.on}
+              permissionDialogTitle={'Permission to use camera'}
+              permissionDialogMessage={'We need your permission to use your camera phone'}
+              onGoogleVisionBarcodesDetected={({ barcodes }) => {
+                console.log(barcodes);
+              }}
+            />
+              <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
+                <TouchableOpacity onPress={this.takePicture.bind(this)} style={{flex: 0, backgroundColor: '#fff', borderRadius: 5, padding: 15, paddingHorizontal: 20, alignSelf: 'center', margin: 20,}}>
+                  <Text style={{ fontSize: 14 }}> SNAP </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          */}
 
             <Button block style={{ ...styles.acordionButton }} onPress={this.toggleForm.bind(this)}>
                 <Text style={{ ...styles.acordionButtonText }}>Add manually</Text>
@@ -229,6 +301,7 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
                                          newChosenIngredients[key].name = itemValue;
                                          this.setState({
                                             chosenIngredients: newChosenIngredients,
+                                            changed: true
                                           });
                                         }
                          }>
@@ -248,6 +321,7 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
                                         newChosenIngredients[key].amount = text;
                                         this.setState({
                                           chosenIngredients: newChosenIngredients,
+                                          changed: true
                                         });
                                       }
                           }/>
@@ -263,6 +337,7 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
                                                 newChosenIngredients[key].unit = itemValue;
                                                this.setState({
                                                  chosenIngredients: newChosenIngredients,
+                                                 changed: true
                                                });
                                              }
                            }>
@@ -302,6 +377,7 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
                                           this.setState({
                                             newIngredientName: itemValue,
                                             newIngredientId: itemIndex,
+                                            changed: true
                                           })
                         }>
 
@@ -315,7 +391,8 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
                           value={this.state.newIngredientAmount}
                           onChangeText={(text) =>
                             this.setState({
-                              newIngredientAmount: text
+                              newIngredientAmount: text,
+                              changed: true
                             })
                           }/>
                       </Col>
@@ -327,7 +404,8 @@ Object.keys(this.state.ingredients).map(key => console.log(this.state.chosenIngr
                            selectedValue={this.state.newIngredientUnit}
                            onValueChange={(itemValue, itemIndex) =>
                                             this.setState({
-                                              newIngredientUnit: itemValue
+                                              newIngredientUnit: itemValue,
+                                              changed: true
                                             })
                         }>
                           <Picker.Item key="0" label="" value=""/>

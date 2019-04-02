@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import {Image, Platform} from 'react-native';
+import {Image, Platform, BackHandler} from 'react-native';
 import { Container, Content, Header, Title, Card, CardItem, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
 
 import store from "../store/index";
 import { logUser, logOffUser } from "../actions/index";
 
 import firebase from 'firebase';
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 import {isEmail} from '../helperFiles/helperFunctions.js';
@@ -34,12 +34,15 @@ export default class Login extends Component {
     };
 
 
+    this.handleBackPress.bind(this);
     this.register.bind(this);
     this.login.bind(this);
     this.onLoginOrRegister.bind(this);
   }
 
   componentDidMount() {
+      BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+
       this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
         store.dispatch(logUser({user: firebase.auth().currentUser}));
 
@@ -50,7 +53,14 @@ export default class Login extends Component {
     }
 
   componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+
     this.authSubscription();
+  }
+
+  handleBackPress = () => {
+    this.props.navigation.navigate("Login");
+    return true;
   }
 
     login(){

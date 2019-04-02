@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {Image, Platform} from 'react-native';
 import { Content, Text, List, ListItem, Card, Icon, Container, Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import store from "../store/index";
 
 import styles from '../style';

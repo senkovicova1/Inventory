@@ -8,7 +8,7 @@ import store from "../store/index";
 import { logUser, logOffUser } from "../actions/index";
 
 import firebase from 'firebase';
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 //import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
