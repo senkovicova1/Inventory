@@ -57,6 +57,14 @@ export default {
   content: {
     backgroundColor: colours.ACC_CREAM,
   },
+  camera: {
+    width: deviceWidth*0.90,
+    alignSelf: 'center',
+    marginTop: 150,
+    marginBottom: 150,
+//    flexDirection: 'row',
+    backgroundColor: 'black'
+  },
   picker: {
     color: colours.ACC_TEAL,
     marginLeft: deviceWidth*0.01,

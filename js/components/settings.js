@@ -19,8 +19,6 @@ export default class Settings extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-    };
     this.signOut.bind(this);
   }
 
@@ -40,7 +38,7 @@ export default class Settings extends Component {
 
     render() {
       console.log("settings");
-      console.log(store.getState().user.providerData);
+      console.log(this.drawer);
       return (
         <Drawer
           ref={(ref) => { this.drawer = ref; }}

@@ -38,17 +38,39 @@ export default class DetailInventory extends Component {
   }
 
   componentDidMount(){
-        rebase.syncState(`foodInInventory/${this.state.key}`, {
+      this.ref1 = rebase.syncState(`foodInInventory/${this.state.key}`, {
           context: this,
           state: 'foodInInventory',
           withIds: true,
         });
-        rebase.syncState(`ingredients`, {
+      this.ref2 = rebase.syncState(`ingredients`, {
           context: this,
           state: 'ingredients',
           withIds: true,
           asArray: true,
         });
+    }
+
+    componentWillReceiveProps(){
+      rebase.removeBinding(this.ref1);
+      this.ref1 = rebase.syncState(`foodInInventory/${this.props.navigation.getParam('id', 'NO-ID')}`, {
+          context: this,
+          state: 'foodInInventory',
+          withIds: true,
+        });
+      this.setState({
+        name: this.props.navigation.getParam('title', 'NO-ID'),
+        notes: this.props.navigation.getParam('notes', 'NO-ID'),
+        key: this.props.navigation.getParam('id', 'NO-ID'),
+
+        editTitle: false,
+        editNotes: false,
+
+        showID: false,
+
+        searchOpen: false,
+        searchedWord: '',
+      });
     }
 
     addItem(newItem){
