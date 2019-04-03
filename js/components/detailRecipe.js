@@ -20,7 +20,8 @@ export default class DetailRecipe extends Component {
         name: this.props.navigation.getParam('rec', 'NO-ID').name,
         key: this.props.navigation.getParam('rec', 'NO-ID').key,
         body: this.props.navigation.getParam('rec', 'NO-ID').body,
-        ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients,
+        ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients ,
+        image: this.props.navigation.getParam('rec', 'NO-ID').image,
     };
 
     rebase.fetch(`ingredients`, {
@@ -37,6 +38,11 @@ export default class DetailRecipe extends Component {
          })
        });
   }
+
+  changeAmount(id, amount){
+
+  }
+
   componentWillReceiveProps(){
     this.setState({
       showID: false,
@@ -44,6 +50,7 @@ export default class DetailRecipe extends Component {
         key: this.props.navigation.getParam('rec', 'NO-ID').key,
         body: this.props.navigation.getParam('rec', 'NO-ID').body,
         ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients,
+        image: this.props.navigation.getParam('rec', 'NO-ID').image,
     });
 
     rebase.fetch(`ingredients`, {
@@ -79,7 +86,7 @@ export default class DetailRecipe extends Component {
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
-              <Button transparent onPress={() => this.props.navigation.goBack()}>
+              <Button transparent onPress={() => this.props.navigation.navigate("Recipes", {nom: "nom"})}>
                 <Icon name="arrow-back" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
@@ -89,7 +96,7 @@ export default class DetailRecipe extends Component {
             </Body>
             <Right>
               <Button transparent><Icon name="md-share-alt" style={{ ...styles.headerItem }} onPress={() => this.setState({showID: !this.state.showID })}/><Text></Text></Button>
-              <Button transparent><Icon name="md-create" style={{ ...styles.headerItem }} onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.body, ingredients: this.state.ingredients})}/><Text></Text></Button>
+              <Button transparent><Icon name="md-create" style={{ ...styles.headerItem }} onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.body, ingredients: this.state.ingredients, image: this.state.image})}/><Text></Text></Button>
             </Right>
 
           </Header>
@@ -98,7 +105,7 @@ export default class DetailRecipe extends Component {
 
               <Image
                 style={{ ...styles.image, ...styles.center }}
-                source={require('../helperFiles/sushi.jpg')}
+                source={{uri: this.state.image}}
                 />
            <Card transparent style={{ ...styles.listCard }}>
              <List >
@@ -123,18 +130,16 @@ export default class DetailRecipe extends Component {
 
                       </Left>
                     <Right>
-                   <Button transparent style={{ margin: 0, padding: 0}}>
-                     <Text style={{ ...styles.minusIngredient,  marginTop: -5, padding: 0,}}>{this.state.ingredients[item].amount + "   "} </Text>
-                     <Icon name="md-remove-circle" style={{ ...styles.minusIngredient,  marginTop: -5, padding: 0,}}/>
-                  </Button>
-                 </Right>
+                     <Button transparent style={{ margin: 0, padding: 0}}>
+                        <Text style={{ ...styles.minusIngredient,  marginTop: -5, padding: 0,}}>{this.state.ingredients[item].amount + "   "} </Text>
+                      </Button>
+                   </Right>
                 </ListItem>
              )
               }
               <ListItem style={{ ...styles.right, ...styles.minusIngredientButton }}>
                 <Button transparent>
                   <Text style={{ ...styles.minusIngredient }}> Uvariť </Text>
-                  <Icon name="md-remove-circle" style={{ ...styles.minusIngredient }}/>
                 </Button>
               </ListItem>
           </List>

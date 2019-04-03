@@ -1,15 +1,31 @@
 import React, {Component} from 'react';
-import {Image, Platform, BackHandler} from 'react-native';
-import { Drawer, Card, Content, Header, Toast, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
+import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View, Dimensions} from 'react-native';
+import { Drawer, Card, Content, Header, Toast, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
+import { RNCamera } from 'react-native-camera';
+
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
 import firebase from 'firebase';
-import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 import store from "../store/index";
 
 import styles from '../style';
+
+
+
+const PendingView = () => (
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: 'lightgreen',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+    >
+    <Text>Waiting</Text>
+  </View>
+);
 
 export default class AddRecipe extends Component {
 
@@ -18,6 +34,7 @@ export default class AddRecipe extends Component {
     this.state = {
         title: "",
         body: "",
+        image: null,
         ingredients: [],
         chosenIgredientsName: {},
         chosenIgredientsAmount: {},
@@ -32,7 +49,7 @@ export default class AddRecipe extends Component {
 
         recipeIDs: [],
 
-        selected2: undefined,
+        takePic: false,
 
         searchOpen: false,
 
@@ -87,6 +104,9 @@ export default class AddRecipe extends Component {
         }
 
         if (this.state.title !== ""){
+          if (this.state.image){
+          }
+
           rebase.post(`recipeAccess/${id}`, {
             data: {userID: USER_ID, recID: id}
           }).then(newLocation => {
@@ -98,7 +118,7 @@ export default class AddRecipe extends Component {
                 return 0;
               });
               rebase.post(`recipes/${id}`, {
-                data: {name: this.state.title, body: this.state.body, ingredients: ings}
+                data: {name: this.state.title, body: this.state.body, ingredients: ings, image: this.state.image}
               })
           });
         }
@@ -222,7 +242,19 @@ export default class AddRecipe extends Component {
     this.drawer._root.open()
   };
 
+  takePicture = async function(camera) {
+      const options = { quality: 0.5, base64: true };
+      const data = await camera.takePictureAsync(options);
+        this.setState({
+          image: data.uri,
+          takePic: false,
+        })
+    };
+
+
   render() {
+    const deviceHeight = Dimensions.get('window').height;
+    const deviceWidth = Dimensions.get('window').width;
     const PICKER_ITEMS = this.state.ingredients.map(ingredient =>
                 <Picker.Item key={ingredient.key} label={ingredient.name} value={ingredient.name} />
             );
@@ -299,13 +331,53 @@ export default class AddRecipe extends Component {
                 this.state.viaForm
                 &&
                 <Form>
-                  <Item>
                     <Input
                       style={{ ...styles.formTitle }}
                       placeholder="Enter name"
                       placeholderTextColor='rgb(255, 184, 95)'
                       onChangeText={(text) => this.handleTitle(text)}/>
-                  </Item>
+
+                {this.state.image
+                  &&
+                  <Image
+                    style={{ ...styles.image, ...styles.center }}
+                    source={{uri: this.state.image}}
+                    />
+                }
+
+                <Button block style={{ ...styles.acordionButton }} onPress={() => this.setState({takePic: !this.state.takePic})}>
+                    <Text style={{ ...styles.acordionButtonText }}>{this.state.image ? "Zmeniť fotku" : "Pridať fotku"}</Text>
+                </Button>
+
+
+              {this.state.takePic
+                &&
+                <Card style={{...styles.camera, marginBottom: 0}}>
+                 <RNCamera
+                   style={{marginTop: -140}}
+                   type={RNCamera.Constants.Type.back}
+                   flashMode={RNCamera.Constants.FlashMode.auto}
+                   captureAudio={false}
+                   ratio='1:1'
+                   permissionDialogTitle={'Permission to use camera'}
+                   permissionDialogMessage={'We need your permission to use your camera phone'}
+                 >
+                   {({ camera, status, recordAudioPermissionStatus }) => {
+                     if (status !== 'READY') return <PendingView />;
+                     return (
+                         /*<Button onPress={() => this.takePicture(camera)} style={{...styles.acordionButton, marginBottom: deviceWidth*(-0.68)}}>
+                           <Text style={{ ...styles.acordionButtonText, }}> Odfotiť </Text>
+                         </Button>*/
+                           <Button onPress={() => this.takePicture(camera)} style={{...styles.acordionButton, marginTop: 290}}>
+                             <Text style={{ ...styles.acordionButtonText, }}> Odfotiť </Text>
+                           </Button>
+                     );
+                   }}
+                 </RNCamera>
+               </Card>
+
+              }
+
 
                   <Card transparent style={{ ...styles.formCard}}>
                     <Grid >

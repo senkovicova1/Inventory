@@ -138,13 +138,14 @@ export default class DetailInventory extends Component {
                }
                {(this.state.editTitle)
                  &&
-                 <Item>
+                 <Item floatingLabel>
+                   <Label style={{ ...styles.headerItem}}>Change name</Label>
                  <Input
                    style={{ ...styles.headerItem}}
                    placeholder="change name"
                    value={this.state.name}
                    onChangeText={(text) => this.setState({name: text})}/>
-                 </Item>
+               </Item>
                }
              </Body>
              <Right>

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
+import { Drawer,  Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
 import { RNCamera } from 'react-native-camera';
 
 import Sidebar from './sidebar';
@@ -34,7 +34,7 @@ export default class AddIngredient extends Component {
 
       ingredients: [],
       ownedIngredients: {},
-      
+
       chosenIngredients: {},
 
       newIngredientId: "",
@@ -236,19 +236,21 @@ export default class AddIngredient extends Component {
     }
 
     addBarcode(code){
-      if (Object.keys(this.state.ingredients).includes(code)){
-        let newBarcodes = {...this.state.barcodes};
-        newBarcodes[code] = {...this.state.ingredients[code], pieces: 1},
-        this.setState({
-          barcodes: newBarcodes,
-          containsBarcode: true,
-        });
-      } else {
-        this.setState({
-          currentBarcode: code,
-          containsBarcode: false,
-        });
-      }
+        if (Object.keys(this.state.ingredients).includes(code)){
+          let newBarcodes = {...this.state.barcodes};
+          newBarcodes[code] = {...this.state.ingredients[code], pieces: 1},
+          //(Object.keys(this.state.barcodes).includes(code) ? parseInt(this.state.barcodes[code].pieces) + 1 : 1 )
+          this.setState({
+            barcodes: newBarcodes,
+            containsBarcode: true,
+          });
+        } else {
+          this.setState({
+            currentBarcode: code,
+            containsBarcode: false,
+          });
+        }
+
     }
 
     changeAmount(code, amount){
@@ -347,7 +349,7 @@ export default class AddIngredient extends Component {
               &&
 
               <View >
-                <Text> Hold barcode in front of the camera until you see information about the product.</Text>
+                <Text style={{ ...styles.acordionButtonText }}> Hold barcode in front of the camera until you see information about the product.</Text>
                 <Card style={{...styles.camera}}>
                  <RNCamera
                    style={{ /*flex: 1, justifyContent: 'flex-end',*/ alignItems: 'center'}}
@@ -380,13 +382,13 @@ export default class AddIngredient extends Component {
                    {  (this.state.currentBarcode.length > 0)
                      &&
                      <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
-                       <Text> {`Barcode value: ${this.state.currentBarcode}`} </Text>
+                       <Text style={{ ...styles.acordionButtonText }}> {`Barcode value: ${this.state.currentBarcode}`} </Text>
                      </Row>
                     }
                     {  (this.state.currentBarcode.length > 0 && !this.state.containsBarcode)
                       &&
                       <Row size={10} >
-                        <Text> There is no information about this product in our database. Please fill in the missing information below. </Text>
+                        <Text style={{ ...styles.acordionButtonText }}> There is no information about this product in our database. Please fill in the missing information below. </Text>
                       </Row>
                      }
                    {  (this.state.currentBarcode.length > 0 && !this.state.containsBarcode)
