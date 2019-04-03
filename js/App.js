@@ -6,6 +6,7 @@ import Navigator from './navigation';
 */
 import React, {Component} from "react";
 import { View, Text, Button } from "react-native";
+import { Root } from "native-base";
 import { createStackNavigator, createAppContainer } from "react-navigation";
 
 import Login from './components/login';
@@ -50,6 +51,9 @@ const AppContainer = createAppContainer(AppNavigator);
 
 export default class App extends React.Component {
   render() {
-    return <AppContainer />;
+    return (
+    <Root>
+      <AppContainer />
+    </Root>);
   }
 }

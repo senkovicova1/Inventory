@@ -3,7 +3,7 @@ import {Image, Platform} from 'react-native';
 import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Card, CardItem, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
@@ -89,7 +89,7 @@ export default class DetailRecipe extends Component {
             </Body>
             <Right>
               <Button transparent><Icon name="md-share-alt" style={{ ...styles.headerItem }} onPress={() => this.setState({showID: !this.state.showID })}/><Text></Text></Button>
-              <Button transparent><Icon name="md-create" style={{ ...styles.headerItem }} onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.name, ingredients: this.state.ingredients})}/><Text></Text></Button>
+              <Button transparent><Icon name="md-create" style={{ ...styles.headerItem }} onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.body, ingredients: this.state.ingredients})}/><Text></Text></Button>
             </Right>
 
           </Header>
@@ -133,7 +133,7 @@ export default class DetailRecipe extends Component {
               }
               <ListItem style={{ ...styles.right, ...styles.minusIngredientButton }}>
                 <Button transparent>
-                  <Text style={{ ...styles.minusIngredient }}> Odobrať všetky </Text>
+                  <Text style={{ ...styles.minusIngredient }}> Uvariť </Text>
                   <Icon name="md-remove-circle" style={{ ...styles.minusIngredient }}/>
                 </Button>
               </ListItem>

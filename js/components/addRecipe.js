@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
-import {Image, Platform} from 'react-native';
-import { Drawer, Card, Content, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
+import {Image, Platform, BackHandler} from 'react-native';
+import { Drawer, Card, Content, Header, Toast, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
@@ -38,9 +38,16 @@ export default class AddRecipe extends Component {
 
         viaCode: false,
         viaForm: false,
+
+        showUnsaved: false,
+        changed: false,
     };
 
+    this.handleBackPress.bind(this);
+
     this.addNewIngredient.bind(this);
+    this.removeIngredient.bind(this);
+
     this.handleWrittenCode.bind(this);
     this.handleTitle.bind(this);
     this.toggleCode.bind(this),
@@ -111,22 +118,18 @@ export default class AddRecipe extends Component {
         })
       }
 
-      onValueChange2(value: string) {
-        this.setState({
-          selected2: value
-        });
-      }
-
       handleWrittenCode(text){
         if (this.state.recipeIDs.includes(text)){
           this.setState({
             validCode: true,
             writtenCode: text,
+            changed: true
           });
         } else {
           this.setState({
             validCode: false,
             writtenCode: text,
+            changed: true
           });
         }
       }
@@ -134,6 +137,7 @@ export default class AddRecipe extends Component {
       handleTitle(text){
         this.setState({
           title: text,
+          changed: true
         });
       }
 
@@ -166,10 +170,50 @@ export default class AddRecipe extends Component {
               newIngredientName: "",
               newIngredientUnit: "",
               newIngredientAmount: "",
+
+              changed: true
             });
         }
       }
 
+      removeIngredient(key){
+        let newChosenIingredientsName = {...this.state.chosenIgredientsName};
+        delete newChosenIingredientsName[key];
+
+        let newChosenIingredientsUnit = {...this.state.chosenIgredientsUnit};
+        delete newChosenIingredientsUnit[key];
+
+        let newChosenIingredientsAmount = {...this.state.chosenIgredientsAmount};
+        delete newChosenIingredientsAmount[key];
+
+        this.setState({
+          chosenIgredientsName: newChosenIingredientsName,
+          chosenIgredientsUnit: newChosenIingredientsUnit,
+          chosenIgredientsAmount: newChosenIingredientsAmount,
+
+          changed: true,
+        });
+
+      }
+
+    componentDidMount() {
+        BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+      }
+
+    componentWillUnmount() {
+      BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+    }
+
+    handleBackPress = () => {
+      if (this.state.changed && !this.state.showUnsaved){
+        this.setState({
+          showUnsaved: true
+        });
+        return true;
+      } else if (this.state.showUnsaved || !this.state.changed){
+        return false;
+      }
+    }
 
   closeDrawer = () => {
     this.drawer._root.close()
@@ -211,6 +255,15 @@ export default class AddRecipe extends Component {
             </Header>
 
             <Content style={{ ...styles.content }} >
+
+              {this.state.showUnsaved
+                &&
+                Toast.show({
+                  text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                  duration: 4000,
+                  type: 'danger'
+                })
+              }
 
               <Button block style={{ ...styles.acordionButton }} onPress={this.toggleCode.bind(this)}>
                   <Text style={{ ...styles.acordionButtonText }}>Add Existing</Text>
@@ -289,6 +342,7 @@ export default class AddRecipe extends Component {
                                               newChosenIingredientsName[key] = itemValue;
                                               this.setState({
                                                  chosenIgredientsName: newChosenIingredientsName,
+                                                 changed: true
                                                });
                                              }
                               }>
@@ -308,6 +362,7 @@ export default class AddRecipe extends Component {
                                       newChosenIingredientsAmount[key] = text;
                                       this.setState({
                                         chosenIgredientsAmount: newChosenIngredientsAmount,
+                                        changed: true
                                       });
                                   }
                                 }/>
@@ -323,6 +378,7 @@ export default class AddRecipe extends Component {
                                                    newChosenIingredientsUnitt[key] = itemValue;
                                                     this.setState({
                                                       chosenIgredientsUnit: newChosenIingredientsUnit,
+                                                      changed: true
                                                     });
                                                   }
                                  }>
@@ -359,7 +415,8 @@ export default class AddRecipe extends Component {
                               selectedValue={this.state.newIngredientName}
                               onValueChange={(itemValue, itemIndex) =>
                                                 this.setState({
-                                                  newIngredientName: itemValue
+                                                  newIngredientName: itemValue,
+                                                  changed: true
                                                 })
                               }>
                                 {PICKER_ITEMS}
@@ -371,7 +428,8 @@ export default class AddRecipe extends Component {
                               value={this.state.newIngredientAmount}
                               onChangeText={(text) =>
                                 this.setState({
-                                  newIngredientAmount: text
+                                  newIngredientAmount: text,
+                                  changed: true
                                 })
                               }/>
                           </Col>
@@ -383,7 +441,8 @@ export default class AddRecipe extends Component {
                                selectedValue={this.state.newIngredientUnit}
                                onValueChange={(itemValue, itemIndex) =>
                                                 this.setState({
-                                                  newIngredientUnit: itemValue
+                                                  newIngredientUnit: itemValue,
+                                                  changed: true
                                                 })
                             }>
                             <Picker.Item key="0" label="" value=""/>
@@ -419,7 +478,7 @@ export default class AddRecipe extends Component {
                         placeholder="Steps"
                         placeholderTextColor='rgb(255, 184, 95)'
                         style={{...styles.textArea}}
-                        onChangeText={(text) => this.setState({body: text})}
+                        onChangeText={(text) => this.setState({body: text, changed: true})}
                         value={this.state.body}/>
                     </Card>
                 </Form>

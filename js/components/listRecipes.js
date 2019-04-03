@@ -1,15 +1,29 @@
 import React, {Component} from 'react';
-import {Image, Platform} from 'react-native';
-import { Drawer,  Card, Content, Header, Body, Title, Text, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
+import { Drawer,  Card, Content, Header, Body, Title, Text, List, Input, Item, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
+import { RNCamera } from 'react-native-camera';
 import Sidebar from './sidebar';
 
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 import store from "../store/index";
 
 import styles from '../style';
+
+const PendingView = () => (
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: 'lightgreen',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+    >
+    <Text>Waiting</Text>
+  </View>
+);
 
 export default class ListRecipes extends Component {
 
@@ -23,8 +37,12 @@ export default class ListRecipes extends Component {
 
       recipes: [],
       inventories: [],
+
+      text: "nothing now",
     };
 
+
+    this.handleBackPress.bind(this);
     this.toggleSearch.bind(this);
     this.onValueChange.bind(this);
     this.addItem.bind(this);
@@ -86,6 +104,20 @@ export default class ListRecipes extends Component {
       });
     }
 
+    componentDidMount() {
+        BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+      }
+
+      componentWillUnmount() {
+        BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+      }
+
+      handleBackPress = () => {
+        this.props.navigation.navigate("Recipes");
+        return true;
+      }
+
+
     closeDrawer = () => {
       this.drawer._root.close()
     };
@@ -93,6 +125,25 @@ export default class ListRecipes extends Component {
       this.drawer._root.open()
     };
 
+/*    takePicture = async function() {
+      console.log("hum?");
+        if (this.camera) {
+          this.setState({searchedWord: "sushi"});
+          console.log("here");
+          const options = { quality: 0.5, base64: true };
+          const data = await this.camera.takePictureAsync(options);
+          console.log(data.uri);
+        }
+      };*/
+
+
+    takePicture = async function(camera) {
+        const options = { quality: 0.5, base64: true };
+        const data = await camera.takePictureAsync(options);
+        //  eslint-disable-next-line
+        this.setState({text: data.uri});
+//        console.log(data.uri);
+      };
 
   render() {
     return (
@@ -137,6 +188,7 @@ export default class ListRecipes extends Component {
            </Header>
 
          <Content padder style={{ ...styles.content }} >
+
            <Picker
               mode="dropdown"
               style={{ ...styles.picker }}
@@ -180,3 +232,35 @@ export default class ListRecipes extends Component {
     );
   }
 }
+/*
+
+            <View style={{flex: 1, flexDirection: 'column', backgroundColor: 'black'}}>
+             <RNCamera
+               style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'center'}}
+               type={RNCamera.Constants.Type.back}
+               flashMode={RNCamera.Constants.FlashMode.on}
+               captureAudio={false}
+               permissionDialogTitle={'Permission to use camera'}
+               permissionDialogMessage={'We need your permission to use your camera phone'}
+               onBarCodeRead = {(e)=> this.setState({text: e.data + "  that was rada, now raw " + e.rawData})}
+             >
+               {({ camera, status, recordAudioPermissionStatus }) => {
+                 if (status !== 'READY') return <PendingView />;
+                 return (
+                   <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
+                     <TouchableOpacity onPress={() => this.takePicture(camera)} style={{ flex: 0, backgroundColor: '#fff', borderRadius: 5, padding: 15, paddingHorizontal: 20, alignSelf: 'center', margin: 20}}>
+                       <Text style={{ fontSize: 14 }}> SNAP </Text>
+                     </TouchableOpacity>
+                   </View>
+                 );
+               }}
+             </RNCamera>
+           </View>
+
+
+
+
+
+                      <Text> {this.state.text}</Text>
+
+*/

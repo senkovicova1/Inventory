@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
-import {Image, Platform} from 'react-native';
-import { Drawer, Card, Content, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
+import {Image, Platform, BackHandler} from 'react-native';
+import { Drawer, Card, Content, Toast, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
-import { rebase } from '../../index.android';
+import { rebase } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
@@ -33,7 +33,11 @@ export default class EditRecipes extends Component {
        newIngredientUnit: "",
 
        searchOpen: false,
+       showUnsaved: false,
+       changed: false,
     };
+
+      this.handleBackPress.bind(this);
 
     this.addNewIngredient.bind(this);
     this.removeIngredient.bind(this);
@@ -87,6 +91,8 @@ export default class EditRecipes extends Component {
            newIngredientName: "",
            newIngredientUnit: "",
            newIngredientAmount: "",
+
+           changed: true,
          });
      }
    }
@@ -96,8 +102,28 @@ export default class EditRecipes extends Component {
      delete newIngredientsInRecipe[key];
        this.setState({
          ingredientsInRecipe: newIngredientsInRecipe,
+         changed: true,
        });
 
+   }
+
+   componentDidMount() {
+       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+     }
+
+   componentWillUnmount() {
+     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+   }
+
+   handleBackPress = () => {
+     if (this.state.changed && !this.state.showUnsaved){
+       this.setState({
+         showUnsaved: true
+       });
+       return true;
+     } else if (this.state.showUnsaved || !this.state.changed){
+       return false;
+     }
    }
 
    closeDrawer = () => {
@@ -124,7 +150,7 @@ export default class EditRecipes extends Component {
         <Container>
             <Header style={{ ...styles.header}}>
               <Left>
-                <Button transparent onPress={() => this.props.navigation.goBack()}>
+                <Button transparent onPress={() => this.handleBackPress()}>
                   <Icon name="md-close" style={{ ...styles.headerItem }}/>
                 </Button>
               </Left>
@@ -138,6 +164,15 @@ export default class EditRecipes extends Component {
 
             <Content style={{ ...styles.content }} >
 
+            {this.state.showUnsaved
+              &&
+              Toast.show({
+                text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                duration: 4000,
+                type: 'danger'
+              })
+            }
+
             <Form>
                <Item>
                  <Input
@@ -145,7 +180,7 @@ export default class EditRecipes extends Component {
                    placeholder="Enter name"
                    placeholderTextColor='rgb(255, 184, 95)'
                    value={this.state.name}
-                   onChangeText={(text) => this.setState({name: text})}/>
+                   onChangeText={(text) => this.setState({name: text, changed: true,})}/>
                </Item>
                <Card transparent style={{ ...styles.formCard}}>
                  <Grid >
@@ -182,6 +217,7 @@ export default class EditRecipes extends Component {
                                           newIngredientsInRecipe[key].name = itemValue;
                                           this.setState({
                                              ingredientsInRecipe: newIngredientsInRecipe,
+                                             changed: true
                                            });
                                          }
                           }>
@@ -200,6 +236,7 @@ export default class EditRecipes extends Component {
                                  newIngredientsInRecipe[key].amount = newValue;
                                  this.setState({
                                    ingredientsInRecipe: newIngredientsInRecipe,
+                                   changed: true
                                  });
                              }
                            }/>
@@ -216,6 +253,7 @@ export default class EditRecipes extends Component {
                                                newIngredientsInRecipe[key].amount = newValue;
                                                 this.setState({
                                                   ingredientsInRecipe: newIngredientsInRecipe,
+                                                  changed: true
                                                 });
                                               }
                             }>
@@ -316,7 +354,7 @@ export default class EditRecipes extends Component {
                          placeholder="Steps"
                          placeholderTextColor='rgb(255, 184, 95)'
                          style={{...styles.textArea}}
-                         onChangeText={(text) => this.setState({body: text})}
+                         onChangeText={(text) => this.setState({body: text, changed: true})}
                          value={this.state.body}/>
                      </Card>
                 </Form>
