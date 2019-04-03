@@ -104,6 +104,10 @@ export default class ListRecipes extends Component {
       });
     }
 
+    componentWillReceiveProps(){
+      this.fetch();
+    }
+
     componentDidMount() {
         BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
       }
@@ -210,7 +214,7 @@ export default class ListRecipes extends Component {
                      <Left>
                        <Thumbnail
                          style={{ ...styles.stretch }}
-                         source={require('../helperFiles/sushi.jpg')}
+                         source={{uri: data.image}}
                        />
                      <Text style={{ ...styles.listText }}>{data.name}</Text></Left>
                      <Right>
