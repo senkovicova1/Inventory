@@ -1,12 +1,10 @@
 import React, {Component} from 'react';
 import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
-import { Drawer,  Card, Content, Header, Body, Title, Text, List, Input, Item, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
-import { RNCamera } from 'react-native-camera';
+import { Drawer,  Card, Content, Header, Body, Title, Text, List, Input, Item, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, Col, Row, Grid, StyleProvider, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
 import firebase from 'firebase';
-import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 import store from "../store/index";
 
@@ -34,6 +32,7 @@ export default class ListRecipes extends Component {
 
       searchOpen: false,
       searchedWord: '',
+      addOpen: false,
 
       recipes: [],
       inventories: [],
@@ -44,6 +43,7 @@ export default class ListRecipes extends Component {
 
     this.handleBackPress.bind(this);
     this.toggleSearch.bind(this);
+    this.toggleAdd.bind(this);
     this.onValueChange.bind(this);
     this.addItem.bind(this);
     this.fetch.bind(this);
@@ -104,6 +104,12 @@ export default class ListRecipes extends Component {
       });
     }
 
+    toggleAdd(){
+      this.setState({
+        addOpen: !this.state.addOpen,
+      });
+    }
+
     componentWillReceiveProps(){
       this.fetch();
     }
@@ -150,6 +156,7 @@ export default class ListRecipes extends Component {
       };
 
   render() {
+    console.log(this.nameInput);
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -158,53 +165,84 @@ export default class ListRecipes extends Component {
 
         <Container>
            <Header style={{ ...styles.header }}>
-             <Left>
-               <Button transparent  onPress={() => this.openDrawer()}>
-                 <Icon name="menu" style={{ ...styles.headerItem }}/>
-               </Button>
-             </Left>
-             <Body>
-               { this.state.searchOpen
-               &&
-               <Item>
-                 <Input
-                   style={{ ...styles.headerItem }}
-                   placeholder="search"
-                   onChangeText={(text) => this.setState({searchedWord: text})}/>
-               </Item>
-               }
 
-               {!this.state.searchOpen
+               <Left>
+                 <Button transparent  onPress={() => this.openDrawer()}>
+                   <Icon name="menu" style={{ ...styles.headerItem }}/>
+                 </Button>
+               </Left>
+
+               <Body >
+                 { this.state.searchOpen
                  &&
-                 <Title style={{ ...styles.headerItem }}> Sonkine Recepty</Title>
-               }
+                   <Input
+                     autoFocus
+                     style={{ ...styles.headerItem}}
+                     placeholder="zadajte hľadaný výraz"
+                     placeholderTextColor='rgb(0, 170, 160)'
+                     onChangeText={(text) => this.setState({searchedWord: text})}/>
+                 }
+                 {!this.state.searchOpen
+                   &&
+                     <Title style={{ ...styles.headerItem }}> Recepty</Title>
+                 }
+               </Body>
 
-             </Body>
-             <Right>
                <Button transparent onPress={this.toggleSearch.bind(this)} >
-                 <Icon name="search" style={{ ...styles.headerItem }} />
+                   <Icon name="search" style={{ ...styles.headerItem }} />
                </Button>
-               <Button transparent  onPress={()=> this.props.navigation.navigate('AddRecipe')} >
-                 <Icon name="md-add" style={{ ...styles.headerItem }}/>
-               </Button>
-             </Right>
 
            </Header>
 
          <Content padder style={{ ...styles.content }} >
 
-           <Picker
-              mode="dropdown"
-              style={{ ...styles.picker }}
-              selectedValue={this.state.selected}
-              onValueChange={this.onValueChange.bind(this)}
-            >
-              { this.state.inventories
-                .map(i =>
-                       <Picker.Item key={i.key} label={i.name} value={i.key}/>
-                     )
-              }
-            </Picker>
+           <Card transparent style={{ ...styles.listCardInv }}>
+             <Text style={{ ...styles.listCardInvText, marginLeft:15 }}>Varí sa z inventára </Text>
+             <Picker
+                mode="dropdown"
+                style={{ ...styles.picker }}
+                selectedValue={this.state.selected}
+                onValueChange={this.onValueChange.bind(this)}
+              >
+                { this.state.inventories
+                  .map(i =>
+                         <Picker.Item key={i.key} label={i.name} value={i.key}/>
+                       )
+                }
+              </Picker>
+           </Card>
+
+           {!this.state.addOpen
+             &&
+            <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> /*this.props.navigation.navigate('AddRecipe')*/ this.toggleAdd()} >
+              <Icon name="md-add" style={{ ...styles.acordionButtonText }}/>
+            </Button>
+            }
+            {this.state.addOpen
+              &&
+              <Button bordered full warning style={{ ...styles.acordionButtonTrans}} onPress={()=> /*this.props.navigation.navigate('AddRecipe')*/ this.toggleAdd()} >
+                <Icon name="md-add" style={{ ...styles.acordionButtonText }}/>
+              </Button>
+            }
+            {this.state.addOpen
+              &&
+
+              <Grid>
+                <Row>
+                  <Col size={50}>
+                    <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddRecipeBarcode')} >
+                      <Text style={{ ...styles.acordionButtonText }}>Use barcode</Text>
+                    </Button>
+                 </Col>
+                 <Col size={50}>
+                    <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddRecipeCreate')} >
+                      <Text style={{ ...styles.acordionButtonText }}>Create new</Text>
+                    </Button>
+                 </Col>
+              </Row>
+              </Grid>
+
+            }
 
             <Card transparent style={{ ...styles.listCard }}>
                <List

@@ -277,7 +277,8 @@ export default class AddIngredient extends Component {
       });
       return true;
     } else if (this.state.showUnsaved || !this.state.changed){
-      return false;
+      this.props.navigation.goBack();
+      return true;
     }
   }
 

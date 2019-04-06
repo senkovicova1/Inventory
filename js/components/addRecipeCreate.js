@@ -27,7 +27,7 @@ const PendingView = () => (
   </View>
 );
 
-export default class AddRecipe extends Component {
+export default class AddRecipeCreate extends Component {
 
   constructor(props) {
     super(props);
@@ -280,7 +280,9 @@ export default class AddRecipe extends Component {
                 {
                   (this.state.validCode || this.state.title !== "")
                   &&
-                <Button transparent><Icon name="md-checkmark"  style={{ ...styles.headerItem }} onPress={()=> this.submit()} /></Button>
+                <Button transparent>
+                  <Icon name="md-checkmark"  style={{ ...styles.headerItem }} onPress={()=> this.submit()} />
+                </Button>
                 }
             </Right>
 
@@ -297,39 +299,6 @@ export default class AddRecipe extends Component {
                 })
               }
 
-              <Button block style={{ ...styles.acordionButton }} onPress={this.toggleCode.bind(this)}>
-                  <Text style={{ ...styles.acordionButtonText }}>Add Existing</Text>
-              </Button>
-
-              {
-                this.state.viaCode
-                &&
-                <Item>
-                  <Input
-                    style={{ ...styles.formTitle}}
-                    placeholder="Add recipe code"
-                    placeholderTextColor='rgb(255, 184, 95)'
-                    onChangeText={(text) => this.handleWrittenCode(text)}/>
-                </Item>
-              }
-
-              {
-                this.state.viaCode && !this.state.validCode && this.state.writtenCode.length >= 11
-                &&
-                <Item error style={{ ...styles.errorItem}}>
-                  <Icon active name='md-alert' style={{ ...styles.errorText}}/>
-                  <Label style={{ ...styles.errorText}}>This is not a valid recipe code!</Label>
-                </Item>
-              }
-
-
-              <Button block style={{ ...styles.acordionButton, marginTop: 10 }} onPress={this.toggleForm.bind(this)}>
-                  <Text style={{ ...styles.acordionButtonText }}>Create New</Text>
-              </Button>
-
-              {
-                this.state.viaForm
-                &&
                 <Form>
                     <Input
                       style={{ ...styles.formTitle }}
@@ -554,7 +523,7 @@ export default class AddRecipe extends Component {
                         value={this.state.body}/>
                     </Card>
                 </Form>
-              }
+
 
 
             </Content>

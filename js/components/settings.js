@@ -37,8 +37,6 @@ export default class Settings extends Component {
   };
 
     render() {
-      console.log("settings");
-      console.log(this.drawer);
       return (
         <Drawer
           ref={(ref) => { this.drawer = ref; }}
