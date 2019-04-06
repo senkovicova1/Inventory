@@ -66,7 +66,7 @@ export default {
     backgroundColor: 'black'
   },
   picker: {
-    color: colours.ACC_TEAL,
+    color: colours.ACC_DARK_TEAL,
     marginLeft: deviceWidth*0.01,
     marginRight: deviceWidth*0.01,
   },
@@ -103,6 +103,12 @@ export default {
   },
   acordionButton: {
     backgroundColor: colours.ACC_PEACH,
+    marginTop: deviceWidth*0.01,
+    marginLeft: deviceWidth*0.01,
+    marginRight: deviceWidth*0.01,
+    borderRadius: 8,
+  },
+  acordionButtonTrans: {
     marginTop: deviceWidth*0.01,
     marginLeft: deviceWidth*0.01,
     marginRight: deviceWidth*0.01,
@@ -293,6 +299,20 @@ export default {
     backgroundColor: colours.ACC_PEACH_A,
     borderWidth: 0,
     borderRadius: 15,
+  },
+  listCardInv:{
+    marginLeft: deviceWidth*0.01,
+    marginRight: deviceWidth*0.01,
+    marginTop: deviceWidth*0.02,
+    paddingTop: deviceWidth*0.02,
+    paddingBottom: deviceWidth*0.02,
+    backgroundColor: colours.ACC_TEAL_A,
+    borderWidth: 0,
+    borderRadius: 15,
+  },
+  listCardInvText:{
+    color: colours.ACC_DARK_TEAL,
+    fontWeight: '500',
   },
   logCard: {
     marginTop: deviceWidth*0.08,

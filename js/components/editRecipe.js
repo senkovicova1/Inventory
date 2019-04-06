@@ -54,6 +54,7 @@ export default class EditRecipes extends Component {
     };
 
       this.handleBackPress.bind(this);
+      this.handleBackPressButton.bind(this);
 
     this.addNewIngredient.bind(this);
     this.removeIngredient.bind(this);
@@ -139,7 +140,19 @@ export default class EditRecipes extends Component {
        });
        return true;
      } else if (this.state.showUnsaved || !this.state.changed){
-       return false;
+       this.props.navigation.goBack();
+       return true;
+     }
+     console.log("im not supposed to be here");
+   }
+
+   handleBackPressButton(){
+     if (this.state.changed && !this.state.showUnsaved){
+       this.setState({
+         showUnsaved: true
+       });
+     } else if (this.state.showUnsaved || !this.state.changed){
+       this.props.navigation.goBack();
      }
    }
 
@@ -174,7 +187,7 @@ export default class EditRecipes extends Component {
         <Container>
             <Header style={{ ...styles.header}}>
               <Left>
-                <Button transparent onPress={() => this.handleBackPress()}>
+                <Button transparent onPress={() => this.handleBackPressButton()}>
                   <Icon name="md-close" style={{ ...styles.headerItem }}/>
                 </Button>
               </Left>

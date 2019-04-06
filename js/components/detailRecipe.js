@@ -76,7 +76,6 @@ export default class DetailRecipe extends Component {
   };
 
   render() {
-
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -102,11 +101,13 @@ export default class DetailRecipe extends Component {
           </Header>
 
           <Content padder style={{ ...styles.content }}>
-
+{ this.state.image
+  &&
               <Image
                 style={{ ...styles.image, ...styles.center }}
                 source={{uri: this.state.image}}
                 />
+            }
            <Card transparent style={{ ...styles.listCard }}>
              <List >
                <ListItem noBorder key="title">

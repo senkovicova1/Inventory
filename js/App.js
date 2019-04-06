@@ -17,7 +17,8 @@ import ListRecipes from './components/listRecipes';
 import DetailRecipe from './components/detailRecipe';
 import DetailInventory from './components/detailInventory';
 
-import AddRecipe from './components/addRecipe';
+import AddRecipeCreate from './components/addRecipeCreate';
+import AddRecipeBarcode from './components/addRecipeBarcode';
 import AddInventory from './components/addInventory';
 import AddIngredient from './components/addIngredient';
 
@@ -34,7 +35,8 @@ const AppNavigator = createStackNavigator(
     Inventory: DetailInventory,
     Recipe: DetailRecipe,
 
-    AddRecipe: AddRecipe,
+    AddRecipeCreate: AddRecipeCreate,
+    AddRecipeBarcode: AddRecipeBarcode,
     AddInventory: AddInventory,
     AddIngredient: AddIngredient,
 
@@ -42,6 +44,8 @@ const AppNavigator = createStackNavigator(
   },
   {
     initialRouteName: "Login",
+    backBehavior: 'none',
+    cardOverlayEnabled: true,
     defaultNavigationOptions: {
       header: null,
    },
