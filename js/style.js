@@ -117,6 +117,9 @@ export default {
   acordionButtonText: {
     color: colours.ACC_DARK_PEACH
   },
+  acordionButtonTextTrans: {
+    color: colours.ACC_PEACH
+  },
   acordionText: {
     backgroundColor: colours.ACC_WHITE,
     color: colours.ACC_DARK_PEACH,
@@ -151,8 +154,8 @@ export default {
   },
   minusIngredient: {
     color: colours.ACC_DARK_PEACH,
-    marginTop: 12,
-    alignSelf: 'center'
+    alignSelf: 'center',
+    fontSize: 24
   },
   minusIngredientButton: {
     marginBottom: 2,
@@ -363,5 +366,8 @@ export default {
   },
   DARK_PEACH: {
     color: colours.ACC_DARK_PEACH,
+  },
+  PEACH: {
+    color: colours.ACC_PEACH,
   }
 }
