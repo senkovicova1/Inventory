@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform} from 'react-native';
-import { Drawer,  Content, Card, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import { Drawer,  Content, Grid, Row, Col, Card, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
@@ -27,11 +27,13 @@ export default class DetailInventory extends Component {
 
       searchOpen: false,
       searchedWord: '',
+      addOpen: false,
 
       ingredients: {},
       foodInInventory: {},
     };
 
+    this.toggleAdd.bind(this);
     this.toggleSearch.bind(this);
     this.addItem.bind(this);
     this.submitInv.bind(this);
@@ -93,6 +95,11 @@ export default class DetailInventory extends Component {
       );
     }
 
+    toggleAdd(){
+      this.setState({
+        addOpen: !this.state.addOpen,
+      });
+    }
 
   closeDrawer = () => {
     this.drawer._root.close()
@@ -130,6 +137,7 @@ export default class DetailInventory extends Component {
                  &&
                    <View>
                      <Input
+                       autoFocus
                        style={{ ...styles.headerItem}}
                        placeholder="search"
                        placeholderTextColor='rgb(0, 170, 160)'
@@ -141,6 +149,7 @@ export default class DetailInventory extends Component {
                  <Item floatingLabel>
                    <Label style={{ ...styles.headerItem}}>Change name</Label>
                  <Input
+                   autoFocus
                    style={{ ...styles.headerItem}}
                    placeholder="change name"
                    value={this.state.name}
@@ -182,7 +191,7 @@ export default class DetailInventory extends Component {
                  <Textarea
                    rowSpan={6}
                    style={{ ...styles.genericInputStretched }}
-
+                   autoFocus
                    bordered
                    placeholder="Notes"
                    value={this.state.notes}
@@ -201,9 +210,38 @@ export default class DetailInventory extends Component {
                </Right>
                </Item>
 
-             <Button style={{ ...styles.acordionButton }} full onPress={()=> this.props.navigation.navigate('AddIngredient', {inventoryId: this.state.key})} >
-               <Icon active name='md-add' style={{ ...styles.acordionButtonText, fontSize: 26}} />
-             </Button>
+
+
+               {!this.state.addOpen
+                 &&
+                <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> /*this.props.navigation.navigate('AddRecipe')*/ this.toggleAdd()} >
+                  <Icon name="md-add" style={{ ...styles.acordionButtonText }}/>
+                </Button>
+                }
+                {this.state.addOpen
+                  &&
+                  <Button bordered full warning style={{ ...styles.acordionButtonTrans}} onPress={()=> /*this.props.navigation.navigate('AddRecipe')*/ this.toggleAdd()} >
+                    <Icon name="md-add" style={{ ...styles.acordionButtonText }}/>
+                  </Button>
+                }
+                {this.state.addOpen
+                  &&
+                  <Grid>
+                    <Row>
+                      <Col size={50}>
+                        <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientBarcode')} >
+                          <Text style={{ ...styles.acordionButtonText }}>Use barcode</Text>
+                        </Button>
+                     </Col>
+                     <Col size={50}>
+                        <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientManual')} >
+                          <Text style={{ ...styles.acordionButtonText }}>Create new</Text>
+                        </Button>
+                     </Col>
+                  </Row>
+                  </Grid>
+
+                }
 
              <Card transparent style={{ ...styles.listCard}}>
                <List

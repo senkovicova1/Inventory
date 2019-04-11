@@ -22,10 +22,12 @@ export default class DetailRecipe extends Component {
         body: this.props.navigation.getParam('rec', 'NO-ID').body,
         ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients ,
         image: this.props.navigation.getParam('rec', 'NO-ID').image,
+        ppl: "1",
     };
 
     this.checkNumber.bind(this);
     this.changeAmount.bind(this);
+    this.changeAmountPpl.bind(this);
     this.fetch.bind(this);
     this.fetch();
   }
@@ -38,16 +40,12 @@ export default class DetailRecipe extends Component {
        }).then((ings) => {
          let actualIngs = Object.keys(this.state.ingredients).map(key => {
            let name = ings.filter(ingredient => ingredient.key === key.toString()).map(ingredient => ingredient.name)[0];
-           return ({name, amount: this.state.ingredients[key], key: key.toString()});
+           return ({name, amount: this.state.ingredients[key], defaultAmount: this.state.ingredients[key], key: key.toString()});
          });
          this.setState({
            ingredients: actualIngs,
          })
        });
-  }
-
-  changeAmount(id, amount){
-
   }
 
   checkNumber(text){
@@ -71,12 +69,48 @@ export default class DetailRecipe extends Component {
        }).then((ings) => {
          let actualIngs = Object.keys(this.state.ingredients).map(key => {
            let name = ings.filter(ingredient => ingredient.key === key.toString()).map(ingredient => ingredient.name)[0];
-           return ({name, amount: this.state.ingredients[key], key: key.toString()});
+           return ({name, amount: this.state.ingredients[key], defaultAmount: this.state.ingredients[key], key: key.toString()});
          });
          this.setState({
            ingredients: actualIngs,
          })
        });
+  }
+
+  changeAmount(code, amount){
+    let newIngredients = [...this.state.ingredients];
+    let arr = newIngredients[code].amount.split(" ");
+    let newAmount = parseInt(arr[0]) + amount;
+    newAmount = (newAmount < 0 ? 0 : newAmount);
+    newIngredients[code].amount = newAmount + " " + arr[1];
+    this.setState({
+      ingredients: newIngredients,
+    });
+  }
+
+  changeAmountPpl(ppl){
+    let newIngredients = this.state.ingredients.map(ing => {
+      let newIng = {...ing};
+      let arr = newIng.amount.split(" ");
+      if ( arr[0] === "-" || arr[0] === "--"){
+        return (newIng);
+      }
+      let base = parseInt(arr[0]);
+      if (this.state.ppl !== ""){
+        base = parseInt(arr[0]) / this.state.ppl;
+      }
+      if (ppl !== ""){
+        let newAmount = base * ppl;
+        newIng.amount = newAmount + " " + arr[1];
+      } else {
+        newIng.amount = base + " " + arr[1];
+      }
+      return newIng;
+    });
+    this.setState({
+      ingredients: newIngredients,
+      ppl,
+    });
   }
 
   handleBackPress = () => {
@@ -92,6 +126,10 @@ export default class DetailRecipe extends Component {
   };
 
   render() {
+    console.log("asd");
+    Object.keys(this.state.ingredients)
+    .map(item => console.log(item));
+    this.state.ingredients.map(i => console.log(i));
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -154,7 +192,7 @@ export default class DetailRecipe extends Component {
                      <Text style={{ ...styles.detailRecipeRowText}}>
                        {this.state.ingredients[item].name}
                        <Text style={{ ...styles.detailRecipeRowText, ...styles.PEACH, fontSize: 11 }}>
-                         {`   (${this.state.ingredients[item].amount})`}
+                         {`   (${this.state.ingredients[item].defaultAmount})`}
                        </Text>
                      </Text>
                      </Col>
@@ -162,13 +200,23 @@ export default class DetailRecipe extends Component {
                       <Col size={40}>
                         <Row>
                           <Col size={20}>
-                          <Icon name="md-arrow-dropdown" style={{ alignSelf: 'center', ...styles.DARK_PEACH }}/>
+                            { (this.state.ingredients[item].amount && !this.state.ingredients[item].amount.includes("-"))
+                              &&
+                            <Button transparent small  onPress={() => this.changeAmount(item, -1)}>
+                                <Icon name="md-arrow-dropdown" style={{ alignSelf: 'center', ...styles.DARK_PEACH }}/>
+                            </Button >
+                            }
                           </Col>
                           <Col size={20}>
-                            <Text style={{ ...styles.PEACH, alignSelf: 'center', marginTop: -5, padding: 0,}}>{this.state.ingredients[item].amount} </Text>
-                            </Col>
-                            <Col size={20}>
-                          <Icon name="md-arrow-dropup" style={{ alignSelf: 'center', ...styles.DARK_PEACH}}/>
+                              <Text style={{ ...styles.PEACH, alignSelf: 'center', marginTop: -5, padding: 0,}}>{this.state.ingredients[item].amount} </Text>
+                          </Col>
+                          <Col size={20}>
+                            { (this.state.ingredients[item].amount && !this.state.ingredients[item].amount.includes("-"))
+                              &&
+                              <Button transparent small onPress={() => this.changeAmount(item, 1)} >
+                                <Icon name="md-arrow-dropup" style={{ alignSelf: 'center', ...styles.DARK_PEACH}}/>
+                              </Button >
+                            }
                           </Col>
                         </Row>
                      </Col>
@@ -184,9 +232,7 @@ export default class DetailRecipe extends Component {
                         value={this.state.ppl}
                         onChangeText={(text) =>{
                             if (text === "" || this.checkNumber(text)){
-                              this.setState({
-                                ppl: text,
-                              });
+                              this.changeAmountPpl(text);
                             }
                           }
                         }/>
