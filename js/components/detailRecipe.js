@@ -1,15 +1,23 @@
 import React, {Component} from 'react';
-import {Image, Platform, BackHandler} from 'react-native';
+import {Image, Platform, BackHandler/*, Share*/} from 'react-native';
 import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Card, CardItem, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
+import { fb } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
+import Share from 'react-native-share';
+import RNFetchBlob from 'rn-fetch-blob'
 
 import store from "../store/index";
 
 import styles from '../style';
+
+const Blob = RNFetchBlob.polyfill.Blob;
+const fs = RNFetchBlob.fs;
+window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest;
+window.Blob = Blob;
 
 export default class DetailRecipe extends Component {
 
@@ -25,6 +33,8 @@ export default class DetailRecipe extends Component {
         ppl: "1",
     };
 
+    this.shareStuff.bind(this);
+    this.shareStuff2.bind(this);
     this.checkNumber.bind(this);
     this.changeAmount.bind(this);
     this.changeAmountPpl.bind(this);
@@ -125,11 +135,55 @@ export default class DetailRecipe extends Component {
     this.drawer._root.open()
   };
 
+  shareStuff(){
+  /*  console.log("SHARING");
+    Share.share({
+      message: 'Yaaay it works!',
+      url: 'https://www.st.fmph.uniba.sk/~senkovicova1/baka_praca.html',
+      title: 'Wow this actually works?'
+      }, {
+          dialogTitle: 'Share this maybe?'
+        }
+      );*/
+  }
+
+  shareStuff2(){
+    console.log("SHARING");
+
+//    const imageRef = fb.storage().ref().child(`recipes/${this.state.key}`).refFromURL(this.state.image);
+/*    const imageFile = RNFetchBlob.wrap(this.state.image);
+    console.log(imageFile);*/
+//    let base64Data = null;
+/*    Blob.build(imageFile, { type: 'image' })
+       .then((imageBlob) => {
+         console.log(imageBlob);
+           let base64Data = imageBlob;
+       });*/
+/*    let ugh = RNFetchBlob.fetch('GET', this.state.image, {
+        'Content-Type' : 'image/jpeg'
+    }, RNFetchBlob.wrap(this.state.image));
+    console.log(base64Data);
+    console.log("blob");
+    while(!ugh){
+
+    }
+    console.log(ugh);*/
+    const OPTIONS = {
+        title: 'Share please?',
+        message: `Look at this cool recipe: ${this.state.name}`,
+        url: `${this.state.image}`,
+    };
+    Share.open(OPTIONS)
+    .then((res) => { console.log(res) })
+    .catch((err) => { err && console.log(err); });
+  }
+
+
   render() {
-    console.log("asd");
+  /*  console.log("asd");
     Object.keys(this.state.ingredients)
     .map(item => console.log(item));
-    this.state.ingredients.map(i => console.log(i));
+    this.state.ingredients.map(i => console.log(i));*/
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -148,7 +202,7 @@ export default class DetailRecipe extends Component {
 
             </Body>
             <Right>
-              <Button transparent><Icon name="md-share-alt" style={{ ...styles.headerItem }} onPress={() => this.setState({showID: !this.state.showID })}/><Text></Text></Button>
+              <Button transparent><Icon name="md-share-alt" style={{ ...styles.headerItem }} onPress={() => this.shareStuff2()/*this.setState({showID: !this.state.showID })*/}/><Text></Text></Button>
               <Button transparent><Icon name="md-create" style={{ ...styles.headerItem }} onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.body, ingredients: this.state.ingredients, image: this.state.image})}/><Text></Text></Button>
             </Right>
 
