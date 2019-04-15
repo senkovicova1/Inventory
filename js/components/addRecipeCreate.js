@@ -6,13 +6,18 @@ import { RNCamera } from 'react-native-camera';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
+import { fb } from '../../index';
 import firebase from 'firebase';
+import RNFetchBlob from 'rn-fetch-blob'
 
 import store from "../store/index";
 
 import styles from '../style';
 
-
+const Blob = RNFetchBlob.polyfill.Blob;
+const fs = RNFetchBlob.fs;
+window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest;
+window.Blob = Blob;
 
 const PendingView = () => (
   <View
@@ -60,6 +65,7 @@ export default class AddRecipeCreate extends Component {
         changed: false,
     };
 
+    this.uploadImage.bind(this);
     this.handleBackPress.bind(this);
 
     this.checkNumber.bind(this);
@@ -94,20 +100,8 @@ export default class AddRecipeCreate extends Component {
     });
   }
 
-      submit(){
+      submit(id, url){
         const USER_ID = store.getState().user.uid;
-        let id = Date.now().toString(16).toUpperCase();
-
-        if (this.state.validCode){
-          rebase.post(`recipeAccess/${id}`, {
-            data: {userID: USER_ID, recID: this.state.writtenCode}
-          }).then(newLocation => {
-          });
-        }
-
-        if (this.state.title !== ""){
-          if (this.state.image){
-          }
 
           rebase.post(`recipeAccess/${id}`, {
             data: {userID: USER_ID, recID: id}
@@ -120,10 +114,10 @@ export default class AddRecipeCreate extends Component {
                 return 0;
               });
               rebase.post(`recipes/${id}`, {
-                data: {name: this.state.title, body: this.state.body, ingredients: ings, image: this.state.image}
-              })
+                data: {name: this.state.title, body: this.state.body, ingredients: ings, image: url}
+              });
           });
-        }
+        
 
         this.props.navigation.push('Recipes');
       }
@@ -257,6 +251,43 @@ export default class AddRecipeCreate extends Component {
         })
     };
 
+    uploadImage(mime = 'image/png') {
+
+      let id = Date.now().toString(16).toUpperCase();
+      console.log("UPLOADING");
+        let uploadBlob = null;
+        let uploadUri = this.state.image;
+
+        const imageRef = fb.storage().ref('recipes').child(id);
+
+        fs.readFile(uploadUri, 'base64')
+          .then((data) => {
+            console.log("first -- data:");
+            console.log(data);
+            return Blob.build(data, { type: `${mime};BASE64` });
+          })
+          .then((blob) => {
+            console.log("second -- blob:");
+            console.log(blob);
+            uploadBlob = blob;
+            return imageRef.put(blob, { contentType: mime });
+          })
+          .then(() => {
+            console.log("third -- null");
+            uploadBlob.close();
+            return imageRef.getDownloadURL();
+          })
+          .then((url) => {
+            console.log("4th -- url");
+            console.log(url);
+            this.submit(id, url);
+          })
+          .catch((error) => {
+            console.log("5th -- error");
+            console.log(error);
+        });
+    }
+
 
   render() {
 
@@ -301,7 +332,7 @@ export default class AddRecipeCreate extends Component {
 
               {this.state.title.length > 0
                 &&
-                <Button block style={{ ...styles.acordionButton }} onPress={()=> this.submit()}>
+                <Button block style={{ ...styles.acordionButton }} onPress={()=> this.uploadImage()}>
                     <Text style={{ ...styles.acordionButtonText }}> Create</Text>
                 </Button>
               }

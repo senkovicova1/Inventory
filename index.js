@@ -23,7 +23,7 @@ GoogleSignin.configure({
   offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
 });*/
 
-const app = firebase.initializeApp(config);
-export let rebase = Rebase.createClass(app.database());
+export let fb = firebase.initializeApp(config);
+export let rebase = Rebase.createClass(fb.database());
 
 AppRegistry.registerComponent('Inventory', () => App);

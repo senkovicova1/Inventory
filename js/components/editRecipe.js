@@ -6,11 +6,18 @@ import { RNCamera } from 'react-native-camera';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
+import { fb } from '../../index';
 import firebase from 'firebase';
+import RNFetchBlob from 'rn-fetch-blob'
 
 import store from "../store/index";
 
 import styles from '../style';
+
+const Blob = RNFetchBlob.polyfill.Blob;
+const fs = RNFetchBlob.fs;
+window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest;
+window.Blob = Blob;
 
 const PendingView = () => (
   <View
@@ -53,6 +60,7 @@ export default class EditRecipes extends Component {
        changed: false,
     };
 
+      this.uploadImage.bind(this);
       this.handleBackPress.bind(this);
       this.handleBackPressButton.bind(this);
 
@@ -77,22 +85,22 @@ export default class EditRecipes extends Component {
          );
      }
 
-   submit(){
-     let ings = {};
-     Object.keys(this.state.ingredientsInRecipe).map(key =>
-       ings[this.state.ingredientsInRecipe[key].key] = this.state.ingredientsInRecipe[key].amount);
+   submit(url){
+       let ings = {};
+       Object.keys(this.state.ingredientsInRecipe).map(key =>
+         ings[this.state.ingredientsInRecipe[key].key] = this.state.ingredientsInRecipe[key].amount);
 
-     rebase.update(`recipes/${this.state.key}`, {
-       data: {name: this.state.name, body: this.state.body, ingredients: ings, image: this.state.image}
-     });
+       rebase.update(`recipes/${this.state.key}`, {
+         data: {name: this.state.name, body: this.state.body, ingredients: ings, image: url}
+       });
 
-     let rec = {
-       name: this.state.name,
-       key: this.state.key,
-       body: this.state.body,
-       ingredients: ings,
-       image: this.state.image,
-     }
+       let rec = {
+         name: this.state.name,
+         key: this.state.key,
+         body: this.state.body,
+         ingredients: ings,
+         image: url,
+       }
 
      this.props.navigation.push("Recipe", {rec: rec});
    }
@@ -103,8 +111,8 @@ export default class EditRecipes extends Component {
      && this.state.newIngredientAmount.length > 0){
        let key = this.state.ingredients.filter(ing => ing.name === this.state.newIngredientName)[0].key;
        let object = {key: key, name: this.state.newIngredientName, amount: this.state.newIngredientAmount + " " + this.state.newIngredientUnit};
-       let newIngredientsInRecipe = {...this.state.ingredientsInRecipe};
-       newIngredientsInRecipe[newIngredientsInRecipe.length] = object,
+       let newIngredientsInRecipe = [...this.state.ingredientsInRecipe, object];
+  //     newIngredientsInRecipe[Object.keys(newIngredientsInRecipe).length] = object,
          this.setState({
            ingredientsInRecipe: newIngredientsInRecipe,
 
@@ -178,7 +186,44 @@ export default class EditRecipes extends Component {
          })
      };
 
+     uploadImage(mime = 'image/png') {
+       console.log("UPLOADING");
+         let uploadBlob = null;
+         console.log(this.state.image);
+         let uploadUri = this.state.image;
+
+         const imageRef = fb.storage().ref('recipes').child(this.state.key);
+
+         fs.readFile(uploadUri, 'base64')
+           .then((data) => {
+             console.log("first -- data:");
+             console.log(data);
+             return Blob.build(data, { type: `${mime};BASE64` });
+           })
+           .then((blob) => {
+             console.log("second -- blob:");
+             console.log(blob);
+             uploadBlob = blob;
+             return imageRef.put(blob, { contentType: mime });
+           })
+           .then(() => {
+             console.log("third -- null");
+             uploadBlob.close();
+             return imageRef.getDownloadURL();
+           })
+           .then((url) => {
+             console.log("4th -- url");
+             console.log(url);
+             this.submit(url);
+           })
+           .catch((error) => {
+             console.log("5th -- error");
+             console.log(error);
+         });
+     }
+
   render() {
+    console.log(this.state.ingredientsInRecipe);
     const PICKER_ITEMS = this.state.ingredients.map(ingredient =>
                <Picker.Item key={ingredient.key} label={ingredient.name} value={ingredient.name} />
            );
@@ -212,7 +257,7 @@ export default class EditRecipes extends Component {
 
               {this.state.name.length > 0
                 &&
-                <Button block style={{ ...styles.acordionButton }} onPress={()=> this.submit()}>
+                <Button block style={{ ...styles.acordionButton }} onPress={()=> this.uploadImage()}>
                     <Text style={{ ...styles.acordionButtonText }}> Edit</Text>
                 </Button>
               }
