@@ -70,7 +70,10 @@ export default class Login extends Component {
         if (store.getState().user !== null){
           this.props.navigation.push('Recipes');
         }
-      }).catch(error=>{console.log(error)});
+      }).catch(error=>{
+        //could be no internet
+        console.log(error)
+      });
     }
 
     register(){

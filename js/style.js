@@ -46,7 +46,10 @@ export default {
      fontSize: 26,
   },
   sidebarSettings: {
-    bottom:0,
+    bottom:50,
+  },
+  sidebarMail: {
+    bottom:50,
   },
   header: {
     backgroundColor: colours.ACC_TEAL,
