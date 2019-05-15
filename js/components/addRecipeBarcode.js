@@ -35,7 +35,6 @@ export default class AddRecipeBarcode extends Component {
     this.state = {
         users: {},
         recipes: {},
-        recipeAccess: [],
 
         searchOpenNew: false,
         addNewFriends: false,
@@ -43,6 +42,8 @@ export default class AddRecipeBarcode extends Component {
 
         searchOpenFriend: false,
         searchFriends: true,
+
+        searchedWord: "",
         searchedFriend: "",
 
         searchOpenRec: false,
@@ -57,17 +58,36 @@ export default class AddRecipeBarcode extends Component {
         showMessage: false,
     };
 
+    this.onValueChange.bind(this);
+    this.handleGet.bind(this);
     this.handleRequest.bind(this);
     this.handleShowRecipes.bind(this);
     this.handleBackPress.bind(this);
     this.addFriend.bind(this);
     this.submit.bind(this);
     this.toggleSearch.bind(this);
+    this.fetch.bind(this);
+    this.fetch();
+  }
+
+  fetch(){
+    rebase.fetch(`recipes`, {
+      context: this,
+      withIds: true,
+    }).then((rec) => {
+      rebase.fetch(`users`, {
+        context: this,
+        withIds: true,
+      }).then((u) => {
+        this.setState({
+          recipes: rec,
+          users: u,
+        });
+      });
+  });
   }
 
   submit(){
-
-
     this.props.navigation.push('Recipes');
   }
 
@@ -107,7 +127,7 @@ export default class AddRecipeBarcode extends Component {
 
   handleRequest(key){
     console.log("handling");
-    let id = Date.now().toString(16).toUpperCase();
+  /*  let id = Date.now().toString(16).toUpperCase();
     rebase.post(`users/${this.state.showRecipes}/notices/RR-${id}`, {
       data: {userID: this.state.showRecipes, recID: key, approved: false, seen: false}
     }).then(newLocation => {
@@ -119,11 +139,15 @@ export default class AddRecipeBarcode extends Component {
             showMessage: true,
           });
         })
-    });
+    });*/
 
   }
 
-componentDidMount() {
+  handleGet(key){
+    console.log("yay");
+  }
+
+/*componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     this.ref1 = rebase.syncState(`users`, {
       context: this,
@@ -138,7 +162,7 @@ componentDidMount() {
       state: 'recipeAccess',
       asArray: true,
     });
-  }
+  }*/
 
 componentWillUnmount() {
   BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
@@ -155,6 +179,12 @@ componentWillUnmount() {
     }
   }
 
+  onValueChange(value: string) {
+    this.setState({
+      searchedFriend: value
+    });
+  }
+
   closeDrawer = () => {
     this.drawer._root.close()
   };
@@ -163,14 +193,9 @@ componentWillUnmount() {
   };
 
   render() {
-//    console.log(this.state.recipes);
-//    console.log(this.state.actualRecipes);
-//    this.state.recipeAccess.map(r => console.log(r));
+    console.log(typeof this.state.searchedFriend);
+    console.log(this.state.searchedFriend !== 0);
     return (
-      <Drawer
-        ref={(ref) => { this.drawer = ref; }}
-        content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
-        onClose={() => this.closeDrawer()} >
 
         <Container>
             <Header style={{ ...styles.header}}>
@@ -180,7 +205,7 @@ componentWillUnmount() {
                 </Button>
               </Left>
               <Body>
-                <Title style={{ ...styles.headerItem }}>Ask your friend for a recipe!</Title>
+                <Title style={{ ...styles.headerItem }}>Get a recipe from a friend!</Title>
               </Body>
               <Button transparent onPress={() => {}} >
               </Button>
@@ -205,208 +230,296 @@ componentWillUnmount() {
                 })
               }
 
-            { this.state.addNewFriends
-              &&
-                <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
-                  <Row>
-                    <Col size={80}>
-                      { this.state.searchOpenNew
-                      &&
-                        <Input
-                          autoFocus
-                          style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
-                          placeholder="Enter a username"
-                          placeholderTextColor='rgb(142, 210, 210)'
-                          onChangeText={(text) => this.setState({searchedNew: text})}/>
-                      }
-                      {!this.state.searchOpenNew
-                        &&
-                          <Button transparent>
-                             <Text style={{  ...styles.stepsCardHeader, fontSize: 20, marginLeft:15, color: 'rgb(142, 210, 210)' }}>
-                               Find new friends
-                             </Text>
-                           </Button>
+              <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
+                <Row>
+                  <Text onPress={() => this.setState({addNewFriends: true})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', borderColor: 'rgb(0, 170, 160)' }}>
+                    Filter recipes by name
+                  </Text>
+                </Row>
+                <Row>
+                      <Input
+                        autoFocus
+                        style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
+                        placeholder="Start typing here!"
+                        placeholderTextColor='rgb(142, 210, 210)'
+                        onChangeText={(text) => this.setState({searchedWord: text})}/>
 
-                      }
-                    </Col>
-                    <Col size={20}>
-                      <Button transparent onPress={this.toggleSearch.bind(this)} >
-                        <Icon name="search" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
-                      </Button>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Text onPress={() => this.setState({addNewFriends: false})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', textDecorationLine: 'underline', borderColor: 'rgb(0, 170, 160)' }}>
-                      or go back to your friends
-                    </Text>
-                  </Row>
-                    <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
-                      {
-                        Object.keys(this.state.users).length > 0
-                        &&
-                        Object.keys(this.state.users).filter(key =>
-                            !Object.values(this.state.users[store.getState().user.uid].friends).includes(key)
-                            && key !== store.getState().user.uid
-                            && this.state.users[key].username.toLowerCase().includes(this.state.searchedNew.toLowerCase())
-                        ).map(key =>
-                          <ListItem button  style={{...styles.listItem}} noBorder  onPress={() => this.setState({showRecipes: key})}>
-                              <Left>
-                                  <Thumbnail
-                                  style={styles.stretch}
-                                  source={require('../helperFiles/sushi.jpg')}
-                                  />
-                                   <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
-                                     {this.state.users[key].username}
-                                   </Text>
-                              </Left>
-                              <Right>
-                                <Button transparent onPress={() => this.addFriend(key)}>
-                                  <Icon name="md-add" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
-                                </Button>
-                              </Right>
-                          </ListItem>
-                        )
-                      }
-                    </Card>
-                </Card>
-              }
-
-              { (!this.state.addNewFriends && this.state.showRecipes === null)
-                &&
+                </Row>
+                <Row>
+                  <Text onPress={() => this.setState({addNewFriends: true})} style={{marginLeft:15, color: 'rgb(0, 170, 160)',  borderColor: 'rgb(0, 170, 160)' }}>
+                    or filter recipes by friends!
+                  </Text>
+                </Row>
+                <Row>
+                    <Picker
+                       mode="dropdown"
+                       style={{ ...styles.picker }}
+                       selectedValue={this.state.searchedFriend}
+                       onValueChange={this.onValueChange.bind(this)}
+                     >
+                      <Picker.Item key={0} label={"All friends"} value={0}/>
+                       { Object.keys(this.state.users)
+                         .map(i =>
+                                <Picker.Item key={i} label={this.state.users[i].username} value={i}/>
+                              )
+                       }
+                     </Picker>
+                </Row>
                   <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
-                    <Row>
-                      <Col size={80}>
-                        { this.state.searchOpenFriend
-                        &&
-                          <Input
-                            autoFocus
-                            style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
-                            placeholder="Enter friend's username"
-                            placeholderTextColor='rgb(142, 210, 210)'
-                            onChangeText={(text) => this.setState({searchedFriend: text})}/>
-                        }
-                        {!this.state.searchOpenFriend
-                          &&
-                            <Button transparent>
-                               <Text style={{  ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(142, 210, 210)' }}>
-                                 Search friends
-                               </Text>
-                             </Button>
-
-                        }
-                      </Col>
-                      <Col size={20}>
-                        <Button transparent onPress={(text) => this.setState({searchOpenFriend: !this.state.searchOpenFriend})} >
-                          <Icon name="search" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
-                        </Button>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Text onPress={() => this.setState({addNewFriends: true})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', textDecorationLine: 'underline', borderColor: 'rgb(0, 170, 160)' }}>
-                        or add a new friend
-                      </Text>
-                    </Row>
-                      <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
-                        {
-                          Object.keys(this.state.users).length > 0
-                          &&
-                          Object.values(this.state.users[store.getState().user.uid].friends)
-                          .filter(key =>
-                              this.state.users[key].username.toLowerCase().includes(this.state.searchedFriend.toLowerCase())
-                          ).map(key =>
-                            <ListItem button  style={{...styles.listItem}} noBorder  onPress={() => this.handleShowRecipes(key)}>
-                              <Left>
-                                  <Thumbnail
-                                  style={styles.stretch}
-                                  source={require('../helperFiles/sushi.jpg')}
-                                  />
-                                   <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
-                                     {this.state.users[key].username + "'s recipes"}
-                                   </Text>
-                              </Left>
-                            </ListItem>
-                          )
-                        }
-                      </Card>
+                    {
+                      this.state.users
+                      &&
+                      Object.keys(this.state.users).length > 0
+                      &&
+                      this.state.recipes
+                      &&
+                      Object.keys(this.state.recipes).length > 0
+                      &&
+                      Object.keys(this.state.recipes)
+                                  .filter(key => {
+                                      const COND1 = this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase());
+                                      if(this.state.searchedFriend !== 0){
+                                        const COND2 = Object.values(this.state.recipes[key].owners).includes(this.state.searchedFriend);
+                                        if (this.state.searchedWord.length > 0){
+                                          return COND1 && COND2;
+                                        }
+                                        return COND2;
+                                      }
+                                      return COND1;
+                                    }
+                                  ).map(key =>
+                                    <Grid  onPress={() => this.handleShowRecipes(key)}>
+                                      <Row>
+                                            <Thumbnail
+                                            style={styles.stretch}
+                                            source={{uri: this.state.recipes[key].image}}
+                                            />
+                                             <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
+                                                 {this.state.recipes[key].name}
+                                              </Text>
+                                      </Row>
+                                      <Row>
+                                        <Col xs={50}>
+                                            <Button transparent full style={{ ...styles.acordionButtonVio}} onPress={()=> this.handleRequest(key)} >
+                                              <Text style={{ ...styles.acordionButtonVioText }}>Ask to share</Text>
+                                            </Button>
+                                        </Col>
+                                        <Col xs={50}>
+                                          <Button transparent full style={{ ...styles.acordionButtonVio}} onPress={()=> this.handleGet(key)} >
+                                            <Text style={{ ...styles.acordionButtonVioText }}>Get!</Text>
+                                          </Button>
+                                        </Col>
+                                      </Row>
+                                    </Grid>
+                      )
+                    }
                   </Card>
-                }
-
-                { this.state.showRecipes !== null
-                  &&
-                    <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
-                      <Row>
-                        <Col size={80}>
-                          { this.state.searchOpenRec
-                          &&
-                            <Input
-                              autoFocus
-                              style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
-                              placeholder="Enter name of the recipe"
-                              placeholderTextColor='rgb(142, 210, 210)'
-                              onChangeText={(text) => this.setState({searchedRec: text})}/>
-                          }
-                          {!this.state.searchOpenRec
-                            &&
-                              <Button transparent>
-                                 <Text style={{  ...styles.stepsCardHeader, fontSize: 15, marginLeft:15, color: 'rgb(142, 210, 210)' }}>
-                                   {`Search in ${this.state.users[this.state.showRecipes].username}' recipes `}
-                                 </Text>
-                               </Button>
-
-                          }
-                        </Col>
-                        <Col size={20}>
-                          <Button transparent onPress={(text) => this.setState({searchOpenRec: !this.state.searchOpenRec})} >
-                            <Icon name="search" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
-                          </Button>
-                        </Col>
-                      </Row>
-                      <Row>
-                        <Text onPress={() => this.setState({showRecipes: null})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', textDecorationLine: 'underline', borderColor: 'rgb(0, 170, 160)' }}>
-                          or choose another friend
-                        </Text>
-                      </Row>
-                        <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
-                          {
-                            this.state.actualRecipes.length > 0
-                            &&
-                            this.state.actualRecipes
-                            .filter(key =>
-                                this.state.recipes[key].name.toLowerCase().includes(this.state.searchedRec.toLowerCase())
-                            ).map(key =>
-                              <Grid>
-                                <Row  style={{...styles.listItem, height: deviceHeight*0.07}}>
-                                    <Col size={60}>
-                                     <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
-                                       {this.state.recipes[key].name}
-                                     </Text>
-                                   </Col>
-                                   <Col size={40}>
-                                      <Button style={{ ...styles.listTextBadge, height: 25 }} onPress={() => this.handleRequest(key)}>
-                                        <Text style={{ ...styles.listTextBadgeText }}> Request </Text>
-                                     </Button>
-                                   </Col>
-                               </Row>
-                               {this.state.recipes[key].image
-                                 &&
-                               <Row style={{...styles.listItem}}>
-                                 <Image
-                                   style={{ ...styles.image, width: deviceWidth*0.75, ...styles.center }}
-                                   source={{uri: this.state.recipes[key].image}}
-                                   />
-                               </Row>
-                             }
-
-                              </Grid>
-                            )
-                          }
-                        </Card>
-                    </Card>
-                  }
+              </Card>
 
             </Content>
           </Container>
-      </Drawer>
     );
   }
 }
+
+/*
+{ this.state.addNewFriends
+  &&
+    <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
+      <Row>
+        <Col size={80}>
+          { this.state.searchOpenNew
+          &&
+            <Input
+              autoFocus
+              style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
+              placeholder="Enter a username"
+              placeholderTextColor='rgb(142, 210, 210)'
+              onChangeText={(text) => this.setState({searchedNew: text})}/>
+          }
+          {!this.state.searchOpenNew
+            &&
+              <Button transparent>
+                 <Text style={{  ...styles.stepsCardHeader, fontSize: 20, marginLeft:15, color: 'rgb(142, 210, 210)' }}>
+                   Find new friends
+                 </Text>
+               </Button>
+
+          }
+        </Col>
+        <Col size={20}>
+          <Button transparent onPress={this.toggleSearch.bind(this)} >
+            <Icon name="search" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
+          </Button>
+        </Col>
+      </Row>
+      <Row>
+        <Text onPress={() => this.setState({addNewFriends: false})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', textDecorationLine: 'underline', borderColor: 'rgb(0, 170, 160)' }}>
+          or go back to your friends
+        </Text>
+      </Row>
+        <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
+          {
+            Object.keys(this.state.users).length > 0
+            &&
+            Object.keys(this.state.users).filter(key =>
+                !Object.values(this.state.users[store.getState().user.uid].friends).includes(key)
+                && key !== store.getState().user.uid
+                && this.state.users[key].username.toLowerCase().includes(this.state.searchedNew.toLowerCase())
+            ).map(key =>
+              <ListItem button  style={{...styles.listItem}} noBorder  onPress={() => this.setState({showRecipes: key})}>
+                  <Left>
+                      <Thumbnail
+                      style={styles.stretch}
+                      source={require('../helperFiles/sushi.jpg')}
+                      />
+                       <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
+                         {this.state.users[key].username}
+                       </Text>
+                  </Left>
+                  <Right>
+                    <Button transparent onPress={() => this.addFriend(key)}>
+                      <Icon name="md-add" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
+                    </Button>
+                  </Right>
+              </ListItem>
+            )
+          }
+        </Card>
+    </Card>
+  }
+
+  { (!this.state.addNewFriends && this.state.showRecipes === null)
+    &&
+      <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
+        <Row>
+          <Col size={80}>
+            { this.state.searchOpenFriend
+            &&
+              <Input
+                autoFocus
+                style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
+                placeholder="Enter friend's username"
+                placeholderTextColor='rgb(142, 210, 210)'
+                onChangeText={(text) => this.setState({searchedFriend: text})}/>
+            }
+            {!this.state.searchOpenFriend
+              &&
+                <Button transparent>
+                   <Text style={{  ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(142, 210, 210)' }}>
+                     Search friends
+                   </Text>
+                 </Button>
+
+            }
+          </Col>
+          <Col size={20}>
+            <Button transparent onPress={(text) => this.setState({searchOpenFriend: !this.state.searchOpenFriend})} >
+              <Icon name="search" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
+            </Button>
+          </Col>
+        </Row>
+        <Row>
+          <Text onPress={() => this.setState({addNewFriends: true})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', textDecorationLine: 'underline', borderColor: 'rgb(0, 170, 160)' }}>
+            or add a new friend
+          </Text>
+        </Row>
+          <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
+            {
+              Object.keys(this.state.users).length > 0
+              &&
+              Object.values(this.state.users[store.getState().user.uid].friends)
+              .filter(key =>
+                  this.state.users[key].username.toLowerCase().includes(this.state.searchedFriend.toLowerCase())
+              ).map(key =>
+                <ListItem button  style={{...styles.listItem}} noBorder  onPress={() => this.handleShowRecipes(key)}>
+                  <Left>
+                      <Thumbnail
+                      style={styles.stretch}
+                      source={require('../helperFiles/sushi.jpg')}
+                      />
+                       <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
+                         {this.state.users[key].username + "'s recipes"}
+                       </Text>
+                  </Left>
+                </ListItem>
+              )
+            }
+          </Card>
+      </Card>
+    }
+
+    { this.state.showRecipes !== null
+      &&
+        <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
+          <Row>
+            <Col size={80}>
+              { this.state.searchOpenRec
+              &&
+                <Input
+                  autoFocus
+                  style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
+                  placeholder="Enter name of the recipe"
+                  placeholderTextColor='rgb(142, 210, 210)'
+                  onChangeText={(text) => this.setState({searchedRec: text})}/>
+              }
+              {!this.state.searchOpenRec
+                &&
+                  <Button transparent>
+                     <Text style={{  ...styles.stepsCardHeader, fontSize: 15, marginLeft:15, color: 'rgb(142, 210, 210)' }}>
+                       {`Search in ${this.state.users[this.state.showRecipes].username}' recipes `}
+                     </Text>
+                   </Button>
+
+              }
+            </Col>
+            <Col size={20}>
+              <Button transparent onPress={(text) => this.setState({searchOpenRec: !this.state.searchOpenRec})} >
+                <Icon name="search" style={{ ...styles.stepsCardHeader, color: 'rgb(0, 170, 160)' }} />
+              </Button>
+            </Col>
+          </Row>
+          <Row>
+            <Text onPress={() => this.setState({showRecipes: null})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', textDecorationLine: 'underline', borderColor: 'rgb(0, 170, 160)' }}>
+              or choose another friend
+            </Text>
+          </Row>
+            <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
+              {
+                this.state.actualRecipes.length > 0
+                &&
+                this.state.actualRecipes
+                .filter(key =>
+                    this.state.recipes[key].name.toLowerCase().includes(this.state.searchedRec.toLowerCase())
+                ).map(key =>
+                  <Grid>
+                    <Row  style={{...styles.listItem, height: deviceHeight*0.07}}>
+                        <Col size={60}>
+                         <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
+                           {this.state.recipes[key].name}
+                         </Text>
+                       </Col>
+                       <Col size={40}>
+                          <Button style={{ ...styles.listTextBadge, height: 25 }} onPress={() => this.handleRequest(key)}>
+                            <Text style={{ ...styles.listTextBadgeText }}> Request </Text>
+                         </Button>
+                       </Col>
+                   </Row>
+                   {this.state.recipes[key].image
+                     &&
+                   <Row style={{...styles.listItem}}>
+                     <Image
+                       style={{ ...styles.image, width: deviceWidth*0.75, ...styles.center }}
+                       source={{uri: this.state.recipes[key].image}}
+                       />
+                   </Row>
+                 }
+
+                  </Grid>
+                )
+              }
+            </Card>
+        </Card>
+      }
+
+*/

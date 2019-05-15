@@ -128,6 +128,16 @@ export default {
     color: colours.ACC_DARK_PEACH,
     placeholderTextColor: colours.ACC_PEACH,
   },
+  acordionButtonVio: {
+    backgroundColor: colours.ACC_VIO_LIGHT,
+    marginTop: deviceWidth*0.01,
+    marginLeft: deviceWidth*0.01,
+    marginRight: deviceWidth*0.01,
+    borderRadius: 8,
+  },
+  acordionButtonVioText: {
+    color: colours.ACC_TEAL
+  },
   formTitle: {
     margin: deviceWidth*0.02,
     marginRight: deviceWidth*0.04,
