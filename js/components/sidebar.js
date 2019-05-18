@@ -118,7 +118,7 @@ export default class Sidebar extends Component {
 
           </List>
 
-          <ListItem button noBorder style={{...styles.sidebarMail}} onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Settings');}} >
+          <ListItem button noBorder style={{...styles.sidebarMail}} onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Notices');}} >
             <Left>
               <Icon active name='md-mail' style={{...styles.sidebarIcon}} />
               <Text style={{...styles.text}}>Správy</Text>

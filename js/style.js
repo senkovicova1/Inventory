@@ -13,7 +13,7 @@ export default {
   },
   sidebarList: {
     marginTop: 10,
-    height: deviceHeight*0.85,
+    height: deviceHeight*0.75,
   },
   sidebarIcon: {
     fontSize: 26,
@@ -46,10 +46,10 @@ export default {
      fontSize: 26,
   },
   sidebarSettings: {
-    bottom:50,
+  //  bottom:50,
   },
   sidebarMail: {
-    bottom:50,
+//    bottom:50,
   },
   header: {
     backgroundColor: colours.ACC_TEAL,

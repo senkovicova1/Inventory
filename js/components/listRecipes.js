@@ -11,7 +11,6 @@ import store from "../store/index";
 
 import styles from '../style';
 
-//import NotesModal from './notesModal';
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
@@ -139,10 +138,11 @@ export default class ListRecipes extends Component {
               data: {approved: true,}
             }).then((x) => {
               let id = Date.now().toString(16).toUpperCase();
-              let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recId)[0];
+          //    let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recId)[0];
+              let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === note.recId).map(id =>  this.state.recipes[id])[0];
                 let newOwners = {...wantedRecipe.owners};
                 newOwners[id] = note.userId;
-                  rebase.updateDoc(`recipes/${note.recId}`, {
+                  rebase.update(`recipes/${note.recId}`, {
                     data: {owners: newOwners}
                   });
             })
@@ -150,7 +150,6 @@ export default class ListRecipes extends Component {
       }
 
       declineRequest(note){
-      //  console.log("declining");
             rebase.update(`users/${store.getState().user.uid}/notices/RR-${note.key}`, {
               data: {approved: false, seen: true}
             }).then(newLocation => {
@@ -335,7 +334,7 @@ export default class ListRecipes extends Component {
                <List
                  dataArray={
                    Object.keys(this.state.recipes)
-                   .filter(key => this.state.recipes[key].owners.includes(store.getState().user.uid)
+                   .filter(key => Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid)
                                   && this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))
                    .map(key => this.state.recipes[key])}
                  renderRow={data =>

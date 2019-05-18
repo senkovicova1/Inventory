@@ -127,42 +127,48 @@ export default class AddRecipeBarcode extends Component {
 
   handleRequest(key){
     console.log("handling");
-  /*  let id = Date.now().toString(16).toUpperCase();
-    rebase.post(`users/${this.state.showRecipes}/notices/RR-${id}`, {
-      data: {userID: this.state.showRecipes, recID: key, approved: false, seen: false}
-    }).then(newLocation => {
-        rebase.post(`users/${store.getState().user.uid}/notices/RRM-${id}`, {
-          data: {recID: key, approved: false,}
-        }).then((x) => {
+    let id = Date.now().toString(16).toUpperCase();
+
+    rebase.post(`users/${store.getState().user.uid}/notices/RRM-${id}`, {
+      data: {recID: key, approved: false,}
+    }).then((x) => {
+      let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === key).map(id =>  this.state.recipes[id])[0];
+      Object.values(wantedRecipe.owners).map(owner =>
+        rebase.post(`users/${owner}/notices/RR-${id}`, {
+          data: {userID: store.getState().user.uid, recID: key, approved: false, seen: false}
+        }).then(newLocation => {
           this.setState({
             message: "Recipe requested!",
             showMessage: true,
           });
         })
-    });*/
-
+      );
+    });
   }
 
   handleGet(key){
-    console.log("yay");
+    let id = Date.now().toString(16).toUpperCase();
+    let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === key).map(id =>  this.state.recipes[id])[0];
+    let newOwners = {...wantedRecipe.owners};
+    newOwners[id] = store.getState().user.uid;
+    let own = {};
+    own[id] = store.getState().user.uid;
+    let recipe = {
+      name: wantedRecipe.name,
+      body: wantedRecipe.body,
+      image: wantedRecipe.image,
+      ingredients: {...wantedRecipe.ingredients},
+      owners: own
+    };
+    rebase.post(`recipes/${id}`, {
+      data: recipe
+    }).then((x) =>
+      this.setState({
+          message: "You can find your new recipe in your recipe book!",
+          showMessage: true,
+      })
+    );
   }
-
-/*componentDidMount() {
-    BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
-    this.ref1 = rebase.syncState(`users`, {
-      context: this,
-      state: 'users',
-    });
-    this.ref2 = rebase.syncState(`recipes`, {
-      context: this,
-      state: 'recipes',
-    });
-    this.ref3 = rebase.syncState(`recipeAccess`, {
-      context: this,
-      state: 'recipeAccess',
-      asArray: true,
-    });
-  }*/
 
 componentWillUnmount() {
   BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
@@ -185,18 +191,8 @@ componentWillUnmount() {
     });
   }
 
-  closeDrawer = () => {
-    this.drawer._root.close()
-  };
-  openDrawer = () => {
-    this.drawer._root.open()
-  };
-
   render() {
-    console.log(typeof this.state.searchedFriend);
-    console.log(this.state.searchedFriend !== 0);
     return (
-
         <Container>
             <Header style={{ ...styles.header}}>
               <Left>
@@ -278,14 +274,15 @@ componentWillUnmount() {
                       Object.keys(this.state.recipes)
                                   .filter(key => {
                                       const COND1 = this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase());
+                                      const COND3 = !Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid);
                                       if(this.state.searchedFriend !== 0){
                                         const COND2 = Object.values(this.state.recipes[key].owners).includes(this.state.searchedFriend);
                                         if (this.state.searchedWord.length > 0){
-                                          return COND1 && COND2;
+                                          return COND1 && COND2 && COND3;
                                         }
-                                        return COND2;
+                                        return COND2 && COND3;
                                       }
-                                      return COND1;
+                                      return COND1 && COND3;
                                     }
                                   ).map(key =>
                                     <Grid  onPress={() => this.handleShowRecipes(key)}>

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {Image, Platform, BackHandler} from 'react-native';
-import { Container, Content, Header, Title, Card, CardItem, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
+import { Container, Content, Header, Title, Toast, Card, CardItem, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
 
 import store from "../store/index";
 import { logUser, logOffUser } from "../actions/index";
@@ -31,6 +31,9 @@ export default class Login extends Component {
       showSignUp: false,
       showNotAllFieldsFilled: false,
       validMail: false,
+
+      showError: false,
+      error: "",
     };
 
 
@@ -64,7 +67,7 @@ export default class Login extends Component {
   }
 
     login(){
-      firebase.auth().signInWithEmailAndPassword(this.state.email,this.state.password1)
+      firebase.auth().signInWithEmailAndPassword(this.state.email.toLowerCase(),this.state.password1)
       .then((res)=>{
         store.dispatch(logUser({user: firebase.auth().currentUser}));
         if (store.getState().user !== null){
@@ -72,7 +75,24 @@ export default class Login extends Component {
         }
       }).catch(error=>{
         //could be no internet
-        console.log(error)
+        if (error.code === "auth/wrong-password"){
+          this.setState({
+            showError: true,
+            error: "Wrong password or email!"
+          });
+        } else if (error.code === "auth/network-request-failed"){
+          this.setState({
+            showError: true,
+            error: "A network error - one of the reasons may be that the device is not connected to the internet."
+          });
+        } else {
+          this.setState({
+            showError: true,
+            error: "Error message: " + error.message,
+          });
+        }
+        console.log(error.code);
+        console.log(error);
       });
     }
 
@@ -290,6 +310,16 @@ export default class Login extends Component {
                     </Body>
                   </Button>
                 }
+
+                {this.state.showError
+                  &&
+                  Toast.show({
+                    text: this.state.error,
+                    duration: 4000,
+                    type: 'danger'
+                  })
+                }
+
               </Card>
           </Content>
           </Container>
