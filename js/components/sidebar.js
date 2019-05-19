@@ -48,7 +48,37 @@ export default class Sidebar extends Component {
   }
 
   removeInv(id){
-    console.log("delteing");
+/*    let newOwners = {...this.state.owners};
+    if (Object.keys(newOwners).length === 1){
+      rebase.remove(`recipes/${this.state.key}`)
+      .then((x) =>
+        {
+          this.setState({
+              message: "Recipe deleted from your recipe book!",
+              showMessage: true,
+          })
+          this.props.navigation.navigate("Recipes");
+        }
+      );
+    } else {
+        for(var f in newOwners) {
+           if(newOwners[f] == store.getState().user.uid) {
+               delete newOwners[f];
+           }
+       }
+       // delete newOwners[store.getState().user.uid];
+          rebase.update(`recipes/${this.state.key}`, {
+            data: {owners: newOwners}
+          }).then((x) =>
+          {
+            this.setState({
+                message: "Recipe deleted from your recipe book!",
+                showMessage: true,
+            })
+            this.props.navigation.navigate("Recipes");
+          }
+        );
+      }*/
   }
 
   render() {
@@ -76,14 +106,14 @@ export default class Sidebar extends Component {
               <Icon active name='md-basket' style={styles.sidebarIcon} />
               <Text style={styles.text}>Inventáre</Text>
             </Left>
-            {
+            {/*
               this.state.showStuff &&
             <Right>
               <Button  transparent noBorder  onPress={() => {this.setState({showTrash: !this.state.showTrash}); console.log("meh")}}>
               <Icon active name='md-settings' style={styles.sidebarIcon}  />
               </Button>
             </Right>
-            }
+            */}
           </ListItem>
 
           {
@@ -106,12 +136,10 @@ export default class Sidebar extends Component {
                         />
                       <Text style={styles.text}>{data.name}</Text>
                       </Left>
-                          { this.state.showTrash
-                            &&
                             <Button transparent noBorder style={{height: 20, width: 40}} onPress={() => this.removeInv(data.key)}>
                               <Icon active name='md-trash' style={styles.sidebarIcon} onPress={() => this.removeInv(data.key)}/>
                             </Button>
-                          }
+
                     </ListItem> } />
                 </Card>
               }

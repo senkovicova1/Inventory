@@ -43,6 +43,7 @@ export default class EditRecipes extends Component {
        body: this.props.navigation.getParam('body', 'NO-ID'),
        ingredientsInRecipe: this.props.navigation.getParam('ingredients', 'NO-ID'),
        image: this.props.navigation.getParam('image', 'NO-ID'),
+       owners: this.props.navigation.getParam('owners', 'NO-ID'),
        userID: 1,
 
        ingredients: [],
@@ -58,6 +59,9 @@ export default class EditRecipes extends Component {
        searchOpen: false,
        showUnsaved: false,
        changed: false,
+
+       message: "",
+       showMessage: false,
     };
 
       this.uploadImage.bind(this);
@@ -68,6 +72,7 @@ export default class EditRecipes extends Component {
 
       this.addNewIngredient.bind(this);
       this.removeIngredient.bind(this);
+      this.removeRecipe.bind(this);
       this.submit.bind(this);
       this.fetch.bind(this);
       this.fetch();
@@ -98,6 +103,7 @@ export default class EditRecipes extends Component {
          name: this.state.name,
          key: this.state.key,
          body: this.state.body,
+         owners: this.state.owners,
          ingredients: ings,
          image: url,
        }
@@ -113,6 +119,7 @@ export default class EditRecipes extends Component {
        let object = {key: key, name: this.state.newIngredientName, amount: this.state.newIngredientAmount + " " + this.state.newIngredientUnit};
        let newIngredientsInRecipe = [...this.state.ingredientsInRecipe, object];
   //     newIngredientsInRecipe[Object.keys(newIngredientsInRecipe).length] = object,
+
          this.setState({
            ingredientsInRecipe: newIngredientsInRecipe,
 
@@ -133,6 +140,40 @@ export default class EditRecipes extends Component {
          changed: true,
        });
 
+   }
+
+   removeRecipe(){
+       let newOwners = {...this.state.owners};
+       if (Object.keys(newOwners).length === 1){
+         rebase.remove(`recipes/${this.state.key}`)
+         .then((x) =>
+           {
+             this.setState({
+                 message: "Recipe deleted from your recipe book!",
+                 showMessage: true,
+             })
+             this.props.navigation.navigate("Recipes");
+           }
+         );
+       } else {
+           for(var f in newOwners) {
+              if(newOwners[f] == store.getState().user.uid) {
+                  delete newOwners[f];
+              }
+          }
+          // delete newOwners[store.getState().user.uid];
+             rebase.update(`recipes/${this.state.key}`, {
+               data: {owners: newOwners}
+             }).then((x) =>
+             {
+               this.setState({
+                   message: "Recipe deleted from your recipe book!",
+                   showMessage: true,
+               })
+               this.props.navigation.navigate("Recipes");
+             }
+           );
+         }
    }
 
    checkNumber(text){
@@ -187,43 +228,43 @@ export default class EditRecipes extends Component {
      };
 
      uploadImage(mime = 'image/png') {
-       console.log("UPLOADING");
+  //     console.log("UPLOADING");
          let uploadBlob = null;
-         console.log(this.state.image);
+      //   console.log(this.state.image);
          let uploadUri = this.state.image;
 
          const imageRef = fb.storage().ref('recipes').child(this.state.key);
 
          fs.readFile(uploadUri, 'base64')
            .then((data) => {
-             console.log("first -- data:");
-             console.log(data);
+        //     console.log("first -- data:");
+        //     console.log(data);
              return Blob.build(data, { type: `${mime};BASE64` });
            })
            .then((blob) => {
-             console.log("second -- blob:");
-             console.log(blob);
+          //   console.log("second -- blob:");
+        //     console.log(blob);
              uploadBlob = blob;
              return imageRef.put(blob, { contentType: mime });
            })
            .then(() => {
-             console.log("third -- null");
+        //     console.log("third -- null");
              uploadBlob.close();
              return imageRef.getDownloadURL();
            })
            .then((url) => {
-             console.log("4th -- url");
-             console.log(url);
+        //     console.log("4th -- url");
+        //     console.log(url);
              this.submit(url);
            })
            .catch((error) => {
-             console.log("5th -- error");
-             console.log(error);
+        //     console.log("5th -- error");
+        //     console.log(error);
          });
      }
 
   render() {
-    console.log(this.state.ingredientsInRecipe);
+
     const PICKER_ITEMS = this.state.ingredients.map(ingredient =>
                <Picker.Item key={ingredient.key} label={ingredient.name} value={ingredient.name} />
            );
@@ -248,14 +289,23 @@ export default class EditRecipes extends Component {
             </Header>
 
             <Content style={{ ...styles.content }} >
-              {this.state.name.length === 0
+
+              {this.state.showMessage
                 &&
-                <Button  bordered block warning style={{ ...styles.acordionButtonTrans }} onPress={()=> this.setState({showEmpty: true})}>
+                Toast.show({
+                  text: this.state.message,
+                  duration: 2000,
+                })
+              }
+
+              {!this.state.changed
+                &&
+                <Button  transparent bordered block warning style={{ ...styles.acordionButtonTrans}} onPress={()=> this.setState({showEmpty: true})}>
                     <Text style={{ ...styles.acordionButtonTextTrans }}> Edit </Text>
                 </Button>
               }
 
-              {this.state.name.length > 0
+              {this.state.changed
                 &&
                 <Button block style={{ ...styles.acordionButton }} onPress={()=> this.uploadImage()}>
                     <Text style={{ ...styles.acordionButtonText }}> Edit</Text>
@@ -266,7 +316,7 @@ export default class EditRecipes extends Component {
               &&
               Toast.show({
                 text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
-                duration: 4000,
+                duration: 3000,
                 type: 'danger'
               })
             }
@@ -275,7 +325,7 @@ export default class EditRecipes extends Component {
               &&
               Toast.show({
                 text: `You need to name your recipe before saving it!`,
-                duration: 4000,
+                duration: 3000,
                 type: 'danger'
               })
             }
@@ -287,7 +337,9 @@ export default class EditRecipes extends Component {
                    placeholder="Enter name"
                    placeholderTextColor='rgb(255, 184, 95)'
                    value={this.state.name}
-                   onChangeText={(text) => this.setState({name: text, changed: true,})}/>
+                   onChangeText={(text) => {
+                     this.setState({name: text, changed: true,});
+                   }}/>
 
 
                {this.state.image
@@ -362,6 +414,7 @@ export default class EditRecipes extends Component {
                                        let newIngredientsInRecipe = {...this.state.ingredientsInRecipe};
                                        let newValue = text + " " + this.state.ingredientsInRecipe[key].amount.substring(this.state.ingredientsInRecipe[key].amount.indexOf(" ")+1);
                                        newIngredientsInRecipe[key].amount = newValue;
+
                                        this.setState({
                                          ingredientsInRecipe: newIngredientsInRecipe,
                                          changed: true
@@ -433,11 +486,15 @@ export default class EditRecipes extends Component {
                           mode="dropdown"
                           style={{ ...styles.unitPicker, ...styles.PEACH, height: 24  }}
                           selectedValue={this.state.newIngredientName}
-                          onValueChange={(itemValue, itemIndex) =>
+                          onValueChange={(itemValue, itemIndex) =>{
+                                        if(itemValue.length === 0){
+                                          return;
+                                        }
                                             this.setState({
                                               newIngredientName: itemValue,
                                               changed: true
-                                            })
+                                        });
+                                      }
                           }>
                             {PICKER_ITEMS}
                         </Picker>
@@ -479,10 +536,15 @@ export default class EditRecipes extends Component {
                                   style={{ ...styles.unitPicker, ...styles.PEACH, height: 24  }}
                                   selectedValue={this.state.newIngredientUnit}
                                   onValueChange={(itemValue, itemIndex) =>
-                                                   this.setState({
-                                                     newIngredientUnit: itemValue,
-                                                     changed: true
-                                                   })
+                                          {
+                                              if(itemValue.length === 0){
+                                                return;
+                                              }
+                                               this.setState({
+                                                 newIngredientUnit: itemValue,
+                                                 changed: true
+                                               });
+                                          }
                                }>
                                <Picker.Item key="0" label="" value=""/>
 
@@ -524,11 +586,14 @@ export default class EditRecipes extends Component {
                          placeholder="Steps"
                          placeholderTextColor='rgb(255, 184, 95)'
                          style={{...styles.textArea}}
-                         onChangeText={(text) => this.setState({body: text, changed: true})}
+                         onChangeText={(text) => this.setState({body: text/*, changed: true*/})}
                          value={this.state.body}/>
                      </Card>
                 </Form>
 
+                <Button  block danger style={{ ...styles.acordionButtonTrans, marginLeft: 15, marginRight: 15, marginBottom: 15}} onPress={()=> this.removeRecipe()}>
+                    <Text style={{ ...styles.acordionButtonTextTrans }}> DELETE </Text>
+                </Button>
             </Content>
           </Container>
       </Drawer>

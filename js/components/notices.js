@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View, Dimensions} from 'react-native';
-import { Drawer,  Card, Content, Header, Body, Title, Text, List, Input, Item, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, Col, Row, Grid, StyleProvider, getTheme, variables } from 'native-base';
+import { Drawer,  Card, Content, Header,Body, Title, Text, List, Input, Item, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, Col, Row, Grid, StyleProvider, getTheme, variables } from 'native-base';
 import Modal from "react-native-modal";
 import Sidebar from './sidebar';
 
@@ -23,24 +23,46 @@ export default class Notices extends Component {
     super(props);
     this.state = {
       notices: [],
+      key: null,
     };
 
     this.handleBackPress.bind(this);
     this.toggleModal.bind(this);
+    this.removeItem.bind(this);
     this.fetch.bind(this);
     this.fetch();
   }
 
   fetch(){
-    rebase.fetch(`users`, {
+    rebase.fetch(`recipes`, {
       context: this,
       withIds: true,
-    }).then((u) => {
-      console.log(u);
-        this.setState({
-          users: u,
-        });
+    }).then((r) => {
+      this.setState({
+        recipes: r,
+      });
     });
+  }
+
+  removeItem(key){
+    rebase.remove(`users/${store.getState().user.uid}/notices/${key}`)
+    .then(() => {
+
+    })
+  }
+
+  componentDidMount() {
+      BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+
+      rebase.listenTo(`users`, {
+       context: this,
+       withIds: true,
+       then: function(u){
+         this.setState({
+           users: u
+         });
+       }
+      });
 
   }
 
@@ -48,7 +70,7 @@ export default class Notices extends Component {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
   }
 
-  toggleModal(visible) {
+  toggleModal(visible, key) {
   /*    rebase.update(`users/${this.state.showRecipes}/notices/RR-${id}`, {
       data: {userID: this.state.showRecipes, recID: key, approved: false, seen: false}
     }).then(newLocation => {
@@ -61,7 +83,10 @@ export default class Notices extends Component {
           });
         })
     });*/
-      this.setState({modalVisible: visible});
+      this.setState({
+        modalVisible: visible,
+        key: key
+      });
   }
 
 
@@ -69,6 +94,7 @@ export default class Notices extends Component {
     if (this.state.modalVisible){
       this.setState({
         modalVisible: false,
+        key: null,
       });
     }
     this.props.navigation.navigate("Recipes");
@@ -83,10 +109,8 @@ export default class Notices extends Component {
   };
 
   render() {
-    if(this.state.users && Object.values(this.state.users).length > 0){
-      console.log("ugh");
-      console.log(Object.keys(this.state.users[store.getState().user.uid].notices));
-    }
+    const ID = store.getState().user.uid;
+
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -110,23 +134,77 @@ export default class Notices extends Component {
 
          <Content padder style={{ ...styles.content }} >
 
-            <Card transparent style={{ ...styles.listCardInv }}>
-               {/*this.state.users
+             <Modal
+               style={{ ...styles.listCard, backgroundColor: 'rgb(124, 90, 150)', width: deviceWidth*0.8, marginTop: deviceHeight*0.2, marginBottom: deviceHeight*0.2, alignSelf: 'center' }}
+               isVisible={this.state.modalVisible}
+               backdropOpacity={0.4}
+               onBackButtonPress={() => this.toggleModal(false, this.state.key)}
+               onBackdropPress={() => this.toggleModal(false, this.state.key)}>
+               {
+                 this.state.key
                  &&
-                 Object.keys(this.state.users.length) > 0
+                 this.state.key.includes("MSG")
+                 &&
+                 <Grid>
+                   <Row>
+                     <Text>{ } </Text>
+                   </Row>
+
+                   <Row>
+                     <Text style={{ ...styles.listText, color: 'rgb(255, 184, 95)', height: deviceHeight*0.07 }}>
+                       {this.state.users[ID].notices[this.state.key].text}
+                     </Text>
+                   </Row>
+                 </Grid>
+               }
+              </Modal>
+
+
+            <Card transparent style={{ ...styles.listCard }}>
+               {this.state.recipes
+                 &&
+                 Object.keys(this.state.recipes).length > 0
+                 &&
+                 this.state.users
+                 &&
+                 Object.keys(this.state.users).length > 0
                  &&
                  <List
-                 dataArray={Object.keys(this.state.users[store.getState().user.uid].notices).map(k => this.state.users[store.getState().user.uid].notices.k)}
-                 renderRow={data =>
-                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.toggleModal(true)}>
-                     <Left>
-                       <Text style={{ ...styles.listText }}>{data.userId}</Text>
-                     </Left>
-                     <Right>
-                     </Right>
-                   </ListItem>
-                 }
-               />*/}
+                 dataArray={Object.keys(this.state.users[ID].notices)}
+                 renderRow={key =>
+                     <ListItem noBorder>
+                       <Left  onPress={() => this.toggleModal(true, key)}>
+                        { key.includes("RR-")
+                          &&
+                           <Text style={{ ...styles.listText, width: deviceWidth*0.7}}>
+                             {`${this.state.users[this.state.users[ID].notices[key].userID].username} asked you to share this recipe with you:
+${this.state.recipes[this.state.users[ID].notices[key].recID].name}
+Status: ${this.state.users[ID].notices[key].approved ? "Approved" : "Declined"}`}
+                           </Text>
+                        }
+                        { key.includes("RRM-")
+                          &&
+                           <Text style={{ ...styles.listText, width: deviceWidth*0.7 }}>
+                             {`You asked you to share this recipe:
+${this.state.recipes[this.state.users[ID].notices[key].recID].name}
+Status: ${this.state.users[ID].notices[key].approved ? "Approved" : "Declined"}`}
+                           </Text>
+                        }
+                        { key.includes("MSG-")
+                          &&
+                           <Text style={{ ...styles.listText, width: deviceWidth*0.7 }}>
+                             {this.state.users[ID].notices[key].text.slice(0, 60)}...
+                           </Text>
+                        }
+                      </Left>
+                        <Right>
+                          <Button transparent noBorder style={{height: 10, width: 40,  }} onPress={() => this.removeItem(key)}>
+                            <Icon active name='md-trash' style={styles.sidebarIcon} onPress={() => this.removeItem(key)}/>
+                          </Button>
+                        </Right>
+                     </ListItem>
+                    }
+               />}
            </Card>
 
          </Content>

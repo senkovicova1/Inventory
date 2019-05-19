@@ -25,11 +25,12 @@ export default class DetailRecipe extends Component {
     super(props);
     this.state = {
         showID: false,
-        name: this.props.navigation.getParam('rec', 'NO-ID').name,
-        key: this.props.navigation.getParam('rec', 'NO-ID').key,
-        body: this.props.navigation.getParam('rec', 'NO-ID').body,
-        ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients ,
-        image: this.props.navigation.getParam('rec', 'NO-ID').image,
+        name: "",
+        key: this.props.navigation.getParam('key', 'NO-ID'),
+        body: "",
+        ingredients: null,
+        image: null,
+        owners: null,
         ppl: "1",
     };
 
@@ -39,23 +40,36 @@ export default class DetailRecipe extends Component {
     this.changeAmount.bind(this);
     this.changeAmountPpl.bind(this);
     this.fetch.bind(this);
-    this.fetch();
+    this.fetch(this.props.navigation.getParam('key', 'NO-ID'));
   }
 
-  fetch(){
+  fetch(id){
+    rebase.fetch(`recipes/${id}`, {
+         context: this,
+         withIds: true,
+       }).then((recipe) => {
     rebase.fetch(`ingredients`, {
          context: this,
          withIds: true,
          asArray: true,
        }).then((ings) => {
-         let actualIngs = Object.keys(this.state.ingredients).map(key => {
-           let name = ings.filter(ingredient => ingredient.key === key.toString()).map(ingredient => ingredient.name)[0];
-           return ({name, amount: this.state.ingredients[key], defaultAmount: this.state.ingredients[key], key: key.toString()});
-         });
+         let actualIngs = [];
+          if (recipe.ingredients) {
+            actualIngs = Object.keys(recipe.ingredients).map(key => {
+             let name = ings.filter(ingredient => ingredient.key === key.toString()).map(ingredient => ingredient.name)[0];
+             return ({name, amount: recipe.ingredients[key], defaultAmount: recipe.ingredients[key], key: key.toString()});
+           });
+         } 
          this.setState({
            ingredients: actualIngs,
+           name: recipe.name,
+           key: id,
+           body: recipe.body,
+           image: recipe.image,
+           owners: recipe.owners,
          })
        });
+    });
   }
 
   checkNumber(text){
@@ -65,26 +79,9 @@ export default class DetailRecipe extends Component {
   componentWillReceiveProps(){
     this.setState({
       showID: false,
-        name: this.props.navigation.getParam('rec', 'NO-ID').name,
-        key: this.props.navigation.getParam('rec', 'NO-ID').key,
-        body: this.props.navigation.getParam('rec', 'NO-ID').body,
-        ingredients: this.props.navigation.getParam('rec', 'NO-ID').ingredients,
-        image: this.props.navigation.getParam('rec', 'NO-ID').image,
     });
 
-    rebase.fetch(`ingredients`, {
-         context: this,
-         withIds: true,
-         asArray: true,
-       }).then((ings) => {
-         let actualIngs = Object.keys(this.state.ingredients).map(key => {
-           let name = ings.filter(ingredient => ingredient.key === key.toString()).map(ingredient => ingredient.name)[0];
-           return ({name, amount: this.state.ingredients[key], defaultAmount: this.state.ingredients[key], key: key.toString()});
-         });
-         this.setState({
-           ingredients: actualIngs,
-         })
-       });
+    this.fetch(this.props.navigation.getParam('rec', 'NO-ID'));
   }
 
   changeAmount(code, amount){
@@ -180,10 +177,6 @@ export default class DetailRecipe extends Component {
 
 
   render() {
-  /*  console.log("asd");
-    Object.keys(this.state.ingredients)
-    .map(item => console.log(item));
-    this.state.ingredients.map(i => console.log(i));*/
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -199,11 +192,11 @@ export default class DetailRecipe extends Component {
             </Left>
             <Body>
               <Title style={{ ...styles.headerItem }} >{this.state.showID ? this.state.key : this.state.name}</Title>
-
             </Body>
             <Right>
-              <Button transparent><Icon name="md-share-alt" style={{ ...styles.headerItem }} onPress={() => this.shareStuff2()/*this.setState({showID: !this.state.showID })*/}/><Text></Text></Button>
-              <Button transparent><Icon name="md-create" style={{ ...styles.headerItem }} onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.body, ingredients: this.state.ingredients, image: this.state.image})}/><Text></Text></Button>
+              <Button transparent onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.body, ingredients: this.state.ingredients, image: this.state.image, owners: this.state.owners})}>
+                <Icon name="md-create" style={{ ...styles.headerItem }} /><Text></Text>
+              </Button>
             </Right>
 
           </Header>
@@ -231,16 +224,19 @@ export default class DetailRecipe extends Component {
                    <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5, marginRight: 10}}>Amount</Text>
                  </Col>
              </Row>
-              {
-               Object.keys(this.state.ingredients)
+              {this.state.ingredients
+                &&
+                this.state.ingredients.length > 0
+                &&
+               this.state.ingredients
                .map(item =>
                   <Row style={{...styles.listItemInRecipe}}>
 
                      <Col size={50}>
                      <Text style={{ ...styles.detailRecipeRowText}}>
-                       {this.state.ingredients[item].name}
+                       {item.name}
                        <Text style={{ ...styles.detailRecipeRowText, ...styles.PEACH, fontSize: 11 }}>
-                         {`   (${this.state.ingredients[item].defaultAmount})`}
+                         {`   (${item.defaultAmount})`}
                        </Text>
                      </Text>
                      </Col>
@@ -248,7 +244,7 @@ export default class DetailRecipe extends Component {
                       <Col size={40}>
                         <Row>
                           <Col size={20}>
-                            { (this.state.ingredients[item].amount && !this.state.ingredients[item].amount.includes("-"))
+                            { (item.amount && !item.amount.includes("-"))
                               &&
                             <Button transparent small  onPress={() => this.changeAmount(item, -1)}>
                                 <Icon name="md-arrow-dropdown" style={{ alignSelf: 'center', ...styles.DARK_PEACH }}/>
@@ -256,10 +252,10 @@ export default class DetailRecipe extends Component {
                             }
                           </Col>
                           <Col size={20}>
-                              <Text style={{ ...styles.PEACH, alignSelf: 'center', marginTop: -5, padding: 0,}}>{this.state.ingredients[item].amount} </Text>
+                              <Text style={{ ...styles.PEACH, alignSelf: 'center', marginTop: -5, padding: 0,}}>{item.amount} </Text>
                           </Col>
                           <Col size={20}>
-                            { (this.state.ingredients[item].amount && !this.state.ingredients[item].amount.includes("-"))
+                            { (item.amount && !item.amount.includes("-"))
                               &&
                               <Button transparent small onPress={() => this.changeAmount(item, 1)} >
                                 <Icon name="md-arrow-dropup" style={{ alignSelf: 'center', ...styles.DARK_PEACH}}/>
