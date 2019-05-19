@@ -129,7 +129,7 @@ export default class EditRecipes extends Component {
      let newIngredientsInRecipe = {...this.state.ingredientsInRecipe};
      delete newIngredientsInRecipe[key];
        this.setState({
-         ingredientsInRecipe: newIngredientsInRecipe,
+         ingredientsInRecipe: [...newIngredientsInRecipe],
          changed: true,
        });
 

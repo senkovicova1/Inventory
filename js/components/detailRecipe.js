@@ -235,12 +235,6 @@ export default class DetailRecipe extends Component {
                Object.keys(this.state.ingredients)
                .map(item =>
                   <Row style={{...styles.listItemInRecipe}}>
-                       <Col size={10}>
-                         <Thumbnail
-                           style={{ ...styles.thumbnl }}
-                           source={require('../helperFiles/sushi.jpg')}
-                         />
-                     </Col>
 
                      <Col size={50}>
                      <Text style={{ ...styles.detailRecipeRowText}}>
@@ -278,7 +272,7 @@ export default class DetailRecipe extends Component {
                )
                 }
                 <Row >
-                    <Text style={{ ...styles.PEACH }}>Počet osôb  {"  "}</Text>
+                    <Text style={{ ...styles.PEACH }}> {" "} Počet osôb  {"  "}</Text>
                     <Item regular style={{ borderColor: 'rgb(255, 184, 95)', width: 50, height: 24, borderRadius: 5, marginBottom: 5}}>
                       <Input
                         style={{ ...styles.PEACH }}

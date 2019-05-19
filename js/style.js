@@ -13,7 +13,7 @@ export default {
   },
   sidebarList: {
     marginTop: 10,
-    height: deviceHeight*0.85,
+    height: deviceHeight*0.75,
   },
   sidebarIcon: {
     fontSize: 26,
@@ -46,7 +46,10 @@ export default {
      fontSize: 26,
   },
   sidebarSettings: {
-    bottom:0,
+  //  bottom:50,
+  },
+  sidebarMail: {
+//    bottom:50,
   },
   header: {
     backgroundColor: colours.ACC_TEAL,
@@ -124,6 +127,16 @@ export default {
     backgroundColor: colours.ACC_WHITE,
     color: colours.ACC_DARK_PEACH,
     placeholderTextColor: colours.ACC_PEACH,
+  },
+  acordionButtonVio: {
+    backgroundColor: colours.ACC_VIO_LIGHT,
+    marginTop: deviceWidth*0.01,
+    marginLeft: deviceWidth*0.01,
+    marginRight: deviceWidth*0.01,
+    borderRadius: 8,
+  },
+  acordionButtonVioText: {
+    color: colours.ACC_TEAL
   },
   formTitle: {
     margin: deviceWidth*0.02,

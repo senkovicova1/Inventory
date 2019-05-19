@@ -11,6 +11,7 @@ import { createStackNavigator, createAppContainer } from "react-navigation";
 
 import Login from './components/login';
 import Settings from './components/settings';
+import Notices from './components/notices';
 
 import ListRecipes from './components/listRecipes';
 
@@ -30,6 +31,7 @@ const AppNavigator = createStackNavigator(
   {
     Login: Login,
     Settings: Settings,
+    Notices: Notices,
 
     Recipes: ListRecipes,
 

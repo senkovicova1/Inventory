@@ -15,11 +15,12 @@ export default class Sidebar extends Component {
       shadowOffsetWidth: 1,
       shadowRadius: 4,
       showStuff: false,
+      showTrash: false,
 
       inventories: [],
     };
 
-
+  this.removeInv.bind(this);
   this.fetch.bind(this);
   this.fetch();
   }
@@ -46,7 +47,13 @@ export default class Sidebar extends Component {
     });
   }
 
+  removeInv(id){
+    console.log("delteing");
+  }
+
   render() {
+    console.log(this.state.showTrash);
+
     return (
       <Container>
         <Content
@@ -69,7 +76,14 @@ export default class Sidebar extends Component {
               <Icon active name='md-basket' style={styles.sidebarIcon} />
               <Text style={styles.text}>Inventáre</Text>
             </Left>
-
+            {
+              this.state.showStuff &&
+            <Right>
+              <Button  transparent noBorder  onPress={() => {this.setState({showTrash: !this.state.showTrash}); console.log("meh")}}>
+              <Icon active name='md-settings' style={styles.sidebarIcon}  />
+              </Button>
+            </Right>
+            }
           </ListItem>
 
           {
@@ -92,11 +106,26 @@ export default class Sidebar extends Component {
                         />
                       <Text style={styles.text}>{data.name}</Text>
                       </Left>
+                          { this.state.showTrash
+                            &&
+                            <Button transparent noBorder style={{height: 20, width: 40}} onPress={() => this.removeInv(data.key)}>
+                              <Icon active name='md-trash' style={styles.sidebarIcon} onPress={() => this.removeInv(data.key)}/>
+                            </Button>
+                          }
                     </ListItem> } />
                 </Card>
               }
 
           </List>
+
+          <ListItem button noBorder style={{...styles.sidebarMail}} onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Notices');}} >
+            <Left>
+              <Icon active name='md-mail' style={{...styles.sidebarIcon}} />
+              <Text style={{...styles.text}}>Správy</Text>
+            </Left>
+            <Right style={{ flex: 1 }}>
+            </Right>
+          </ListItem>
 
           <ListItem button noBorder style={{...styles.sidebarSettings}} onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Settings');}} >
             <Left>
