@@ -32,12 +32,11 @@ export default class AddInventory extends Component {
       const USER_ID = store.getState().user.uid;
       let id = Date.now().toString(16).toUpperCase();
 
+      let own = {};
+      own[id] = USER_ID;
+
       rebase.post(`inventories/${id}`, {
-        data: {name: this.state.title, notes: this.state.notes}
-      }).then(newLocation => {
-        rebase.post(`inventoryAccess/${id}`, {
-          data: {invID: id, userID: USER_ID}
-        });
+        data: {name: this.state.title, notes: this.state.notes, owners: own}
       });
 
       this.props.navigation.navigate('Inventory', {id: id, title: this.state.title, notes: this.state.notes});

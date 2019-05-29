@@ -22,13 +22,23 @@ export default class Sidebar extends Component {
 
   this.removeInv.bind(this);
   this.fetch.bind(this);
-  this.fetch();
+//  this.fetch();
   }
 
   fetch(){
     const USER_ID = store.getState().user.uid;
 
     rebase.fetch(`inventories`, {
+       context: this,
+       withIds: true,
+       asArray: true
+     }).then((inv) =>
+         this.setState({
+           inventories: inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID)),
+         })
+     );
+
+  /*  rebase.fetch(`inventories`, {
       context: this,
       withIds: true,
       asArray: true
@@ -38,18 +48,26 @@ export default class Sidebar extends Component {
         withIds: true,
         asArray: true
       }).then((invAcc) => {
-        let accessGranted = invAcc.filter(inventoryAcc => inventoryAcc.userID === USER_ID).map(invAcc => invAcc.invID.toString());
-        let availableInv = inv.filter(inventory => accessGranted.includes(inventory.key));
+        let accessible = invAcc.filter(inventoryAcc => inventoryAcc.userID === USER_ID).map(invAcc => invAcc.invID);
+        let availableInv = inv.filter(inventory => accessible.includes(inventory.key));
         this.setState({
           inventories: availableInv,
         })
       });
-    });
+    });*/
+  }
+
+  componentDidMount() {
+      rebase.bindToState(`inventories`, {
+       context: this,
+       state: 'inventories',
+       asArray: true,
+     });
   }
 
   removeInv(id){
-/*    let newOwners = {...this.state.owners};
-    if (Object.keys(newOwners).length === 1){
+    let newOwners = {...this.state.owners};
+/*    if (Object.keys(newOwners).length === 1){
       rebase.remove(`recipes/${this.state.key}`)
       .then((x) =>
         {
@@ -60,30 +78,27 @@ export default class Sidebar extends Component {
           this.props.navigation.navigate("Recipes");
         }
       );
-    } else {
+    } else {*/
         for(var f in newOwners) {
            if(newOwners[f] == store.getState().user.uid) {
                delete newOwners[f];
            }
        }
-       // delete newOwners[store.getState().user.uid];
-          rebase.update(`recipes/${this.state.key}`, {
+          rebase.update(`inventories/${this.state.key}`, {
             data: {owners: newOwners}
           }).then((x) =>
           {
             this.setState({
-                message: "Recipe deleted from your recipe book!",
+                message: "Inventory deleted!",
                 showMessage: true,
             })
-            this.props.navigation.navigate("Recipes");
           }
         );
-      }*/
+    //  }
   }
 
   render() {
-    console.log(this.state.showTrash);
-
+    const INV = this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid));
     return (
       <Container>
         <Content
@@ -126,9 +141,9 @@ export default class Sidebar extends Component {
             this.state.showStuff &&
                 <Card style={{ ...styles.sidebarInvList}} transparent >
                   <List
-                  dataArray={this.state.inventories}
+                  dataArray={INV}
                   renderRow={data =>
-                    <ListItem button style={{...styles.sidebarInvItem}} noBorder  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Inventory', {title: data.name, id: data.key, notes: data.notes}); }}>
+                    <ListItem  style={{...styles.sidebarInvItem}} noBorder  onPress={()=>{ this.props.closeDrawer(); this.props.navigation.navigate('Inventory', {title: data.name, id: data.key, notes: data.notes}); }}>
                       <Left>
                         <Thumbnail
                           style={styles.stretch}
@@ -136,10 +151,6 @@ export default class Sidebar extends Component {
                         />
                       <Text style={styles.text}>{data.name}</Text>
                       </Left>
-                            <Button transparent noBorder style={{height: 20, width: 40}} onPress={() => this.removeInv(data.key)}>
-                              <Icon active name='md-trash' style={styles.sidebarIcon} onPress={() => this.removeInv(data.key)}/>
-                            </Button>
-
                     </ListItem> } />
                 </Card>
               }
@@ -173,8 +184,6 @@ export default class Sidebar extends Component {
 /*
 
 <List>
-
-
 
 
       {

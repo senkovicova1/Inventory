@@ -56,8 +56,10 @@ export default class ListRecipes extends Component {
           withIds: true,
           asArray: true
         }).then((u) => {
+          console.log(inv);
+          console.log("aaa");
           this.setState({
-            inventories: inv.filter(inventory => inventory.owners.includes(store.getState().user.uid)),
+            inventories: inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID)),
             users: u,
           });
         });

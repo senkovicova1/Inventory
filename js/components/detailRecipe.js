@@ -34,7 +34,6 @@ export default class DetailRecipe extends Component {
         ppl: "1",
     };
 
-    this.shareStuff.bind(this);
     this.shareStuff2.bind(this);
     this.checkNumber.bind(this);
     this.changeAmount.bind(this);
@@ -59,7 +58,7 @@ export default class DetailRecipe extends Component {
              let name = ings.filter(ingredient => ingredient.key === key.toString()).map(ingredient => ingredient.name)[0];
              return ({name, amount: recipe.ingredients[key], defaultAmount: recipe.ingredients[key], key: key.toString()});
            });
-         } 
+         }
          this.setState({
            ingredients: actualIngs,
            name: recipe.name,
@@ -81,7 +80,7 @@ export default class DetailRecipe extends Component {
       showID: false,
     });
 
-    this.fetch(this.props.navigation.getParam('rec', 'NO-ID'));
+    this.fetch(this.props.navigation.getParam('key', 'NO-ID'));
   }
 
   changeAmount(code, amount){
@@ -132,47 +131,15 @@ export default class DetailRecipe extends Component {
     this.drawer._root.open()
   };
 
-  shareStuff(){
-  /*  console.log("SHARING");
-    Share.share({
-      message: 'Yaaay it works!',
-      url: 'https://www.st.fmph.uniba.sk/~senkovicova1/baka_praca.html',
-      title: 'Wow this actually works?'
-      }, {
-          dialogTitle: 'Share this maybe?'
-        }
-      );*/
-  }
-
   shareStuff2(){
-    console.log("SHARING");
-
-//    const imageRef = fb.storage().ref().child(`recipes/${this.state.key}`).refFromURL(this.state.image);
-/*    const imageFile = RNFetchBlob.wrap(this.state.image);
-    console.log(imageFile);*/
-//    let base64Data = null;
-/*    Blob.build(imageFile, { type: 'image' })
-       .then((imageBlob) => {
-         console.log(imageBlob);
-           let base64Data = imageBlob;
-       });*/
-/*    let ugh = RNFetchBlob.fetch('GET', this.state.image, {
-        'Content-Type' : 'image/jpeg'
-    }, RNFetchBlob.wrap(this.state.image));
-    console.log(base64Data);
-    console.log("blob");
-    while(!ugh){
-
-    }
-    console.log(ugh);*/
     const OPTIONS = {
         title: 'Share please?',
         message: `Look at this cool recipe: ${this.state.name}`,
         url: `${this.state.image}`,
     };
     Share.open(OPTIONS)
-    .then((res) => { console.log(res) })
-    .catch((err) => { err && console.log(err); });
+    .then((res) => {/* console.log(res) */})
+    .catch((err) => {/* err && console.log(err);*/ });
   }
 
 
@@ -194,8 +161,11 @@ export default class DetailRecipe extends Component {
               <Title style={{ ...styles.headerItem }} >{this.state.showID ? this.state.key : this.state.name}</Title>
             </Body>
             <Right>
-              <Button transparent onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, keyy: this.state.key, body: this.state.body, ingredients: this.state.ingredients, image: this.state.image, owners: this.state.owners})}>
+              <Button transparent onPress={()=> this.props.navigation.navigate('EditRecipe', {name: this.state.name, key: this.state.key, body: this.state.body, ingredients: this.state.ingredients, image: this.state.image, owners: this.state.owners})}>
                 <Icon name="md-create" style={{ ...styles.headerItem }} /><Text></Text>
+              </Button>
+              <Button transparent onPress={()=> this.shareStuff2()}>
+                <Icon name="md-share" style={{ ...styles.headerItem }} /><Text></Text>
               </Button>
             </Right>
 
