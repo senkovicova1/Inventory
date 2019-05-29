@@ -48,6 +48,7 @@ export default class AddRecipeCreate extends Component {
         newIngredientName: "",
         newIngredientAmount: "",
         newIngredientUnit: "",
+        showIngredients: false,
 
         writtenCode: "",
         validCode: "",
@@ -103,23 +104,51 @@ export default class AddRecipeCreate extends Component {
       submit(id, url){
         const USER_ID = store.getState().user.uid;
 
-          rebase.post(`recipeAccess/${id}`, {
-            data: {userID: USER_ID, recID: id}
-          }).then(newLocation => {
-              let ings = {};
-              Object.keys(this.state.chosenIgredientsName).map(key => {
-                if (this.state.chosenIgredientsUnit[key] !== undefined && this.state.chosenIgredientsAmount[key] !== undefined){
-                  ings[key] = this.state.chosenIgredientsAmount[key] + " " + this.state.chosenIgredientsUnit[key];
-                }
-                return 0;
-              });
-              rebase.post(`recipes/${id}`, {
-                data: {name: this.state.title, body: this.state.body, ingredients: ings, image: url}
-              });
-          });
-        
+        let ings = {};
+        Object.keys(this.state.chosenIgredientsName).map(key => {
+          if (this.state.chosenIgredientsUnit[key] !== undefined && this.state.chosenIgredientsAmount[key] !== undefined){
+            ings[key] = this.state.chosenIgredientsAmount[key] + " " + this.state.chosenIgredientsUnit[key];
+          }
+          return 0;
+        });
+        let k = Date.now().toString(16).toUpperCase();
+        let own = {};
+        own[k] = USER_ID;
+        rebase.post(`recipes/${id}`, {
+          data: {name: this.state.title, body: this.state.body, ingredients: ings, image: url, owners: own}
+        }).then(() => {
+          this.setState({
+            title: "",
+            body: "",
+            image: null,
+            ingredients: [],
+            chosenIgredientsName: {},
+            chosenIgredientsAmount: {},
+            chosenIgredientsUnit: {},
 
-        this.props.navigation.push('Recipes');
+            newIngredientName: "",
+            newIngredientAmount: "",
+            newIngredientUnit: "",
+            showIngredients: false,
+
+            writtenCode: "",
+            validCode: "",
+
+            recipeIDs: [],
+
+            takePic: false,
+
+            searchOpen: false,
+
+            viaCode: false,
+            viaForm: false,
+
+            showUnsaved: false,
+            changed: false,
+          });
+          this.props.navigation.navigate('Recipes');
+        });
+
       }
 
       toggleCode(){
@@ -167,7 +196,19 @@ export default class AddRecipeCreate extends Component {
         if (this.state.newIngredientName !== ""
         && this.state.newIngredientUnit !== ""
         && this.state.newIngredientAmount !== ""){
-            let index = this.state.ingredients.filter(ing => ing.name === this.state.newIngredientName)[0].key;
+
+            let indexExists = this.state.ingredients.filter(ing => ing.name === this.state.newIngredientName)[0];
+            let index = null;
+
+            if (!indexExists) {
+              let id = Date.now().toString(16).toUpperCase();
+              rebase.post(`ingredients/${id}`, {
+                data: {name: this.state.newIngredientName}
+              });
+              index = id;
+            } else {
+              index = indexExists.key
+            }
 
             let newChosenIingredientsName = {...this.state.chosenIgredientsName};
             newChosenIingredientsName[index] = this.state.newIngredientName;
@@ -178,6 +219,7 @@ export default class AddRecipeCreate extends Component {
             let newChosenIingredientsAmount = {...this.state.chosenIgredientsAmount};
             newChosenIingredientsAmount[index] = this.state.newIngredientAmount;
 
+
             this.setState({
               chosenIgredientsName: newChosenIingredientsName,
               chosenIgredientsUnit: newChosenIingredientsUnit,
@@ -186,6 +228,8 @@ export default class AddRecipeCreate extends Component {
               newIngredientName: "",
               newIngredientUnit: "",
               newIngredientAmount: "",
+
+              showIngredients: false,
 
               changed: true
             });
@@ -254,38 +298,44 @@ export default class AddRecipeCreate extends Component {
     uploadImage(mime = 'image/png') {
 
       let id = Date.now().toString(16).toUpperCase();
-      console.log("UPLOADING");
-        let uploadBlob = null;
-        let uploadUri = this.state.image;
 
-        const imageRef = fb.storage().ref('recipes').child(id);
+      if (this.state.image){
+    //    console.log("UPLOADING");
+          let uploadBlob = null;
+          let uploadUri = this.state.image;
 
-        fs.readFile(uploadUri, 'base64')
-          .then((data) => {
-            console.log("first -- data:");
-            console.log(data);
-            return Blob.build(data, { type: `${mime};BASE64` });
-          })
-          .then((blob) => {
-            console.log("second -- blob:");
-            console.log(blob);
-            uploadBlob = blob;
-            return imageRef.put(blob, { contentType: mime });
-          })
-          .then(() => {
-            console.log("third -- null");
-            uploadBlob.close();
-            return imageRef.getDownloadURL();
-          })
-          .then((url) => {
-            console.log("4th -- url");
-            console.log(url);
-            this.submit(id, url);
-          })
-          .catch((error) => {
-            console.log("5th -- error");
-            console.log(error);
-        });
+          const imageRef = fb.storage().ref('recipes').child(id);
+
+          fs.readFile(uploadUri, 'base64')
+            .then((data) => {
+      //        console.log("first -- data:");
+      //        console.log(data);
+              return Blob.build(data, { type: `${mime};BASE64` });
+            })
+            .then((blob) => {
+      //        console.log("second -- blob:");
+      //        console.log(blob);
+              uploadBlob = blob;
+              return imageRef.put(blob, { contentType: mime });
+            })
+            .then(() => {
+    //          console.log("third -- null");
+              uploadBlob.close();
+              return imageRef.getDownloadURL();
+            })
+            .then((url) => {
+      //        console.log("4th -- url");
+      //        console.log(url);
+              this.submit(id, url);
+            })
+            .catch((error) => {
+        //      console.log("5th -- error");
+        //      console.log(error);
+          });
+      } else {
+        this.submit(id, null);
+      }
+
     }
 
 
@@ -299,6 +349,9 @@ export default class AddRecipeCreate extends Component {
                     <Picker.Item key={ingredient.key} label={ingredient.name} value={ingredient.name} />
                 );
     PICKER_ITEMS.unshift(<Picker.Item key="0" label="" value=""/>);
+
+    const INGREDIENTS = this.state.ingredients.filter(ing => ing.name.toLowerCase().includes(this.state.newIngredientName.toLowerCase()) && !Object.values(this.state.chosenIgredientsName).includes(ing.name));
+
 
     return (
       <Drawer
@@ -332,7 +385,7 @@ export default class AddRecipeCreate extends Component {
 
               {this.state.title.length > 0
                 &&
-                <Button block style={{ ...styles.acordionButton }} onPress={()=> this.uploadImage()}>
+                <Button block style={{ ...styles.acordionButton }} onPress={() => this.uploadImage()}>
                     <Text style={{ ...styles.acordionButtonText }}> Create</Text>
                 </Button>
               }
@@ -390,9 +443,6 @@ export default class AddRecipeCreate extends Component {
                    {({ camera, status, recordAudioPermissionStatus }) => {
                      if (status !== 'READY') return <PendingView />;
                      return (
-                         /*<Button onPress={() => this.takePicture(camera)} style={{...styles.acordionButton, marginBottom: deviceWidth*(-0.68)}}>
-                           <Text style={{ ...styles.acordionButtonText, }}> Odfotiť </Text>
-                         </Button>*/
                            <Button onPress={() => this.takePicture(camera)} style={{...styles.acordionButton, marginTop: 290}}>
                              <Text style={{ ...styles.acordionButtonText, }}> Odfotiť </Text>
                            </Button>
@@ -414,65 +464,11 @@ export default class AddRecipeCreate extends Component {
                       {
                         Object.keys(this.state.chosenIgredientsName).map(key =>
                         <Row>
+                          <Col size={90}>
+                          <Text style={{ ...styles.PEACH}}>{`${this.state.chosenIgredientsName[key]}  ${this.state.chosenIgredientsAmount[key]} ${this.state.chosenIgredientsUnit[key]}`}</Text>
+                          </Col>
                           <Col size={10}>
                             <Icon name='md-remove-circle' style={{ ...styles.minusIngredient, ...styles.PEACH}} onPress={() => this.removeIngredient(key)}/>
-                          </Col>
-
-                          <Col size={45}>
-                          <Text style={{ ...styles.PEACH}}>{`${this.state.chosenIgredientsName[key]}`}</Text>
-                          </Col>
-
-                          <Col size={15}>
-                            <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
-                              <Input
-                                style={{ ...styles.PEACH}}
-                                value={this.state.chosenIgredientsAmount[key]}
-                                keyboardType='numeric'
-                                onChangeText={(text) =>{
-                                      if (text.length === 0 || text === "-" || text === "--" || this.checkNumber(text)){
-                                        let newChosenIngredientsAmount = {...this.state.chosenIgredientsAmount};
-                                        newChosenIngredientsAmount[key] = text;
-                                        this.setState({
-                                          chosenIgredientsAmount: newChosenIngredientsAmount,
-                                          changed: true
-                                        });
-                                      }
-                                  }
-                                }/>
-                            </Item>
-                          </Col>
-                          <Col size={30}>
-                            <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
-                              <Picker
-                                 mode="dropdown"
-                                 style={{ ...styles.unitPicker, ...styles.PEACH, height: 24 }}
-                                 selectedValue={this.state.chosenIgredientsUnit[key]}
-                                 onValueChange={(itemValue, itemIndex) =>{
-                                                 let newChosenIingredientsUnitt = {...this.state.chosenIgredientsUnit};
-                                                 newChosenIingredientsUnitt[key] = itemValue;
-                                                  this.setState({
-                                                    chosenIgredientsUnit: newChosenIingredientsUnit,
-                                                    changed: true
-                                                  });
-                                                }
-                               }>
-
-                                <Picker.Item key="1" label="ml" value="ml"/>
-                                <Picker.Item key="2" label="dcl" value="dcl"/>
-                                <Picker.Item key="3" label="l" value="l"/>
-
-                                <Picker.Item key="4" label="g" value="g"/>
-                                <Picker.Item key="4" label="dkg" value="dkg"/>
-                                <Picker.Item key="5" label="kg" value="kg"/>
-
-                                <Picker.Item key="6" label="pcs" value="pcs"/>
-
-                                <Picker.Item key="7" label="tsp" value="tsp"/>
-                                <Picker.Item key="8" label="tbsp" value="tbsp"/>
-
-                                <Picker.Item key="9" label="cup" value="cup"/>
-                               </Picker>
-                             </Item>
                           </Col>
                         </Row>
                       )
@@ -488,26 +484,45 @@ export default class AddRecipeCreate extends Component {
 
                         <Row size={10}>
                           <Col size={35}>
-                            <Text style={{ ...styles.DARK_PEACH }}>Ingredient</Text>
+                            <Text style={{ ...styles.DARK_PEACH }}>Name</Text>
                           </Col>
 
                           <Col size={65}>
-                            <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
-                            <Picker
-                              mode="dropdown"
-                              style={{ ...styles.unitPicker, ...styles.PEACH, height: 24  }}
-                              selectedValue={this.state.newIngredientName}
-                              onValueChange={(itemValue, itemIndex) =>
-                                                this.setState({
-                                                  newIngredientName: itemValue,
-                                                  changed: true
-                                                })
-                              }>
-                                {PICKER_ITEMS}
-                            </Picker>
-                            </Item>
+                          <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                            <Input
+                              style={{ ...styles.PEACH }}
+                              value={this.state.newIngredientName}
+                              onChangeText={(text) =>{
+                                    this.setState({
+                                      newIngredientName: text,
+                                      changed: true,
+                                      showIngredients: true
+                                    });
+                                }
+                              }
+                              onBlur={() => this.setState({
+                                showIngredients: false
+                              })}
+                              />
+                          </Item>
                           </Col>
                         </Row>
+
+                      { this.state.showIngredients
+                        &&
+                        INGREDIENTS.map(ing =>
+                            <Row size={10}>
+                              <Col size={35}>
+                              </Col>
+
+                              <Col size={65}>
+                              <Item regular onPress={() => this.setState({newIngredientName: ing.name, showIngredients: false})} style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                  <Text style={{ ...styles.PEACH}}>{`${ing.name}`}</Text>
+                              </Item>
+                              </Col>
+                            </Row>
+                          )
+                      }
 
                         <Row size={10}>
                           <Col size={35}>

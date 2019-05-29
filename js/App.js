@@ -1,11 +1,4 @@
-/*import React, {Component} from 'react';
-import {Text, View, Button, Alert} from 'react-native';
-
-import Navigator from './navigation';
-
-*/
 import React, {Component} from "react";
-import { View, Text, Button } from "react-native";
 import { Root } from "native-base";
 import { createStackNavigator, createAppContainer } from "react-navigation";
 

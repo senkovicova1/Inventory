@@ -30,7 +30,7 @@ export default class AddIngredientBarcode extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      key: this.props.navigation.getParam('inventoryId', 'NO-ID'),
+      key: this.props.navigation.getParam('key', 'NO-ID'),
 
       ingredients: [],
       ownedIngredients: {},
@@ -217,13 +217,13 @@ export default class AddIngredientBarcode extends Component {
       const data = await camera.takePictureAsync(options);
       //  eslint-disable-next-line
   //    this.setState({text: data.uri});
-        console.log(data.uri);
+    //    console.log(data.uri);
     };
 
 
 
   render() {
-    console.log(this.state.chosenIngredients);
+  //  console.log(this.state.chosenIngredients);
     const PICKER_ITEMS = Object.keys(this.state.ingredients).map(ingredient =>
                 <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
             );
@@ -279,17 +279,17 @@ export default class AddIngredientBarcode extends Component {
                  >
                    {({ camera, status, recordAudioPermissionStatus }) => {
                      if (status !== 'READY') return <PendingView />;
-                     /*return (
-                       <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
-                         <TouchableOpacity onPress={() => this.takePicture(camera)} style={{ flex: 0, backgroundColor: '#fff', borderRadius: 5, padding: 15, paddingHorizontal: 20, alignSelf: 'center', margin: 20}}>
-                           <Text style={{ fontSize: 14 }}> SNAP </Text>
-                         </TouchableOpacity>
-                       </View>
-                     );*/
                      return (<Button></Button>);
                    }}
                  </RNCamera>
                </Card>
+               /*return (
+               <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
+               <TouchableOpacity onPress={() => this.takePicture(camera)} style={{ flex: 0, backgroundColor: '#fff', borderRadius: 5, padding: 15, paddingHorizontal: 20, alignSelf: 'center', margin: 20}}>
+               <Text style={{ fontSize: 14 }}> SNAP </Text>
+               </TouchableOpacity>
+               </View>
+               );*/
 
               {(this.state.currentBarcode.length > 0)
                 &&

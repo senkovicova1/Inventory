@@ -23,7 +23,7 @@ export default class DetailInventory extends Component {
       editTitle: false,
       editNotes: false,
 
-      showID: false,
+      share: false,
 
       searchOpen: false,
       searchedWord: '',
@@ -40,22 +40,22 @@ export default class DetailInventory extends Component {
   }
 
   componentDidMount(){
-      this.ref1 = rebase.syncState(`foodInInventory/${this.state.key}`, {
+      this.ref1 = rebase.bindToState(`foodInInventory/${this.state.key}`, {
           context: this,
           state: 'foodInInventory',
           withIds: true,
         });
-      this.ref2 = rebase.syncState(`ingredients`, {
+      this.ref2 = rebase.bindToState(`ingredients`, {
           context: this,
           state: 'ingredients',
-          withIds: true,
           asArray: true,
+          withIds: true,
         });
     }
 
     componentWillReceiveProps(){
       rebase.removeBinding(this.ref1);
-      this.ref1 = rebase.syncState(`foodInInventory/${this.props.navigation.getParam('id', 'NO-ID')}`, {
+      this.ref1 = rebase.bindToState(`foodInInventory/${this.props.navigation.getParam('id', 'NO-ID')}`, {
           context: this,
           state: 'foodInInventory',
           withIds: true,
@@ -110,9 +110,18 @@ export default class DetailInventory extends Component {
 
   render() {
     let FOOD = [];
+    console.log(this.state.foodInInventory);
+    if (Object.keys(this.state.foodInInventory) && Object.keys(this.state.foodInInventory).length > 0) {
+      Object.keys(this.state.foodInInventory).map(f => console.log(this.state.foodInInventory[f]));
 
-     if (this.state.ingredients.length > 0){
-       FOOD = this.state.ingredients.filter(ing => Object.keys(this.state.foodInInventory).includes(ing.key)).map(ing => ({key: ing.key, name: ing.name, amount: this.state.foodInInventory[ing.key]}));
+  //     FOOD = this.state.ingredients.filter(ing => this.state.foodInInventory.includes(ing.key)).map(ing => ({key: ing.key, name: ing.name, amount: this.state.foodInInventory[ing.key]}));
+        FOOD = Object.keys(this.state.foodInInventory)
+        .map(key => {
+          return {
+            amount: this.state.foodInInventory[key],
+            name: this.state.ingredients.filter(i => i.key === key)[0].name
+          };
+        });
      }
 
 
@@ -131,7 +140,7 @@ export default class DetailInventory extends Component {
              <Body>
                { (!this.state.searchOpen && !this.state.editTitle)
                  &&
-                 <Title style={{ ...styles.headerItem}}>{this.state.showID ? this.state.key : this.state.name}</Title>
+                 <Title style={{ ...styles.headerItem}}>{this.state.name}</Title>
                }
                {(this.state.searchOpen)
                  &&
@@ -173,7 +182,7 @@ export default class DetailInventory extends Component {
                  <Icon name="md-checkmark" style={{ ...styles.headerItem}}/>
                </Button>
                }
-               <Button transparent onPress={() => this.setState({showID: (!this.state.editTitle && !this.state.searchOpen ? !this.state.showID : false) })}>
+               <Button transparent onPress={() => this.setState({share: true })}>
                  <Icon name="md-share-alt" style={{ ...styles.headerItem}} />
                </Button>
              </Right>
@@ -229,13 +238,13 @@ export default class DetailInventory extends Component {
                   <Grid>
                     <Row>
                       <Col size={50}>
-                        <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientBarcode')} >
-                          <Text style={{ ...styles.acordionButtonText }}>Use barcode</Text>
+                        <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientBarcode', {key: this.state.key})} >
+                          <Text style={{ ...styles.acordionButtonText }}>Scan barcode</Text>
                         </Button>
                      </Col>
                      <Col size={50}>
-                        <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientManual')} >
-                          <Text style={{ ...styles.acordionButtonText }}>Create new</Text>
+                        <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientManual', {key: this.state.key})} >
+                          <Text style={{ ...styles.acordionButtonText }}>Add manually</Text>
                         </Button>
                      </Col>
                   </Row>

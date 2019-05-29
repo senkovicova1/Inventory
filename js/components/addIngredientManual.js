@@ -30,7 +30,7 @@ export default class AddIngredientManual extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      key: this.props.navigation.getParam('inventoryId', 'NO-ID'),
+      key: this.props.navigation.getParam('key', 'NO-ID'),
 
       ingredients: [],
       ownedIngredients: {},
@@ -41,6 +41,7 @@ export default class AddIngredientManual extends Component {
       newIngredientName: "",
       newIngredientAmount: "",
       newIngredientUnit: "",
+      showIngredients: false,
 
       currentBarcode: "",
       containsBarcode: false,
@@ -61,7 +62,7 @@ export default class AddIngredientManual extends Component {
     };
 
     this.handleBackPress.bind(this);
-
+    this.checkNumber.bind(this);
     this.addNewIngredient.bind(this);
     this.submit.bind(this);
     this.fetch.bind(this);
@@ -72,6 +73,7 @@ export default class AddIngredientManual extends Component {
       rebase.fetch(`ingredients`, {
         context: this,
         withIds: true,
+        asArray: true
       }).then((ingredients) => {
         rebase.fetch(`foodInInventory/${this.state.key}`, {
           context: this,
@@ -108,6 +110,7 @@ export default class AddIngredientManual extends Component {
               newIngredientName: "",
               newIngredientAmount: "",
               newIngredientUnit: "",
+              showIngredients: false,
 
               viaBarcode: false,
               viaForm: false,
@@ -120,27 +123,46 @@ export default class AddIngredientManual extends Component {
       this.props.navigation.goBack();
     }
 
+    checkNumber(text){
+      return !isNaN(text) && !isNaN(parseFloat(text));
+    }
+
     addNewIngredient(){
       if (this.state.newIngredientName !== ""
       && this.state.newIngredientUnit !== ""
       && this.state.newIngredientAmount !== ""){
+
+        let indexExists = this.state.ingredients.filter(ing => ing.name === this.state.newIngredientName)[0];
+        let index = null;
+
+        if (!indexExists) {
+          let id = Date.now().toString(16).toUpperCase();
+          rebase.post(`ingredients/${id}`, {
+            data: {name: this.state.newIngredientName}
+          });
+          index = id;
+        } else {
+          index = indexExists.key
+        }
+
+        let newChosenIngredients = {...this.state.chosenIngredients};
+        newChosenIngredients[index] = {
+          name: this.state.newIngredientName,
+          amount: this.state.newIngredientAmount,
+          unit: this.state.newIngredientUnit,
+        };
+        this.setState({
+          chosenIngredients: newChosenIngredients,
+
+          newIngredientName: "",
+          newIngredientUnit: "",
+          newIngredientAmount: "",
+          newIngredientId: "",
+          showIngredients: false,
+
+          changed: true
+        });
       }
-      let newChosenIngredients = {...this.state.chosenIngredients};
-      newChosenIngredients[this.state.newIngredientId] = {
-        name: this.state.newIngredientName,
-        amount: this.state.newIngredientAmount,
-        unit: this.state.newIngredientUnit,
-      };
-      this.setState({
-        chosenIngredients: newChosenIngredients,
-
-        newIngredientName: "",
-        newIngredientUnit: "",
-        newIngredientAmount: "",
-        newIngredientId: "",
-
-        changed: true
-      });
     }
 
 
@@ -189,6 +211,9 @@ export default class AddIngredientManual extends Component {
                 <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
             );
            PICKER_ITEMS.unshift(<Picker.Item key="0" label="" value=""/>);
+
+    const INGREDIENTS = this.state.ingredients.filter(ing => ing.name.toLowerCase().includes(this.state.newIngredientName.toLowerCase()));
+
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -225,7 +250,7 @@ export default class AddIngredientManual extends Component {
               })
             }
 
-              <Card transparent style={{ ...styles.formCard}}>
+          {/*    <Card transparent style={{ ...styles.formCard}}>
                 <Grid >
                   <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
                     <Col size={35}>
@@ -268,7 +293,7 @@ export default class AddIngredientManual extends Component {
                          { PICKER_ITEMS/*Object.keys(this.state.ingredients).map(ingredient =>
                                <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
                            )
-                         */}
+                         *//*}
                          </Picker>
                        </Col>
 
@@ -398,7 +423,198 @@ export default class AddIngredientManual extends Component {
 
                        </Row>
                       </Grid>
-                    </Card>
+                    </Card>*/}
+                    <Card transparent style={{ ...styles.formCard}}>
+                      <Grid >
+                        <Row>
+                          <Col size={100}>
+                            <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>Ingredients</Text>
+                          </Col>
+                        </Row>
+                       {
+                         Object.keys(this.state.chosenIngredients).map(key =>
+                           <Row size={10} >
+
+                             <Col size={45}>
+                               <Text style={{ ...styles.PEACH}}>{`${this.state.chosenIngredients[key].name}`}</Text>
+                             </Col>
+
+
+                             <Col size={25}>
+                               <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                   <Input
+                                      style={{ ...styles.PEACH}}
+                                      value={this.state.chosenIngredients[key].amount}
+                                      keyboardType='numeric'
+                                      onChangeText={(text) =>{
+                                          if (text.length === 0 || text === "-" || text === "--" || this.checkNumber(text)){
+                                            let newChosenIngredients = {...this.state.chosenIngredients};
+                                            newChosenIngredients[amount] = text;
+
+                                            this.setState({
+                                              chosenIngredients: newChosenIngredients,
+                                              changed: true
+                                            });
+                                          }
+                                        }
+                                      }/>
+                                 </Item>
+                              </Col>
+
+                              <Col size={35}>
+                                <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                  <Picker
+                                      mode="dropdown"
+                                      style={{ ...styles.unitPicker, ...styles.PEACH, height: 24 }}
+                                      selectedValue={this.state.chosenIngredients[key].unit}
+                                      onValueChange={(itemValue, itemIndex) =>{
+                                                        let newChosenIngredients = {...this.state.chosenIngredients};
+                                                        newChosenIngredients[unit] = itemValue;
+
+                                                        this.setState({
+                                                          chosenIngredients: newChosenIngredients,
+                                                          changed: true
+                                                        });
+                                                     }
+                                   }>
+
+                                   <Picker.Item key="1" label="ml" value="ml"/>
+                                   <Picker.Item key="2" label="dcl" value="dcl"/>
+                                   <Picker.Item key="3" label="l" value="l"/>
+
+                                   <Picker.Item key="4" label="g" value="g"/>
+                                   <Picker.Item key="4" label="dkg" value="dkg"/>
+                                   <Picker.Item key="5" label="kg" value="kg"/>
+
+                                   <Picker.Item key="6" label="pcs" value="pcs"/>
+
+                                   <Picker.Item key="7" label="tsp" value="tsp"/>
+                                   <Picker.Item key="8" label="tbsp" value="tbsp"/>
+
+                                   <Picker.Item key="9" label="cup" value="cup"/>
+                                  </Picker>
+                                </Item>
+                              </Col>
+
+                            </Row>
+                         )}
+
+                         <Row><Text>{"  "}</Text></Row>
+                             <Row>
+                               <Col size={100}>
+                               <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>Add new ingredient</Text>
+                               </Col>
+                             </Row>
+
+                             <Row size={10}>
+                               <Col size={35}>
+                                 <Text style={{ ...styles.DARK_PEACH }}>Name</Text>
+                               </Col>
+
+                               <Col size={65}>
+                                 <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                   <Input
+                                     style={{ ...styles.PEACH }}
+                                     value={this.state.newIngredientName}
+                                     onChangeText={(text) =>{
+                                           this.setState({
+                                             newIngredientName: text,
+                                             changed: true,
+                                             showIngredients: true
+                                           });
+                                       }
+                                     }
+                                     onBlur={() => this.setState({
+                                       showIngredients: false
+                                     })}
+                                   />
+                                 </Item>
+                               </Col>
+                             </Row>
+
+                             { this.state.showIngredients
+                               &&
+                               INGREDIENTS.map(ing =>
+                                   <Row size={10}>
+                                     <Col size={35}>
+                                     </Col>
+
+                                     <Col size={65}>
+                                     <Item regular onPress={() => this.setState({newIngredientName: ing.name, showIngredients: false})} style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                         <Text style={{ ...styles.PEACH}}>{`${ing.name}`}</Text>
+                                     </Item>
+                                     </Col>
+                                   </Row>
+                                 )
+                             }
+
+                               <Row size={10}>
+                                 <Col size={35}>
+                                   <Text style={{ ...styles.DARK_PEACH }}>Amount</Text>
+                                 </Col>
+                                 <Col size={65}>
+                                   <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                     <Input
+                                       style={{ ...styles.PEACH }}
+                                       keyboardType='numeric'
+                                       value={this.state.newIngredientAmount}
+                                       onChangeText={(text) =>{
+                                           if (text === "-" || text === "--" || this.checkNumber(text) || text.length === 0){
+                                             this.setState({
+                                               newIngredientAmount: text,
+                                               changed: true
+                                             }, () => this.addNewIngredient());
+                                           }
+                                         }
+                                       }/>
+                                   </Item>
+                                 </Col>
+                               </Row>
+
+                                <Row size={10}>
+                                  <Col size={35}>
+                                    <Text style={{ ...styles.DARK_PEACH }}>Unit</Text>
+                                  </Col>
+                                  <Col size={65}>
+                                    <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                        <Picker
+                                           mode="dropdown"
+                                           style={{ ...styles.unitPicker, ...styles.PEACH, height: 24  }}
+                                           selectedValue={this.state.newIngredientUnit}
+                                           onValueChange={(itemValue, itemIndex) =>
+                                                   {
+                                                       if(itemValue.length === 0){
+                                                         return;
+                                                       }
+                                                        this.setState({
+                                                          newIngredientUnit: itemValue,
+                                                          changed: true
+                                                        }, () => this.addNewIngredient());
+
+                                                   }
+                                        }>
+                                        <Picker.Item key="0" label="" value=""/>
+
+                                        <Picker.Item key="1" label="ml" value="ml"/>
+                                        <Picker.Item key="2" label="dcl" value="dcl"/>
+                                        <Picker.Item key="3" label="l" value="l"/>
+
+                                        <Picker.Item key="4" label="g" value="g"/>
+                                        <Picker.Item key="4" label="dkg" value="dkg"/>
+                                        <Picker.Item key="5" label="kg" value="kg"/>
+
+                                        <Picker.Item key="6" label="pcs" value="pcs"/>
+
+                                        <Picker.Item key="7" label="tsp" value="tsp"/>
+                                        <Picker.Item key="8" label="tbsp" value="tbsp"/>
+
+                                        <Picker.Item key="9" label="cup" value="cup"/>
+                                       </Picker>
+                                   </Item>
+                                 </Col>
+                               </Row>
+                        </Grid>
+                      </Card>
 
 
           </Content>

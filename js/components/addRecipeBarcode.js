@@ -61,7 +61,6 @@ export default class AddRecipeBarcode extends Component {
     this.onValueChange.bind(this);
     this.handleGet.bind(this);
     this.handleRequest.bind(this);
-    this.handleShowRecipes.bind(this);
     this.handleBackPress.bind(this);
     this.addFriend.bind(this);
     this.submit.bind(this);
@@ -109,30 +108,14 @@ export default class AddRecipeBarcode extends Component {
     });
   }
 
-  handleShowRecipes(key){
-    if (this.state.showRecipes !== null){
-      this.setState({
-        showRecipes: null,
-        actualRecipes: [],
-      });
-    } else {
-      let accGrantedRec = this.state.recipeAccess.filter(acc => acc.userID === key).map(acc => acc.recID);
-      const actualRecipes = Object.keys(this.state.recipes).filter(key => accGrantedRec.includes(key));
-      this.setState({
-        showRecipes: key,
-        actualRecipes: actualRecipes,
-      });
-    }
-  }
-
   handleRequest(key){
-    console.log("handling");
+//    console.log("handling");
     let id = Date.now().toString(16).toUpperCase();
+    let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === key).map(id =>  this.state.recipes[id])[0];
 
     rebase.post(`users/${store.getState().user.uid}/notices/RRM-${id}`, {
-      data: {recID: key, approved: false,}
+      data: {recID: key, approved: false}
     }).then((x) => {
-      let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === key).map(id =>  this.state.recipes[id])[0];
       Object.values(wantedRecipe.owners).map(owner =>
         rebase.post(`users/${owner}/notices/RR-${id}`, {
           data: {userID: store.getState().user.uid, recID: key, approved: false, seen: false}
@@ -273,19 +256,20 @@ componentWillUnmount() {
                       &&
                       Object.keys(this.state.recipes)
                                   .filter(key => {
+                                    const COND4 = !this.state.recipes[key].owners;
                                       const COND1 = this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase());
-                                      const COND3 = !Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid);
+                                      const COND3 = this.state.recipes[key].owners && !Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid);
                                       if(this.state.searchedFriend !== 0){
-                                        const COND2 = Object.values(this.state.recipes[key].owners).includes(this.state.searchedFriend);
+                                        const COND2 = this.state.recipes[key].owners && Object.values(this.state.recipes[key].owners).includes(this.state.searchedFriend);
                                         if (this.state.searchedWord.length > 0){
-                                          return COND1 && COND2 && COND3;
+                                          return (COND1 && COND2 && COND3) || COND4;
                                         }
-                                        return COND2 && COND3;
+                                        return (COND2 && COND3) || COND4;
                                       }
-                                      return COND1 && COND3;
+                                      return (COND1 && COND3) || COND4;
                                     }
                                   ).map(key =>
-                                    <Grid  onPress={() => this.handleShowRecipes(key)}>
+                                    <Grid>
                                       <Row>
                                             <Thumbnail
                                             style={styles.stretch}

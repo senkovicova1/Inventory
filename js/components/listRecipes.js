@@ -56,8 +56,10 @@ export default class ListRecipes extends Component {
           withIds: true,
           asArray: true
         }).then((u) => {
+          console.log(inv);
+          console.log("aaa");
           this.setState({
-            inventories: inv.filter(inventory => inventory.owners.includes(store.getState().user.uid)),
+            inventories: inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID)),
             users: u,
           });
         });
@@ -334,11 +336,15 @@ export default class ListRecipes extends Component {
                <List
                  dataArray={
                    Object.keys(this.state.recipes)
-                   .filter(key => Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid)
+                   .filter(key => this.state.recipes[key].owners
+                                  && Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid)
                                   && this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))
-                   .map(key => this.state.recipes[key])}
+                   .map(key => {
+                     let item = {...this.state.recipes[key], key};
+                     return item;
+                   })}
                  renderRow={data =>
-                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {rec: data.key}) }>
+                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {key: data.key}) }>
                      <Left>
                        <Thumbnail
                          style={{ ...styles.stretch }}
