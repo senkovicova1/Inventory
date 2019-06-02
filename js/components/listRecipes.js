@@ -56,8 +56,6 @@ export default class ListRecipes extends Component {
           withIds: true,
           asArray: true
         }).then((u) => {
-          console.log(inv);
-          console.log("aaa");
           this.setState({
             inventories: inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID)),
             users: u,
@@ -104,7 +102,7 @@ export default class ListRecipes extends Component {
          asArray: true,
          then: function(notices){
            this.setState({
-             modalVisible: (this.state.notices.filter(note => !note.seen).length > 0),
+             modalVisible: (this.state.notices && this.state.notices.length > 0 && this.state.notices.filter(note => !note.seen).length > 0),
            });
          }
        });

@@ -29,7 +29,7 @@ export default class DetailInventory extends Component {
       searchedWord: '',
       addOpen: false,
 
-      ingredients: {},
+      ingredients: [],
       foodInInventory: {},
     };
 
@@ -60,6 +60,7 @@ export default class DetailInventory extends Component {
           state: 'foodInInventory',
           withIds: true,
         });
+
       this.setState({
         name: this.props.navigation.getParam('title', 'NO-ID'),
         notes: this.props.navigation.getParam('notes', 'NO-ID'),
@@ -73,6 +74,7 @@ export default class DetailInventory extends Component {
         searchOpen: false,
         searchedWord: '',
       });
+
     }
 
     addItem(newItem){
@@ -110,18 +112,18 @@ export default class DetailInventory extends Component {
 
   render() {
     let FOOD = [];
-    console.log(this.state.foodInInventory);
-    if (Object.keys(this.state.foodInInventory) && Object.keys(this.state.foodInInventory).length > 0) {
-      Object.keys(this.state.foodInInventory).map(f => console.log(this.state.foodInInventory[f]));
 
-  //     FOOD = this.state.ingredients.filter(ing => this.state.foodInInventory.includes(ing.key)).map(ing => ({key: ing.key, name: ing.name, amount: this.state.foodInInventory[ing.key]}));
+    if (Object.keys(this.state.foodInInventory) && Object.keys(this.state.foodInInventory).length > 0
+        && this.state.ingredients && this.state.ingredients.length > 0) {
+
+
         FOOD = Object.keys(this.state.foodInInventory)
-        .map(key => {
-          return {
-            amount: this.state.foodInInventory[key],
-            name: this.state.ingredients.filter(i => i.key === key)[0].name
-          };
-        });
+              .map(key => {
+                return {
+                  amount: this.state.foodInInventory[key],
+                  name: this.state.ingredients.filter(i => i.key === key)[0].name
+                };
+              });
      }
 
 
@@ -223,13 +225,13 @@ export default class DetailInventory extends Component {
 
                {!this.state.addOpen
                  &&
-                <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> /*this.props.navigation.navigate('AddRecipe')*/ this.toggleAdd()} >
+                <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.toggleAdd()} >
                   <Icon name="md-add" style={{ ...styles.acordionButtonText }}/>
                 </Button>
                 }
                 {this.state.addOpen
                   &&
-                  <Button bordered full warning style={{ ...styles.acordionButtonTrans}} onPress={()=> /*this.props.navigation.navigate('AddRecipe')*/ this.toggleAdd()} >
+                  <Button bordered full warning style={{ ...styles.acordionButtonTrans}} onPress={()=> this.toggleAdd()} >
                     <Icon name="md-add" style={{ ...styles.acordionButtonText }}/>
                   </Button>
                 }

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
-import { Drawer,  Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
+import { Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
 import { RNCamera } from 'react-native-camera';
 
 import Sidebar from './sidebar';
@@ -90,35 +90,130 @@ export default class AddIngredientManual extends Component {
     submit(){
       let id = Date.now().toString(16).toUpperCase();
 
-      if (this.state.title !== ""){
+      let data = {};
 
-        let data = {}
+      Object.keys(this.state.chosenIngredients).map(key =>  {
+        let unit1 = this.state.chosenIngredients[key].unit;
+        let amount1 = parseInt(this.state.chosenIngredients[key].amount);
+        let unit2Exists = Object.keys(this.state.ownedIngredients).filter(id => id === key)[0];
 
-        Object.keys(this.state.chosenIngredients).map(key =>
-          data[key.toString()] = (this.state.chosenIngredients[key].amount + " " + this.state.chosenIngredients[key].unit)
-        );
+        if (unit2Exists){
+          let arr = this.state.ownedIngredients[unit2Exists].split(" ");
+          let unit2 = arr[1];
+          let amount2 = parseInt(arr[0]);
+          let finalAmount = "0";
+          let finalUnit = "g";
 
-        rebase.update(`foodInInventory/${this.state.key}`, {
-          data: data
-        }).then(newLocation => {
-            this.setState({
-              ingredients: [],
+          if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
+            if (unit1 === "dkg"){
+              unit1 = "g";
+              amount1 = amount1*10;
+            }
+            if (unit1 === "kg"){
+              unit1 = "g";
+              amount1 = amount1*1000;
+            }
+            if (unit2 === "dkg"){
+              unit2 = "g";
+              amount2 = amount2*10;
+            }
+            if (unit2 === "kg"){
+              unit2 = "g";
+              amount2 = amount2*1000;
+            }
+            finalAmount = amount1 + amount2;
+            finalUnit = "g";
+            if (finalAmount >= 1000){
+              finalAmount = finalAmount/1000;
+              finalUnit = "kg";
+            }
 
-              chosenIngredients: {},
+          } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
+            if (unit1 === "dcl"){
+              unit1 = "ml";
+              amount1 = amount1*100;
+            }
+            if (unit1 === "l"){
+              unit1 = "ml";
+              amount1 = amount1*1000;
+            }
+            if (unit2 === "dcl"){
+              unit2 = "ml";
+              amount2 = amount2*100;
+            }
+            if (unit2 === "l"){
+              unit2 = "ml";
+              amount2 = amount2*1000;
+            }
+            finalAmount = amount1 + amount2;
+            finalUnit = "ml";
+            if (finalAmount >= 1000){
+              finalAmount = finalAmount/1000;
+              finalUnit = "l";
+            }
+          } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
+            if (unit1 === "tbsp" || unit1 === "pl"){
+              unit1 = "tsp";
+              amount1 = amount1*3;
+            }
+            if (unit1 === "cup" || unit2 === "šálka"){
+              unit1 = "tsp";
+              amount1 = amount1*3*16;
+            }
+            if (unit2 === "tbsp" || unit1 === "pl"){
+              unit2 = "tsp";
+              amount2 = amount2*3;
+            }
+            if (unit2 === "cup" || unit2 === "šálka"){
+              unit2 = "tsp";
+              amount2 = amount2*3*16;
+            }
+            finalAmount = amount1 + amount2;
+            finalUnit = "tsp";
+            if (finalAmount >= 15){
+              finalAmount = finalAmount/3;
+              finalUnit = "tbsp";
+            } else if (finalAmount >= 48){
+              finalAmount = finalAmount/48;
+              finalUnit = "cup";
+            }
 
-              newIngredientId: "",
-              newIngredientName: "",
-              newIngredientAmount: "",
-              newIngredientUnit: "",
-              showIngredients: false,
+          } else if (["pcs", "ks"].includes(unit1) && ["pcs", "ks"].includes(unit2)){
+            finalAmount = amount1 + amount2;
+            finalUnit = unit2;
 
-              viaBarcode: false,
-              viaForm: false,
+          } else {
+            finalAmount = amount1;
+            finalUnit = unit1;
+          }
 
-              changed: false,
-            });
-        });
-      }
+          data[key.toString()] = finalAmount + " " + finalUnit;
+        } else {
+          data[key.toString()] = this.state.chosenIngredients[key].amount + " " + this.state.chosenIngredients[key].unit;
+        }
+      });
+
+      rebase.update(`foodInInventory/${this.state.key}`, {
+        data: data
+      }).then(newLocation => {
+          this.setState({
+            ingredients: [],
+
+            chosenIngredients: {},
+
+            newIngredientId: "",
+            newIngredientName: "",
+            newIngredientAmount: "",
+            newIngredientUnit: "",
+            showIngredients: false,
+
+            viaBarcode: false,
+            viaForm: false,
+
+            changed: false,
+          });
+      });
+
 
       this.props.navigation.goBack();
     }
@@ -142,7 +237,7 @@ export default class AddIngredientManual extends Component {
           });
           index = id;
         } else {
-          index = indexExists.key
+          index = indexExists.key;
         }
 
         let newChosenIngredients = {...this.state.chosenIngredients};
@@ -197,15 +292,6 @@ export default class AddIngredientManual extends Component {
     }
   }
 
-  closeDrawer = () => {
-    this.drawer._root.close()
-  };
-  openDrawer = () => {
-    this.drawer._root.open()
-  };
-
-
-
   render() {
     const PICKER_ITEMS = Object.keys(this.state.ingredients).map(ingredient =>
                 <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
@@ -215,10 +301,6 @@ export default class AddIngredientManual extends Component {
     const INGREDIENTS = this.state.ingredients.filter(ing => ing.name.toLowerCase().includes(this.state.newIngredientName.toLowerCase()));
 
     return (
-      <Drawer
-        ref={(ref) => { this.drawer = ref; }}
-        content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
-        onClose={() => this.closeDrawer()} >
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
@@ -231,9 +313,9 @@ export default class AddIngredientManual extends Component {
             </Body>
             <Right>
               {
-                (this.state.validCode || Object.keys(this.state.chosenIngredients).length > 0)
+                (Object.keys(this.state.chosenIngredients).length > 0)
                 &&
-              <Button transparent><Icon name="md-checkmark"  style={{ ...styles.headerItem }} onPress={()=> this.submit()} /></Button>
+              <Button transparent  onPress={() => this.submit()} ><Icon name="md-checkmark"  style={{ ...styles.headerItem }}/></Button>
               }
           </Right>
 
@@ -250,180 +332,6 @@ export default class AddIngredientManual extends Component {
               })
             }
 
-          {/*    <Card transparent style={{ ...styles.formCard}}>
-                <Grid >
-                  <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
-                    <Col size={35}>
-                      <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                        Ingredient
-                      </Text>
-                    </Col>
-                  <Col size={30}>
-                    <Text style={{marginLeft: 15, ...styles.DARK_PEACH}}>
-                      Amount
-                    </Text>
-                  </Col>
-                    <Col size={25}>
-                      <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                        Unit
-                      </Text>
-                    </Col>
-                   <Col size={10}>
-                   </Col>
-
-                </Row>
-                 {
-                   Object.keys(this.state.chosenIngredients).map(key =>
-
-                     <Row size={10} >
-                       <Col size={35}>
-                       <Picker
-                         mode="dropdown"
-                         style={{ ...styles.ingredientPicker }}
-                         selectedValue={this.state.chosenIngredients[key].name}
-                         onValueChange={(itemValue, itemIndex) => {
-                                         let newChosenIngredients = {...this.state.chosenIngredients};
-                                         newChosenIngredients[key].name = itemValue;
-                                         this.setState({
-                                            chosenIngredients: newChosenIngredients,
-                                            changed: true
-                                          });
-                                        }
-                         }>
-                         { PICKER_ITEMS/*Object.keys(this.state.ingredients).map(ingredient =>
-                               <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
-                           )
-                         *//*}
-                         </Picker>
-                       </Col>
-
-                       <Col size={30}>
-                         <Input
-                          style={{ ...styles.amountInput }}
-                          value={this.state.chosenIngredients[key].amount}
-                          onChangeText={(text) =>{
-                                        let newChosenIngredients = {...this.state.chosenIngredients};
-                                        newChosenIngredients[key].amount = text;
-                                        this.setState({
-                                          chosenIngredients: newChosenIngredients,
-                                          changed: true
-                                        });
-                                      }
-                          }/>
-                        </Col>
-
-                        <Col size={25}>
-                          <Picker
-                              mode="dropdown"
-                              style={{ ...styles.unitPicker }}
-                              selectedValue={this.state.chosenIngredients[key].unit}
-                              onValueChange={(itemValue, itemIndex) =>{
-                                                let newChosenIngredients = {...this.state.chosenIngredients};
-                                                newChosenIngredients[key].unit = itemValue;
-                                               this.setState({
-                                                 chosenIngredients: newChosenIngredients,
-                                                 changed: true
-                                               });
-                                             }
-                           }>
-                           <Picker.Item key="0" label="" value=""/>
-
-                           <Picker.Item key="1" label="ml" value="ml"/>
-                           <Picker.Item key="2" label="dcl" value="dcl"/>
-                           <Picker.Item key="3" label="l" value="l"/>
-
-                           <Picker.Item key="4" label="g" value="g"/>
-                           <Picker.Item key="4" label="dkg" value="dkg"/>
-                           <Picker.Item key="5" label="kg" value="kg"/>
-
-                           <Picker.Item key="6" label="pcs" value="pcs"/>
-
-                           <Picker.Item key="7" label="tsp" value="tsp"/>
-                           <Picker.Item key="8" label="tbsp" value="tbsp"/>
-
-                           <Picker.Item key="9" label="cup" value="cup"/>
-                          </Picker>
-                        </Col>
-
-                        <Col size={10}>
-                          <Icon name='md-remove-circle' style={{ ...styles.minusIngredient }} onPress={() => this.removeIngredient(key)}/>
-
-                          </Col>
-                      </Row>
-                   )}
-
-                   <Row size={10}>
-                     <Col size={35}>
-                      <Picker
-                        mode="dropdown"
-                        style={{ ...styles.ingredientPicker }}
-                        selectedValue={this.state.newIngredientName}
-                        onValueChange={(itemValue, itemIndex) =>
-                                          this.setState({
-                                            newIngredientName: itemValue,
-                                            newIngredientId: itemIndex,
-                                            changed: true
-                                          })
-                        }>
-
-                        {PICKER_ITEMS}
-                       </Picker>
-                     </Col>
-
-                      <Col size={30}>
-                         <Input
-                          style={{ ...styles.amountInput }}
-                          value={this.state.newIngredientAmount}
-                          onChangeText={(text) =>
-                            this.setState({
-                              newIngredientAmount: text,
-                              changed: true
-                            })
-                          }/>
-                      </Col>
-
-                      <Col size={25}>
-                        <Picker
-                           mode="dropdown"
-                           style={{ ...styles.unitPicker }}
-                           selectedValue={this.state.newIngredientUnit}
-                           onValueChange={(itemValue, itemIndex) =>
-                                            this.setState({
-                                              newIngredientUnit: itemValue,
-                                              changed: true
-                                            })
-                        }>
-                          <Picker.Item key="0" label="" value=""/>
-
-                          <Picker.Item key="1" label="ml" value="ml"/>
-                          <Picker.Item key="2" label="dcl" value="dcl"/>
-                          <Picker.Item key="3" label="l" value="l"/>
-
-                          <Picker.Item key="4" label="g" value="g"/>
-                          <Picker.Item key="4" label="dkg" value="dkg"/>
-                          <Picker.Item key="5" label="kg" value="kg"/>
-
-                          <Picker.Item key="6" label="pcs" value="pcs"/>
-
-                          <Picker.Item key="7" label="tsp" value="tsp"/>
-                          <Picker.Item key="8" label="tbsp" value="tbsp"/>
-
-                          <Picker.Item key="9" label="cup" value="cup"/>
-                         </Picker>
-                        </Col>
-
-                       <Col size={10}>
-                         {(this.state.newIngredientName !== ""
-                         && this.state.newIngredientUnit !== ""
-                         && this.state.newIngredientAmount !== "")
-                         &&
-                         <Icon name='md-add' style={{ ...styles.minusIngredient }} onPress={this.addNewIngredient.bind(this)}/>
-                         }
-                       </Col>
-
-                       </Row>
-                      </Grid>
-                    </Card>*/}
                     <Card transparent style={{ ...styles.formCard}}>
                       <Grid >
                         <Row>
@@ -490,7 +398,6 @@ export default class AddIngredientManual extends Component {
 
                                    <Picker.Item key="7" label="tsp" value="tsp"/>
                                    <Picker.Item key="8" label="tbsp" value="tbsp"/>
-
                                    <Picker.Item key="9" label="cup" value="cup"/>
                                   </Picker>
                                 </Item>
@@ -619,35 +526,6 @@ export default class AddIngredientManual extends Component {
 
           </Content>
         </Container>
-      </Drawer>
     );
   }
 }
-
-/*
-<View style={{}}>
-<Text> Hold barcode in front of camera. </Text>
- <RNCamera
-   style={{ ...styles.camera}}
-   type={RNCamera.Constants.Type.back}
-   flashMode={RNCamera.Constants.FlashMode.on}
-   captureAudio={false}
-   ratio='1:1'
-   permissionDialogTitle={'Permission to use camera'}
-   permissionDialogMessage={'We need your permission to use your camera phone'}
-   onBarCodeRead = {(e)=> this.addBarcode(e.data)}
- >
-   {({ camera, status, recordAudioPermissionStatus }) => {
-     if (status !== 'READY') return <PendingView />;
-     return (
-       <View style={{ flex: 0, flexDirection: 'row', justifyContent: 'center' }}>
-         <TouchableOpacity onPress={() => this.takePicture(camera)} style={{ flex: 0, backgroundColor: '#fff', borderRadius: 5, padding: 15, paddingHorizontal: 20, alignSelf: 'center', margin: 20}}>
-           <Text style={{ fontSize: 14 }}> SNAP </Text>
-         </TouchableOpacity>
-       </View>
-     );
-   }}
- </RNCamera>
-</View>
-
-*/
