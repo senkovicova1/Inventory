@@ -49,7 +49,6 @@ export default class ListRecipes extends Component {
 
   fetch(){
     const USER_ID = store.getState().user.uid;
-    console.log(USER_ID);
       rebase.fetch(`inventories`, {
         context: this,
         withIds: true,
@@ -60,7 +59,6 @@ export default class ListRecipes extends Component {
           withIds: true,
           asArray: true
         }).then((u) => {
-          console.log("um");
           let i = inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID));
           this.setState({
             inventories: i,
@@ -339,7 +337,6 @@ export default class ListRecipes extends Component {
     };
 
   render() {
-    console.log(this.state);
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -499,7 +496,7 @@ export default class ListRecipes extends Component {
                    .sort((a,b) => b.portions - a.portions)
                  }
                  renderRow={data =>
-                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {key: data.key, food: this.state.foodInInventory[this.state.selectedInventory], cookable: data.portions > 0}) }>
+                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {key: data.key, food: this.state.foodInInventory[this.state.selectedInventory], invKey: this.state.selectedInventory, cookable: data.portions > 0}) }>
                      <Left>
                        <Thumbnail
                          style={data.portions <= 0 ? { ...styles.stretch, ...styles.transparent } : { ...styles.stretch }}

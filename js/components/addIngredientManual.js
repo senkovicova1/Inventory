@@ -94,13 +94,13 @@ export default class AddIngredientManual extends Component {
 
       Object.keys(this.state.chosenIngredients).map(key =>  {
         let unit1 = this.state.chosenIngredients[key].unit;
-        let amount1 = parseInt(this.state.chosenIngredients[key].amount);
+        let amount1 = parseFloat(this.state.chosenIngredients[key].amount);
         let unit2Exists = Object.keys(this.state.ownedIngredients).filter(id => id === key)[0];
 
         if (unit2Exists){
           let arr = this.state.ownedIngredients[unit2Exists].split(" ");
           let unit2 = arr[1];
-          let amount2 = parseInt(arr[0]);
+          let amount2 = parseFloat(arr[0]);
           let finalAmount = "0";
           let finalUnit = "g";
 

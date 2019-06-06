@@ -27,6 +27,9 @@ export default class DetailRecipe extends Component {
         showID: false,
         name: "",
         key: this.props.navigation.getParam('key', 'NO-ID'),
+        food: this.props.navigation.getParam('food', 'NO-ID'),
+        cookable: this.props.navigation.getParam('cookable', 'NO-ID'),
+        invKey: this.props.navigation.getParam('invKey', 'NO-ID'),
         body: "",
         ingredients: null,
         image: null,
@@ -34,8 +37,7 @@ export default class DetailRecipe extends Component {
         ppl: "1",
     };
 
-    console.log(this.props.navigation.getParam('key', 'NO-ID'));
-
+    this.cook.bind(this);
     this.shareStuff2.bind(this);
     this.checkNumber.bind(this);
     this.changeAmount.bind(this);
@@ -87,13 +89,55 @@ export default class DetailRecipe extends Component {
 
   changeAmount(code, amount){
     let newIngredients = [...this.state.ingredients];
-    let arr = newIngredients[code].amount.split(" ");
-    let newAmount = parseInt(arr[0]) + amount;
+    let arr = newIngredients.filter(ing => ing.key === code)[0].amount.split(" ");
+    let oldAmount = parseFloat(arr[0]);
+    if (amount < 0){
+      if (oldAmount <= 1){
+        amount = -0.05;
+      } else if (oldAmount <= 10){
+        amount = -0.5;
+      } else if (oldAmount <= 25){
+        amount = -1;
+      } else if (oldAmount <= 100){
+        amount = -5;
+      } else if (oldAmount <= 500){
+        amount = -25;
+      } else if (oldAmount <= 1000){
+        amount = -50;
+      } else {
+        amount = -100;
+      }
+    } else if (amount > 0){
+      if (oldAmount < 1){
+        amount = 0.05;
+      } else if (oldAmount > 1){
+        amount = 0.5;
+      } else if (oldAmount > 10){
+        amount = 1;
+      } else if (oldAmount > 25){
+        amount = 5;
+      } else if (oldAmount > 100){
+        amount = 25;
+      } else if (oldAmount > 500){
+        amount = 50;
+      }
+    }
+    let newAmount = +(oldAmount + amount).toFixed(2);
     newAmount = (newAmount < 0 ? 0 : newAmount);
-    newIngredients[code].amount = newAmount + " " + arr[1];
-    this.setState({
-      ingredients: newIngredients,
+    let index = 0;
+    Object.keys(newIngredients).map(key => {
+      if (newIngredients[key].key === code){
+        index = key;
+      }
     });
+
+    newIngredients[index].amount = newAmount + " " + arr[1];
+
+    if (this.state.cookable && this.checkAmount(code, newAmount, arr[1])){
+      this.setState({
+        ingredients: newIngredients,
+      });
+    }
   }
 
   changeAmountPpl(ppl){
@@ -103,22 +147,89 @@ export default class DetailRecipe extends Component {
       if ( arr[0] === "-" || arr[0] === "--"){
         return (newIng);
       }
-      let base = parseInt(arr[0]);
-      if (this.state.ppl !== ""){
-        base = parseInt(arr[0]) / this.state.ppl;
-      }
+
+      let base = parseFloat(newIng.defaultAmount.split(" ")[0]);
+
       if (ppl !== ""){
         let newAmount = base * ppl;
         newIng.amount = newAmount + " " + arr[1];
       } else {
         newIng.amount = base + " " + arr[1];
       }
-      return newIng;
+
+      if (this.checkAmount(ing.key, newIng.amount.split(" ")[0], arr[1])) {
+        return newIng;
+      } else {
+        return ing;
+      }
     });
     this.setState({
       ingredients: newIngredients,
       ppl,
     });
+  }
+
+  checkAmount(ingId, amount1, unit1){
+    let arr2 = this.state.food[ingId].split(" ");
+    let amount2 = arr2[0];
+    let unit2 = arr2[1];
+
+    if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
+      if (unit1 === "dkg"){
+        unit1 = "g";
+        amount1 = amount1*10;
+      }
+      if (unit1 === "kg"){
+        unit1 = "g";
+        amount1 = amount1*1000;
+      }
+      if (unit2 === "dkg"){
+        unit2 = "g";
+        amount2 = amount2*10;
+      }
+      if (unit2 === "kg"){
+        unit2 = "g";
+        amount2 = amount2*1000;
+      }
+
+    } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
+      if (unit1 === "dcl"){
+        unit1 = "ml";
+        amount1 = amount1*100;
+      }
+      if (unit1 === "l"){
+        unit1 = "ml";
+        amount1 = amount1*1000;
+      }
+      if (unit2 === "dcl"){
+        unit2 = "ml";
+        amount2 = amount2*100;
+      }
+      if (unit2 === "l"){
+        unit2 = "ml";
+        amount2 = amount2*1000;
+      }
+
+    } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
+      if (unit1 === "tbsp" || unit1 === "pl"){
+        unit1 = "tsp";
+        amount1 = amount1*3;
+      }
+      if (unit1 === "cup" || unit2 === "šálka"){
+        unit1 = "tsp";
+        amount1 = amount1*3*16;
+      }
+      if (unit2 === "tbsp" || unit1 === "pl"){
+        unit2 = "tsp";
+        amount2 = amount2*3;
+      }
+      if (unit2 === "cup" || unit2 === "šálka"){
+        unit2 = "tsp";
+        amount2 = amount2*3*16;
+      }
+    }
+
+    return amount1 <= amount2;
   }
 
   handleBackPress = () => {
@@ -144,6 +255,116 @@ export default class DetailRecipe extends Component {
     .catch((err) => {/* err && console.log(err);*/ });
   }
 
+  cook(){
+    let data = {};
+    this.state.ingredients.map(ing => {
+      let arr1 = ing.amount.split(" ");
+      let amount1 = parseFloat(arr1[0]);
+      let unit1 = arr1[1];
+
+      if (amount1.includes("-")){
+        return;
+      }
+
+      let arr2 = this.state.food[ing.key].split(" ");
+      let amount2 = parseFloat(arr2[0]);
+      let unit2 = arr2[1];
+
+      let finalAmount = "0";
+      let finalUnit = "g";
+
+      if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
+        if (unit1 === "dkg"){
+          unit1 = "g";
+          amount1 = amount1*10;
+        }
+        if (unit1 === "kg"){
+          unit1 = "g";
+          amount1 = amount1*1000;
+        }
+        if (unit2 === "dkg"){
+          unit2 = "g";
+          amount2 = amount2*10;
+        }
+        if (unit2 === "kg"){
+          unit2 = "g";
+          amount2 = amount2*1000;
+        }
+        finalAmount = amount2 - amount1;
+        finalUnit = "g";
+        if (finalAmount >= 1000){
+          finalAmount = finalAmount/1000;
+          finalUnit = "kg";
+        }
+
+      } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
+        if (unit1 === "dcl"){
+          unit1 = "ml";
+          amount1 = amount1*100;
+        }
+        if (unit1 === "l"){
+          unit1 = "ml";
+          amount1 = amount1*1000;
+        }
+        if (unit2 === "dcl"){
+          unit2 = "ml";
+          amount2 = amount2*100;
+        }
+        if (unit2 === "l"){
+          unit2 = "ml";
+          amount2 = amount2*1000;
+        }
+        finalAmount = amount2 - amount1;
+        finalUnit = "ml";
+        if (finalAmount >= 1000){
+          finalAmount = finalAmount/1000;
+          finalUnit = "l";
+        }
+      } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
+        if (unit1 === "tbsp" || unit1 === "pl"){
+          unit1 = "tsp";
+          amount1 = amount1*3;
+        }
+        if (unit1 === "cup" || unit2 === "šálka"){
+          unit1 = "tsp";
+          amount1 = amount1*3*16;
+        }
+        if (unit2 === "tbsp" || unit1 === "pl"){
+          unit2 = "tsp";
+          amount2 = amount2*3;
+        }
+        if (unit2 === "cup" || unit2 === "šálka"){
+          unit2 = "tsp";
+          amount2 = amount2*3*16;
+        }
+        finalAmount = amount2 - amount1;
+        finalUnit = "tsp";
+        if (finalAmount >= 15){
+          finalAmount = finalAmount/3;
+          finalUnit = "tbsp";
+        } else if (finalAmount >= 48){
+          finalAmount = finalAmount/48;
+          finalUnit = "cup";
+        }
+
+      } else if (["pcs", "ks"].includes(unit1) && ["pcs", "ks"].includes(unit2)){
+        finalAmount = amount2 - amount1;
+        finalUnit = unit2;
+
+      } else {
+        finalAmount = amount2;
+        finalUnit = unit2;
+      }
+
+      data[ing.key] = finalAmount + " " + finalUnit;
+    });
+
+    console.log(data);
+
+    rebase.update(`foodInInventory/${this.state.invKey}`, {
+      data: data
+    });
+  }
 
   render() {
     return (
@@ -215,23 +436,31 @@ export default class DetailRecipe extends Component {
 
                       <Col size={40}>
                         <Row>
-                          <Col size={20}>
+                          <Col size={15}>
                             { (item.amount && !item.amount.includes("-"))
                               &&
-                            <Button transparent small  onPress={() => this.changeAmount(item, -1)}>
-                                <Icon name="md-arrow-dropdown" style={{ alignSelf: 'center', ...styles.DARK_PEACH }}/>
-                            </Button >
-                            }
+                                <Icon name="md-arrow-dropdown" onPress={() => this.changeAmount(item.key, -1)} style={{ alignSelf: 'center', ...styles.DARK_PEACH, paddingLeft: 5, paddingRight: 5 }}/>
+                              }
                           </Col>
-                          <Col size={20}>
-                              <Text style={{ ...styles.PEACH, alignSelf: 'center', marginTop: -5, padding: 0,}}>{item.amount} </Text>
+                          <Col size={30}>
+                            {/*<Input
+                              style={{ ...styles.PEACH, alignSelf: 'center', marginTop: -5, padding: 0}}
+                              keyboardType='numeric'
+                              value={item.amount.split(" ")[0]}
+                              onChangeText={(text) =>{
+                                  let diff = parseInt(text) - parseInt(item.amout.split(" ")[0]);
+                                  this.changeAmount(item.key, diff);
+                                }
+                              }/>*/}
+                            <Text style={{ ...styles.PEACH, alignSelf: 'center', marginTop: 0, padding: 0}}>{item.amount} </Text>
                           </Col>
-                          <Col size={20}>
+
+                          {/*<Button transparent small style={{ backgroundColor: "#FFFFFF"}} >*/}
+                          <Col size={15}>
                             { (item.amount && !item.amount.includes("-"))
                               &&
-                              <Button transparent small onPress={() => this.changeAmount(item, 1)} >
-                                <Icon name="md-arrow-dropup" style={{ alignSelf: 'center', ...styles.DARK_PEACH}}/>
-                              </Button >
+                                <Icon name="md-arrow-dropup" onPress={() => this.changeAmount(item.key, 1)}  style={{ alignSelf: 'center', ...styles.DARK_PEACH, paddingLeft: 5, paddingRight: 5 }}/>
+
                             }
                           </Col>
                         </Row>
@@ -255,7 +484,7 @@ export default class DetailRecipe extends Component {
                     </Item>
                   </Row>
                   <Row style={{ ...styles.right}}>
-                  <Button style={{ ...styles.acordionButton}}>
+                  <Button style={{ ...styles.acordionButton}} onPress={() => this.cook()}>
                     <Text style={{ ...styles.DARK_PEACH }}> Uvariť </Text>
                   </Button>
                 </Row>
