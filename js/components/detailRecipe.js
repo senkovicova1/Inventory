@@ -34,6 +34,8 @@ export default class DetailRecipe extends Component {
         ppl: "1",
     };
 
+    console.log(this.props.navigation.getParam('key', 'NO-ID'));
+
     this.shareStuff2.bind(this);
     this.checkNumber.bind(this);
     this.changeAmount.bind(this);

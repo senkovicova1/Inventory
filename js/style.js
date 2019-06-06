@@ -51,6 +51,9 @@ export default {
   sidebarMail: {
 //    bottom:50,
   },
+  transparent: {
+    opacity: 0.5,
+  },
   header: {
     backgroundColor: colours.ACC_TEAL,
   },

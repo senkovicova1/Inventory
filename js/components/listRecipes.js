@@ -27,13 +27,17 @@ export default class ListRecipes extends Component {
       searchedWord: '',
       addOpen: false,
 
-      recipes: [],
-      inventories: [],
+      recipes: null, //{}
+      foodInInventory: null, //{}
+      inventories: null,  //[]
       users: [],
 
       text: "nothing now",
     };
 
+    this.calculationPossible.bind(this);
+    this.calculatePortions.bind(this);
+    this.getPortions.bind(this);
     this.handleBackPress.bind(this);
     this.toggleSearch.bind(this);
     this.toggleAdd.bind(this);
@@ -45,7 +49,7 @@ export default class ListRecipes extends Component {
 
   fetch(){
     const USER_ID = store.getState().user.uid;
-
+    console.log(USER_ID);
       rebase.fetch(`inventories`, {
         context: this,
         withIds: true,
@@ -56,17 +60,64 @@ export default class ListRecipes extends Component {
           withIds: true,
           asArray: true
         }).then((u) => {
+          console.log("um");
+          let i = inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID));
           this.setState({
-            inventories: inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID)),
+            inventories: i,
+            selectedInventory: i[0].key,
             users: u,
+          }, () => {
+            if (this.calculationPossible()){
+              this.calculatePortions();
+            }
           });
         });
     });
   }
 
+  componentDidMount() {
+    BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+
+    rebase.bindToState(`recipes`, {
+      context: this,
+      state: 'recipes',
+      then: function(rec){
+        if (this.calculationPossible()){
+          this.calculatePortions();
+        }
+      }
+    });
+
+    rebase.bindToState(`foodInInventory`, {
+      context: this,
+      state: 'foodInInventory',
+      then: function(rec){
+        if (this.calculationPossible()){
+          this.calculatePortions();
+        }
+      }
+    });
+
+    rebase.bindToState(`users/${store.getState().user.uid}/notices`, {
+      context: this,
+      state: 'notices',
+      asArray: true,
+      then: function(notices){
+        this.setState({
+          modalVisible: (this.state.notices && this.state.notices.length > 0 && this.state.notices.filter(note => !note.seen).length > 0),
+        });
+      }
+    });
+
+  }
+
+  componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+  }
+
     addItem(newItem){
       this.setState({
-        recipes: this.state.recipes.concat([newItem]) //updates Firebase and the local state
+        recipes: this.state.recipes.concat([newItem])
       });
     }
 
@@ -76,9 +127,11 @@ export default class ListRecipes extends Component {
       });
     }
 
-    onValueChange(value: string) {
+    onValueChange(e: string) {
       this.setState({
-        selected: value
+        selectedInventory: e
+      }, () => {
+        this.calculatePortions()
       });
     }
 
@@ -88,29 +141,130 @@ export default class ListRecipes extends Component {
       });
     }
 
-    componentDidMount() {
-        BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+      calculationPossible(){
+        let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
+        let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
+        let cond3 = this.state.inventories && this.state.inventories.length > 0;
+        return cond1 && cond2 && cond3;
+      }
 
-        rebase.bindToState(`recipes`, {
-         context: this,
-         state: 'recipes',
+      calculatePortions(){
+        let newRecipes = {};
+        Object.keys(this.state.recipes).map(key => {
+          newRecipes[key] = {...this.state.recipes[key], portions: this.getPortions(key)}
+        });
+        this.setState({
+          recipes: newRecipes,
+        })
+      }
+
+      getPortions(recId){
+        let food = this.state.foodInInventory[this.state.selectedInventory];
+        if (!food){
+          return 0;
+        }
+        let recipeIngredients = this.state.recipes[Object.keys(this.state.recipes).filter(key => key === recId)[0]].ingredients;
+        if (!recipeIngredients){
+          return -1; //recept nema ingrediencie
+        }
+
+        let amount = Infinity;
+        Object.keys(recipeIngredients).map(ingKey => {
+          if (amount < 0){  //nejaka predchadzajuca ing v inv nebola (-2) alebo jej bolo menej ako v inv (-2) alebo nemaju porovnatelne jednotky (-1)
+            return;
+          }
+
+          let arr1 = recipeIngredients[ingKey].split(" ");
+          let amount1 = arr1[0];
+          let unit1 = arr1[1];
+
+          if(amount1 === "-" || amount1 === "--"){
+            return;
+          }
+
+          let ingExists = food[ingKey];
+          if (!ingExists){
+            amount = -2;  //ing v inv nie je
+            return;
+          }
+          let arr2 = ingExists.split(" ");
+          let amount2 = arr2[0];
+          let unit2 = arr2[1];
+
+
+          if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
+            if (unit1 === "dkg"){
+              unit1 = "g";
+              amount1 = amount1*10;
+            }
+            if (unit1 === "kg"){
+              unit1 = "g";
+              amount1 = amount1*1000;
+            }
+            if (unit2 === "dkg"){
+              unit2 = "g";
+              amount2 = amount2*10;
+            }
+            if (unit2 === "kg"){
+              unit2 = "g";
+              amount2 = amount2*1000;
+            }
+
+          } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
+            if (unit1 === "dcl"){
+              unit1 = "ml";
+              amount1 = amount1*100;
+            }
+            if (unit1 === "l"){
+              unit1 = "ml";
+              amount1 = amount1*1000;
+            }
+            if (unit2 === "dcl"){
+              unit2 = "ml";
+              amount2 = amount2*100;
+            }
+            if (unit2 === "l"){
+              unit2 = "ml";
+              amount2 = amount2*1000;
+            }
+
+          } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
+            if (unit1 === "tbsp" || unit1 === "pl"){
+              unit1 = "tsp";
+              amount1 = amount1*3;
+            }
+            if (unit1 === "cup" || unit2 === "šálka"){
+              unit1 = "tsp";
+              amount1 = amount1*3*16;
+            }
+            if (unit2 === "tbsp" || unit1 === "pl"){
+              unit2 = "tsp";
+              amount2 = amount2*3;
+            }
+            if (unit2 === "cup" || unit2 === "šálka"){
+              unit2 = "tsp";
+              amount2 = amount2*3*16;
+            }
+
+          } else if (!(["pcs", "ks"].includes(unit1) && ["pcs", "ks"].includes(unit2))) {
+            amount = -1; //neporovnatelne jednotky
+            return;
+          }
+
+          if (amount1 > amount2){
+            amount = -2; //neda sa uvarit z takehoto mnozstva
+            return;
+          }
+
+          let times = Math.floor(amount2/amount1);
+          if (times < amount){
+            amount = times;
+          }
+
         });
 
-        rebase.bindToState(`users/${store.getState().user.uid}/notices`, {
-         context: this,
-         state: 'notices',
-         asArray: true,
-         then: function(notices){
-           this.setState({
-             modalVisible: (this.state.notices && this.state.notices.length > 0 && this.state.notices.filter(note => !note.seen).length > 0),
-           });
-         }
-       });
+        return amount;
 
-    }
-
-      componentWillUnmount() {
-        BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
       }
 
       toggleModal(visible) {
@@ -185,6 +339,7 @@ export default class ListRecipes extends Component {
     };
 
   render() {
+    console.log(this.state);
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -247,11 +402,9 @@ export default class ListRecipes extends Component {
         this.state.notices
           .filter(note => !note.seen && note.key.includes("RR-"))
           .map(note =>
-            { console.log(this.state.users);
+            {
               let user = this.state.users.filter(user => user.key === note.userId)[0];
               let recipe = Object.keys(this.state.recipes).filter(key => key === note.recId).map(key => this.state.recipes[key])[0];
-              console.log("HERE");
-              console.log(recipe);
              return(
                <Grid style={{ borderRadius: 15, backgroundColor: 'rgb(104, 70, 130)', width: deviceWidth*0.76, alignSelf: 'center' }}>
                   <Text style={{ ...styles.listText }}>
@@ -288,10 +441,12 @@ export default class ListRecipes extends Component {
              <Picker
                 mode="dropdown"
                 style={{ ...styles.picker }}
-                selectedValue={this.state.selected}
-                onValueChange={this.onValueChange.bind(this)}
+                selectedValue={this.state.selectedInventory}
+                onValueChange={(e) => this.onValueChange(e)}
               >
                 { this.state.inventories
+                  &&
+                  this.state.inventories
                   .map(i =>
                          <Picker.Item key={i.key} label={i.name} value={i.key}/>
                        )
@@ -333,28 +488,28 @@ export default class ListRecipes extends Component {
             <Card transparent style={{ ...styles.listCard }}>
                <List
                  dataArray={
-                   Object.keys(this.state.recipes)
+                   Object.keys(this.state.recipes ? this.state.recipes : {})
                    .filter(key => this.state.recipes[key].owners
                                   && Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid)
                                   && this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))
                    .map(key => {
                      let item = {...this.state.recipes[key], key};
                      return item;
-                   })}
+                   })
+                   .sort((a,b) => b.portions - a.portions)
+                 }
                  renderRow={data =>
-                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {key: data.key}) }>
+                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {key: data.key, food: this.state.foodInInventory[this.state.selectedInventory], cookable: data.portions > 0}) }>
                      <Left>
                        <Thumbnail
-                         style={{ ...styles.stretch }}
+                         style={data.portions <= 0 ? { ...styles.stretch, ...styles.transparent } : { ...styles.stretch }}
                          source={{uri: data.image}}
                        />
-                     <Text style={{ ...styles.listText }}>{data.name}</Text></Left>
+                     <Text style={data.portions <= 0  ? { ...styles.listText, ...styles.transparent } : { ...styles.listText }}>{data.name}</Text></Left>
                      <Right>
-                         <Badge style={{ ...styles.listTextBadge }}>
-                           <Text style={{ ...styles.listTextBadgeText }}> </Text>
-
-                       { /*   <Text style={{ color: ACC_CREAM }}>{data.id} {data.id == 1 ? "porcia" : (data.id <= 4? "porcie" : "porcií")}</Text>*/}
-                      </Badge>
+                         <Badge style={data.portions <= 0 ? { ...styles.listTextBadge, ...styles.transparent } : { ...styles.listTextBadge }}>
+                           <Text style={data.portions <= 0 ? { ...styles.listTextBadgeText } : { ...styles.listTextBadgeText }}>{data.portions <= 0 ? "0" : data.portions} </Text>
+                        </Badge>
                      </Right>
                    </ListItem>
                  }
