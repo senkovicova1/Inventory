@@ -1,12 +1,12 @@
 import React, {Component} from 'react';
 import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
-import { Drawer,  Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
+import {  Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
 import { RNCamera } from 'react-native-camera';
-
-import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
 import firebase from 'firebase';
+
+import {unitToBasic} from '../helperFiles/helperFunctions';
 
 import store from "../store/index";
 
@@ -34,10 +34,10 @@ export default class AddIngredientBarcode extends Component {
 
       ingredients: [],
       ownedIngredients: {},
+      barcodes: {},
 
       currentBarcode: "",
       containsBarcode: false,
-      barcodes: {},
 
       newIngredient: {
         name: '',
@@ -45,7 +45,6 @@ export default class AddIngredientBarcode extends Component {
         unit: '',
         brand: '',
       },
-
 
       showUnsaved: false,
       changed: false,
@@ -56,17 +55,18 @@ export default class AddIngredientBarcode extends Component {
     this.changeAmount.bind(this);
 
     this.handleBackPress.bind(this);
+    this.handleBackPressButton.bind(this);
 
     this.fetch.bind(this);
-    this.fetch();
+    this.fetch(this.props.navigation.getParam('key', 'NO-ID'));
   }
 
-  fetch(){
+  fetch(id){
       rebase.fetch(`ingredients`, {
         context: this,
         withIds: true,
       }).then((ingredients) => {
-        rebase.fetch(`foodInInventory/${this.state.key}`, {
+        rebase.fetch(`foodInInventory/${id}`, {
           context: this,
           withIds: true,
         }).then(ownedIngredients => {
@@ -78,39 +78,51 @@ export default class AddIngredientBarcode extends Component {
       });
     }
 
+    componentWillReceiveProps(props){
+      if(props.navigation.getParam('key', 'NO-ID') !== this.state.key){
+        this.setState({
+          ingredients: [],
+          ownedIngredients: {},
+          barcodes: {},
+
+          currentBarcode: "",
+          containsBarcode: false,
+
+          newIngredient: {
+            name: '',
+            amount: '',
+            unit: '',
+            brand: '',
+          },
+
+          showUnsaved: false,
+          changed: false,
+        });
+        this.fetch(props.navigation.getParam('key', 'NO-ID'));
+      }
+    }
+
     submit(){
       let data = {}
 
       Object.keys(this.state.barcodes).map(key =>{
             let unit1 = this.state.barcodes[key].unit;
-            let amount1 = parseInt(this.state.barcodes[key].amount);
+            let amount1 = unitToBasic(this.state.barcodes[key].amount, unit1);
             let pieces = this.state.barcodes[key].pieces;
             let unit2Exists = Object.keys(this.state.ownedIngredients).filter(id => id === key)[0];
 
             if (unit2Exists){
               let arr = this.state.ownedIngredients[unit2Exists].split(" ");
               let unit2 = arr[1];
-              let amount2 = parseInt(arr[0]);
+              let amount2 = amount2 = unitToBasic(arr[0], arr[1]);
+
               let finalAmount = "0";
               let finalUnit = "g";
 
               if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
-                if (unit1 === "dkg"){
-                  unit1 = "g";
-                  amount1 = amount1*10;
-                }
-                if (unit1 === "kg"){
-                  unit1 = "g";
-                  amount1 = amount1*1000;
-                }
-                if (unit2 === "dkg"){
-                  unit2 = "g";
-                  amount2 = amount2*10;
-                }
-                if (unit2 === "kg"){
-                  unit2 = "g";
-                  amount2 = amount2*1000;
-                }
+                unit1 = "g";
+                unit2 = "g";
+
                 finalAmount = amount1*pieces + amount2;
                 finalUnit = "g";
 
@@ -120,22 +132,9 @@ export default class AddIngredientBarcode extends Component {
                 }
 
               } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
-                if (unit1 === "dcl"){
-                  unit1 = "ml";
-                  amount1 = amount1*100;
-                }
-                if (unit1 === "l"){
-                  unit1 = "ml";
-                  amount1 = amount1*1000;
-                }
-                if (unit2 === "dcl"){
-                  unit2 = "ml";
-                  amount2 = amount2*100;
-                }
-                if (unit2 === "l"){
-                  unit2 = "ml";
-                  amount2 = amount2*1000;
-                }
+                unit1 = "ml";
+                unit2 = "ml";
+
                 finalAmount = amount1*pieces + amount2;
                 finalUnit = "ml";
 
@@ -144,24 +143,12 @@ export default class AddIngredientBarcode extends Component {
                   finalUnit = "l";
                 }
               } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
-                if (unit1 === "tbsp" || unit1 === "pl"){
-                  unit1 = "tsp";
-                  amount1 = amount1*3;
-                }
-                if (unit1 === "cup" || unit2 === "šálka"){
-                  unit1 = "tsp";
-                  amount1 = amount1*3*16;
-                }
-                if (unit2 === "tbsp" || unit1 === "pl"){
-                  unit2 = "tsp";
-                  amount2 = amount2*3;
-                }
-                if (unit2 === "cup" || unit2 === "šálka"){
-                  unit2 = "tsp";
-                  amount2 = amount2*3*16;
-                }
+                unit1 = "tsp";
+                unit2 = "tsp";
+
                 finalAmount = amount1*pieces + amount2;
                 finalUnit = "tsp";
+
                 if (finalAmount >= 15){
                   finalAmount = finalAmount/3;
                   finalUnit = "tbsp";
@@ -228,7 +215,8 @@ export default class AddIngredientBarcode extends Component {
             amount: '',
             unit: '',
             brand: '',
-          }
+          },
+          changed: true,
         })
       );
     }
@@ -288,14 +276,19 @@ export default class AddIngredientBarcode extends Component {
       this.props.navigation.goBack();
       return true;
     }
+    console.log("im not supposed to be here");
   }
 
-  closeDrawer = () => {
-    this.drawer._root.close()
-  };
-  openDrawer = () => {
-    this.drawer._root.open()
-  };
+  handleBackPressButton(){
+    if (this.state.changed && !this.state.showUnsaved){
+      this.setState({
+        showUnsaved: true
+      });
+    } else if (this.state.showUnsaved || !this.state.changed){
+      this.props.navigation.goBack();
+    }
+  }
+
 
   takePicture = async function(camera) {
       const options = { quality: 0.5, base64: true };
@@ -313,14 +306,11 @@ export default class AddIngredientBarcode extends Component {
             );
            PICKER_ITEMS.unshift(<Picker.Item key="0" label="" value=""/>);
     return (
-      <Drawer
-        ref={(ref) => { this.drawer = ref; }}
-        content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
-        onClose={() => this.closeDrawer()} >
+
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
-              <Button transparent onPress={() => this.props.navigation.goBack()}>
+              <Button transparent onPress={() => this.handleBackPressButton()}>
                 <Icon name="md-close" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
@@ -534,7 +524,6 @@ export default class AddIngredientBarcode extends Component {
 
           </Content>
         </Container>
-      </Drawer>
     );
   }
 }

@@ -8,6 +8,8 @@ import Sidebar from './sidebar';
 import { rebase } from '../../index';
 import firebase from 'firebase';
 
+import {unitToBasic} from '../helperFiles/helperFunctions';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -43,39 +45,26 @@ export default class AddIngredientManual extends Component {
       newIngredientUnit: "",
       showIngredients: false,
 
-      currentBarcode: "",
-      containsBarcode: false,
-      barcodes: {},
-
-      newIngredient: {
-        name: '',
-        amount: '',
-        unit: '',
-        brand: '',
-      },
-
-      viaBarcode: false,
-      viaForm: false,
-
       showUnsaved: false,
       changed: false,
     };
 
     this.handleBackPress.bind(this);
+    this.handleBackPressButton.bind(this);
     this.checkNumber.bind(this);
     this.addNewIngredient.bind(this);
     this.submit.bind(this);
     this.fetch.bind(this);
-    this.fetch();
+    this.fetch(this.props.navigation.getParam('key', 'NO-ID'));
   }
 
-  fetch(){
+  fetch(id){
       rebase.fetch(`ingredients`, {
         context: this,
         withIds: true,
         asArray: true
       }).then((ingredients) => {
-        rebase.fetch(`foodInInventory/${this.state.key}`, {
+        rebase.fetch(`foodInInventory/${id}`, {
           context: this,
           withIds: true,
         }).then(ownedIngredients => {
@@ -87,6 +76,27 @@ export default class AddIngredientManual extends Component {
       });
     }
 
+    componentWillReceiveProps(props){
+      if(props.navigation.getParam('key', 'NO-ID') !== this.state.key){
+        this.setState({
+          ingredients: [],
+          ownedIngredients: {},
+
+          chosenIngredients: {},
+
+          newIngredientId: "",
+          newIngredientName: "",
+          newIngredientAmount: "",
+          newIngredientUnit: "",
+          showIngredients: false,
+
+          showUnsaved: false,
+          changed: false,
+        });
+        this.fetch(props.navigation.getParam('key', 'NO-ID'));
+      }
+    }
+
     submit(){
       let id = Date.now().toString(16).toUpperCase();
 
@@ -94,33 +104,21 @@ export default class AddIngredientManual extends Component {
 
       Object.keys(this.state.chosenIngredients).map(key =>  {
         let unit1 = this.state.chosenIngredients[key].unit;
-        let amount1 = parseFloat(this.state.chosenIngredients[key].amount);
+        let amount1 = unitToBasic(this.state.chosenIngredients[key].amount, unit1);
         let unit2Exists = Object.keys(this.state.ownedIngredients).filter(id => id === key)[0];
 
         if (unit2Exists){
           let arr = this.state.ownedIngredients[unit2Exists].split(" ");
           let unit2 = arr[1];
-          let amount2 = parseFloat(arr[0]);
+          let amount2 = unitToBasic(arr[0], arr[1]);
+
           let finalAmount = "0";
           let finalUnit = "g";
 
           if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
-            if (unit1 === "dkg"){
               unit1 = "g";
-              amount1 = amount1*10;
-            }
-            if (unit1 === "kg"){
-              unit1 = "g";
-              amount1 = amount1*1000;
-            }
-            if (unit2 === "dkg"){
               unit2 = "g";
-              amount2 = amount2*10;
-            }
-            if (unit2 === "kg"){
-              unit2 = "g";
-              amount2 = amount2*1000;
-            }
+
             finalAmount = amount1 + amount2;
             finalUnit = "g";
             if (finalAmount >= 1000){
@@ -129,22 +127,9 @@ export default class AddIngredientManual extends Component {
             }
 
           } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
-            if (unit1 === "dcl"){
               unit1 = "ml";
-              amount1 = amount1*100;
-            }
-            if (unit1 === "l"){
-              unit1 = "ml";
-              amount1 = amount1*1000;
-            }
-            if (unit2 === "dcl"){
               unit2 = "ml";
-              amount2 = amount2*100;
-            }
-            if (unit2 === "l"){
-              unit2 = "ml";
-              amount2 = amount2*1000;
-            }
+
             finalAmount = amount1 + amount2;
             finalUnit = "ml";
             if (finalAmount >= 1000){
@@ -152,22 +137,9 @@ export default class AddIngredientManual extends Component {
               finalUnit = "l";
             }
           } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
-            if (unit1 === "tbsp" || unit1 === "pl"){
               unit1 = "tsp";
-              amount1 = amount1*3;
-            }
-            if (unit1 === "cup" || unit2 === "šálka"){
-              unit1 = "tsp";
-              amount1 = amount1*3*16;
-            }
-            if (unit2 === "tbsp" || unit1 === "pl"){
               unit2 = "tsp";
-              amount2 = amount2*3;
-            }
-            if (unit2 === "cup" || unit2 === "šálka"){
-              unit2 = "tsp";
-              amount2 = amount2*3*16;
-            }
+
             finalAmount = amount1 + amount2;
             finalUnit = "tsp";
             if (finalAmount >= 15){
@@ -206,9 +178,6 @@ export default class AddIngredientManual extends Component {
             newIngredientAmount: "",
             newIngredientUnit: "",
             showIngredients: false,
-
-            viaBarcode: false,
-            viaForm: false,
 
             changed: false,
           });
@@ -290,6 +259,17 @@ export default class AddIngredientManual extends Component {
       this.props.navigation.goBack();
       return true;
     }
+    console.log("im not supposed to be here");
+  }
+
+  handleBackPressButton(){
+    if (this.state.changed && !this.state.showUnsaved){
+      this.setState({
+        showUnsaved: true
+      });
+    } else if (this.state.showUnsaved || !this.state.changed){
+      this.props.navigation.goBack();
+    }
   }
 
   render() {
@@ -304,7 +284,7 @@ export default class AddIngredientManual extends Component {
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
-              <Button transparent onPress={() => this.props.navigation.goBack()}>
+              <Button transparent onPress={() => this.handleBackPressButton()}>
                 <Icon name="md-close" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>

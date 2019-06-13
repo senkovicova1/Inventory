@@ -7,6 +7,8 @@ import Sidebar from './sidebar';
 import { rebase } from '../../index';
 import firebase from 'firebase';
 
+import {unitToBasic} from '../helperFiles/helperFunctions';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -31,6 +33,7 @@ export default class ListRecipes extends Component {
       foodInInventory: null, //{}
       inventories: null,  //[]
       users: [],
+      notices: [],
 
       text: "nothing now",
     };
@@ -109,6 +112,32 @@ export default class ListRecipes extends Component {
 
   }
 
+/*  componentWillReceiveProps(props){
+    if (props.navigation.getParam('id', 'NO-ID') !== this.state.key){
+      rebase.removeBinding(this.ref1);
+      this.ref1 = rebase.bindToState(`foodInInventory/${props.navigation.getParam('id', 'NO-ID')}`, {
+        context: this,
+        state: 'foodInInventory',
+        withIds: true,
+      });
+
+      this.setState({
+        name: props.navigation.getParam('title', 'NO-ID'),
+        notes: props.navigation.getParam('notes', 'NO-ID'),
+        key: props.navigation.getParam('id', 'NO-ID'),
+        owners: props.navigation.getParam('owners', 'NO-ID'),
+
+        editTitle: false,
+        editNotes: false,
+
+        showID: false,
+
+        searchOpen: false,
+        searchedWord: '',
+      });
+    }
+  }*/
+
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
   }
@@ -173,10 +202,8 @@ export default class ListRecipes extends Component {
           }
 
           let arr1 = recipeIngredients[ingKey].split(" ");
-          let amount1 = arr1[0];
-          let unit1 = arr1[1];
 
-          if(amount1 === "-" || amount1 === "--"){
+          if (arr1[0] === "-" || arr1[0] === "--"){
             return;
           }
 
@@ -185,64 +212,26 @@ export default class ListRecipes extends Component {
             amount = -2;  //ing v inv nie je
             return;
           }
+
+          let amount1 = unitToBasic(arr1[0], arr1[1]);
+          let unit1 = arr1[1];
+
           let arr2 = ingExists.split(" ");
-          let amount2 = arr2[0];
+          let amount2 = unitToBasic(arr2[0], arr2[1]);
           let unit2 = arr2[1];
 
 
           if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
-            if (unit1 === "dkg"){
               unit1 = "g";
-              amount1 = amount1*10;
-            }
-            if (unit1 === "kg"){
-              unit1 = "g";
-              amount1 = amount1*1000;
-            }
-            if (unit2 === "dkg"){
               unit2 = "g";
-              amount2 = amount2*10;
-            }
-            if (unit2 === "kg"){
-              unit2 = "g";
-              amount2 = amount2*1000;
-            }
 
           } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
-            if (unit1 === "dcl"){
               unit1 = "ml";
-              amount1 = amount1*100;
-            }
-            if (unit1 === "l"){
-              unit1 = "ml";
-              amount1 = amount1*1000;
-            }
-            if (unit2 === "dcl"){
               unit2 = "ml";
-              amount2 = amount2*100;
-            }
-            if (unit2 === "l"){
-              unit2 = "ml";
-              amount2 = amount2*1000;
-            }
 
           } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
-            if (unit1 === "tbsp" || unit1 === "pl"){
               unit1 = "tsp";
-              amount1 = amount1*3;
-            }
-            if (unit1 === "cup" || unit2 === "šálka"){
-              unit1 = "tsp";
-              amount1 = amount1*3*16;
-            }
-            if (unit2 === "tbsp" || unit1 === "pl"){
               unit2 = "tsp";
-              amount2 = amount2*3;
-            }
-            if (unit2 === "cup" || unit2 === "šálka"){
-              unit2 = "tsp";
-              amount2 = amount2*3*16;
-            }
 
           } else if (!(["pcs", "ks"].includes(unit1) && ["pcs", "ks"].includes(unit2))) {
             amount = -1; //neporovnatelne jednotky
@@ -258,7 +247,6 @@ export default class ListRecipes extends Component {
           if (times < amount){
             amount = times;
           }
-
         });
 
         return amount;
@@ -286,15 +274,14 @@ export default class ListRecipes extends Component {
         rebase.update(`users/${store.getState().user.uid}/notices/${note.key}`, {
           data: {approved: true, seen: true}
         }).then(newLocation => {
-            rebase.update(`users/${note.userId}/notices/${note.key}`, {
+            rebase.update(`users/${note.userID}/notices/${note.key}`, {
               data: {approved: true,}
             }).then((x) => {
               let id = Date.now().toString(16).toUpperCase();
-          //    let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recId)[0];
-              let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === note.recId).map(id =>  this.state.recipes[id])[0];
+              let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === note.recID).map(id =>  this.state.recipes[id])[0];
                 let newOwners = {...wantedRecipe.owners};
-                newOwners[id] = note.userId;
-                  rebase.update(`recipes/${note.recId}`, {
+                newOwners[id] = note.userID;
+                  rebase.update(`recipes/${note.recID}`, {
                     data: {owners: newOwners}
                   });
             })
@@ -305,13 +292,13 @@ export default class ListRecipes extends Component {
             rebase.update(`users/${store.getState().user.uid}/notices/RR-${note.key}`, {
               data: {approved: false, seen: true}
             }).then(newLocation => {
-                rebase.update(`users/${note.userId}/notices/RRM-${note.key}`, {
+                rebase.update(`users/${note.userID}/notices/RRM-${note.key}`, {
                   data: {approved: false,}
                 }).then((x) => {
                   let id = Date.now().toString(16).toUpperCase();
-                  let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recId)[0];
+                  let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recID)[0];
                     let newOwners = {};
-                    newOwners[id] = note.userId;
+                    newOwners[id] = note.userID;
                       rebase.post(`recipes/${id}`, {
                         data: {name: wantedRecipe.name, body: wantedRecipe.body, ingredients: wantedRecipe.ingredients, image: wantedRecipe.image, owners: newOwners}
                       });
@@ -400,8 +387,8 @@ export default class ListRecipes extends Component {
           .filter(note => !note.seen && note.key.includes("RR-"))
           .map(note =>
             {
-              let user = this.state.users.filter(user => user.key === note.userId)[0];
-              let recipe = Object.keys(this.state.recipes).filter(key => key === note.recId).map(key => this.state.recipes[key])[0];
+              let user = this.state.users.filter(user => user.key === note.userID)[0];
+              let recipe = Object.keys(this.state.recipes).filter(key => key === note.recID).map(key => this.state.recipes[key])[0];
              return(
                <Grid style={{ borderRadius: 15, backgroundColor: 'rgb(104, 70, 130)', width: deviceWidth*0.76, alignSelf: 'center' }}>
                   <Text style={{ ...styles.listText }}>

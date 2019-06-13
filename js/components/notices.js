@@ -161,6 +161,23 @@ export default class Notices extends Component {
 
 
             <Card transparent style={{ ...styles.listCard }}>
+              {!(this.state.recipes
+                &&
+                Object.keys(this.state.recipes).length > 0
+                &&
+                this.state.users
+                &&
+                Object.keys(this.state.users).length > 0
+                &&
+                this.state.users[ID].notices
+                &&
+                Object.keys(this.state.users[ID].notices).length > 0
+                )
+                &&
+                <Text style={{ ...styles.listText}}>
+                  No messages in your inbox.
+                </Text>
+              }
                {this.state.recipes
                  &&
                  Object.keys(this.state.recipes).length > 0
@@ -168,6 +185,10 @@ export default class Notices extends Component {
                  this.state.users
                  &&
                  Object.keys(this.state.users).length > 0
+                 &&
+                 this.state.users[ID].notices
+                 &&
+                 Object.keys(this.state.users[ID].notices).length > 0
                  &&
                  <List
                  dataArray={Object.keys(this.state.users[ID].notices)}

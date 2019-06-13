@@ -7,6 +7,14 @@ const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
 
 export default {
+  centerHor: {
+  	marginLeft: "auto",
+  	marginRight: "auto",
+  },
+  centerVer: {
+  	marginTop: "auto",
+  	marginBottom: "auto",
+  },
   sidebar: {
     flex: 1,
     backgroundColor: colours.ACC_VIO,
@@ -100,6 +108,10 @@ export default {
   stretch: {
     width: 30,
     height: 30
+  },
+  stretchLogo: {
+    width: 30,
+    height: 45
   },
   center: {
     alignSelf: 'center',
@@ -269,7 +281,7 @@ export default {
   loginTextWelcomeInventory:{
     color: colours.ACC_DARK_PEACH,
     fontSize: 30,
-    marginTop: deviceHeight*0.03,
+    marginTop: 0, // deviceHeight*0.05,
   },
   loginTextWelcome:{
     color: colours.ACC_DARK_PEACH,
@@ -287,8 +299,8 @@ export default {
   },
   inventoryLogo: {
     width: deviceHeight*0.3,
-    height: deviceHeight*0.3,
-    marginTop: deviceHeight*0.05,
+    height: deviceHeight*0.45,
+    marginTop: 0, // deviceHeight*0.05,
   },
   createOrLog: {
     color: colours.ACC_DARK_PEACH,

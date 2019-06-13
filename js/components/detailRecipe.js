@@ -10,6 +10,8 @@ import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 import Share from 'react-native-share';
 import RNFetchBlob from 'rn-fetch-blob'
 
+import {unitToBasic} from '../helperFiles/helperFunctions';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -80,63 +82,43 @@ export default class DetailRecipe extends Component {
   }
 
   componentWillReceiveProps(){
-    this.setState({
-      showID: false,
-    });
-
-    this.fetch(this.props.navigation.getParam('key', 'NO-ID'));
+    if(props.navigation.getParam('key', 'NO-ID') !== this.state.key){
+      this.setState({
+        showID: false,
+        food: props.navigation.getParam('food', 'NO-ID'),
+        cookable: props.navigation.getParam('cookable', 'NO-ID'),
+        invKey: props.navigation.getParam('invKey', 'NO-ID'),
+      });
+      this.fetch(props.navigation.getParam('key', 'NO-ID'));
+    }
   }
 
   changeAmount(code, amount){
     let newIngredients = [...this.state.ingredients];
-    let arr = newIngredients.filter(ing => ing.key === code)[0].amount.split(" ");
+    let index = newIngredients.findIndex((item)=>item.key===code);
+    let arr = newIngredients[index].amount.split(" ");
     let oldAmount = parseFloat(arr[0]);
-    if (amount < 0){
-      if (oldAmount <= 1){
-        amount = -0.05;
-      } else if (oldAmount <= 10){
-        amount = -0.5;
-      } else if (oldAmount <= 25){
-        amount = -1;
-      } else if (oldAmount <= 100){
-        amount = -5;
-      } else if (oldAmount <= 500){
-        amount = -25;
-      } else if (oldAmount <= 1000){
-        amount = -50;
-      } else {
-        amount = -100;
-      }
-    } else if (amount > 0){
-      if (oldAmount < 1){
-        amount = 0.05;
-      } else if (oldAmount > 1){
-        amount = 0.5;
-      } else if (oldAmount > 10){
-        amount = 1;
-      } else if (oldAmount > 25){
-        amount = 5;
-      } else if (oldAmount > 100){
-        amount = 25;
-      } else if (oldAmount > 500){
-        amount = 50;
-      }
+    let differences = [{id:1, value:0.05},{id:10, value:0.5},{id:25, value:1},{id:100, value:5},{id:500, value:25},{id:1000, value:50}];
+    let difference = differences.find((item)=>item.id >= oldAmount);
+    if(difference === undefined){
+      difference = 100;
+    }else{
+      difference = difference.value;
     }
-    let newAmount = +(oldAmount + amount).toFixed(2);
-    newAmount = (newAmount < 0 ? 0 : newAmount);
-    let index = 0;
-    Object.keys(newIngredients).map(key => {
-      if (newIngredients[key].key === code){
-        index = key;
-      }
-    });
 
-    newIngredients[index].amount = newAmount + " " + arr[1];
-
-    if (this.state.cookable && this.checkAmount(code, newAmount, arr[1])){
+    if (amount < 0){
+      oldAmount -= difference;
+    } else{
+      oldAmount += difference;
+    }
+    oldAmount = parseFloat((oldAmount < 0 ? 0 : oldAmount).toFixed(2));
+    newIngredients[index] = {...newIngredients[index],amount:oldAmount + " " + arr[1]};
+    if (this.state.cookable && this.checkAmount(code, oldAmount, arr[1])){
       this.setState({
         ingredients: newIngredients,
       });
+    }else{
+      console.log('Neda sa uvarit');
     }
   }
 
@@ -170,66 +152,8 @@ export default class DetailRecipe extends Component {
   }
 
   checkAmount(ingId, amount1, unit1){
-    let arr2 = this.state.food[ingId].split(" ");
-    let amount2 = arr2[0];
-    let unit2 = arr2[1];
-
-    if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
-      if (unit1 === "dkg"){
-        unit1 = "g";
-        amount1 = amount1*10;
-      }
-      if (unit1 === "kg"){
-        unit1 = "g";
-        amount1 = amount1*1000;
-      }
-      if (unit2 === "dkg"){
-        unit2 = "g";
-        amount2 = amount2*10;
-      }
-      if (unit2 === "kg"){
-        unit2 = "g";
-        amount2 = amount2*1000;
-      }
-
-    } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
-      if (unit1 === "dcl"){
-        unit1 = "ml";
-        amount1 = amount1*100;
-      }
-      if (unit1 === "l"){
-        unit1 = "ml";
-        amount1 = amount1*1000;
-      }
-      if (unit2 === "dcl"){
-        unit2 = "ml";
-        amount2 = amount2*100;
-      }
-      if (unit2 === "l"){
-        unit2 = "ml";
-        amount2 = amount2*1000;
-      }
-
-    } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
-      if (unit1 === "tbsp" || unit1 === "pl"){
-        unit1 = "tsp";
-        amount1 = amount1*3;
-      }
-      if (unit1 === "cup" || unit2 === "šálka"){
-        unit1 = "tsp";
-        amount1 = amount1*3*16;
-      }
-      if (unit2 === "tbsp" || unit1 === "pl"){
-        unit2 = "tsp";
-        amount2 = amount2*3;
-      }
-      if (unit2 === "cup" || unit2 === "šálka"){
-        unit2 = "tsp";
-        amount2 = amount2*3*16;
-      }
-    }
-
-    return amount1 <= amount2;
+    let item2 = this.state.food[ingId].split(" ");
+    return unitToBasic(amount1,unit1) <= unitToBasic(item2[0],item2[1]);
   }
 
   handleBackPress = () => {
@@ -376,7 +300,7 @@ export default class DetailRecipe extends Component {
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
-              <Button transparent onPress={() => this.props.navigation.navigate("Recipes", {nom: "nom"})}>
+              <Button transparent onPress={() => this.props.navigation.goBack()}>
                 <Icon name="arrow-back" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
