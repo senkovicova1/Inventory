@@ -8,11 +8,11 @@ import { rebase } from '../../index';
 import firebase from 'firebase';
 
 import {unitToBasic} from '../helperFiles/helperFunctions';
+import {textListRecipes} from '../helperFiles/dictionary';
 
 import store from "../store/index";
 
 import styles from '../style';
-
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
@@ -324,6 +324,7 @@ export default class ListRecipes extends Component {
     };
 
   render() {
+    const LANG = store.getState().lang;
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -345,13 +346,13 @@ export default class ListRecipes extends Component {
                    <Input
                      autoFocus
                      style={{ ...styles.headerItem}}
-                     placeholder="zadajte hľadaný výraz"
+                     placeholder={textListRecipes.search[LANG]}
                      placeholderTextColor='rgb(0, 170, 160)'
                      onChangeText={(text) => this.setState({searchedWord: text})}/>
                  }
                  {!this.state.searchOpen
                    &&
-                     <Title style={{ ...styles.headerItem }}> Recepty</Title>
+                     <Title style={{ ...styles.headerItem }}> {textListRecipes.header[LANG]} </Title>
                  }
                </Body>
 
@@ -381,7 +382,7 @@ export default class ListRecipes extends Component {
     onBackButtonPress={() => this.toggleModal(false)}
     onBackdropPress={() => this.toggleModal(false)}>
 
-      <Text style={{ ...styles.listText, color: 'rgb(255, 184, 95)', height: deviceHeight*0.07 }}> You have new messages!</Text>
+      <Text style={{ ...styles.listText, color: 'rgb(255, 184, 95)', height: deviceHeight*0.07 }}> {textListRecipes.newMess[LANG]}</Text>
       {
         this.state.notices
           .filter(note => !note.seen && note.key.includes("RR-"))
@@ -392,7 +393,7 @@ export default class ListRecipes extends Component {
              return(
                <Grid style={{ borderRadius: 15, backgroundColor: 'rgb(104, 70, 130)', width: deviceWidth*0.76, alignSelf: 'center' }}>
                   <Text style={{ ...styles.listText }}>
-                    {`${user.username} requested to share this recipe with you:`}
+                    {`${user.username}` + textListRecipes.req[LANG]}
                   </Text>
                   <Image
                     style={{ ...styles.image, ...styles.center, width: deviceWidth*0.7 }}
@@ -404,12 +405,12 @@ export default class ListRecipes extends Component {
                 <Row style={{ height: deviceHeight*0.05}}>
                   <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.declineRequest(note)} >
-                      <Text style={{ ...styles.acordionButtonText }}>Decline</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.dec[LANG]}</Text>
                     </Button>
                   </Col>
                   <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.approveRequest(note)} >
-                      <Text style={{ ...styles.acordionButtonText }}>Accept</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.acc[LANG]}</Text>
                     </Button>
                  </Col>
                 </Row>
@@ -421,7 +422,7 @@ export default class ListRecipes extends Component {
   }
 
            <Card transparent style={{ ...styles.listCardInv }}>
-             <Text style={{ ...styles.listCardInvText, marginLeft:15 }}>Varí sa z inventára </Text>
+             <Text style={{ ...styles.listCardInvText, marginLeft:15 }}>{textListRecipes.chosenInv[LANG]}</Text>
              <Picker
                 mode="dropdown"
                 style={{ ...styles.picker }}
@@ -457,12 +458,12 @@ export default class ListRecipes extends Component {
                 <Row>
                   <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddRecipeBarcode')} >
-                      <Text style={{ ...styles.acordionButtonText }}>Get from friend</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.getRec[LANG]}</Text>
                     </Button>
                  </Col>
                  <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddRecipeCreate')} >
-                      <Text style={{ ...styles.acordionButtonText }}>Create new</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.createRec[LANG]}</Text>
                     </Button>
                  </Col>
               </Row>

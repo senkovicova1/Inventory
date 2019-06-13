@@ -6,6 +6,8 @@ import { RNCamera } from 'react-native-camera';
 import { rebase } from '../../index';
 import firebase from 'firebase';
 
+import {textShareInventory} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -104,7 +106,7 @@ export default class ShareInventory extends Component {
     .then((data) => {
       this.setState({
         showMessage: true,
-        message: "You left the inventory."
+        message: textShareInventory.messageDel[store.getState().lang]
       });
         this.props.navigation.navigate("Recipes");
       }
@@ -112,6 +114,8 @@ export default class ShareInventory extends Component {
   }
 
   render() {
+    const LANG = store.getState().lang;
+
     return (
         <Container>
             <Header style={{ ...styles.header}}>
@@ -121,7 +125,7 @@ export default class ShareInventory extends Component {
                     </Button>
                   </Left>
                   <Col xs={70}>
-                    <Title style={{ ...styles.headerItem, ...styles.centerVer, marginLeft: -deviceWidth*0.50 }}>Share this inventory!</Title>
+                    <Title style={{ ...styles.headerItem, ...styles.centerVer, marginLeft: -deviceWidth*0.50 }}>{textShareInventory.header[LANG]}</Title>
                   </Col>
             </Header>
 
@@ -140,7 +144,7 @@ export default class ShareInventory extends Component {
                   <Input
                     autoFocus
                     style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
-                    placeholder="Search by name!"
+                    placeholder={textShareInventory.search[LANG]}
                     placeholderTextColor='rgb(142, 210, 210)'
                     onChangeText={(text) => this.setState({searchedWord: text})}/>
 
@@ -177,7 +181,7 @@ export default class ShareInventory extends Component {
               <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
 
                 <Text onPress={() => this.setState({addNewFriends: true})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', borderColor: 'rgb(0, 170, 160)' }}>
-                  People with access to this inventory:
+                  {textShareInventory.pplWAcc[LANG]}
                 </Text>
 
                   <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
@@ -190,7 +194,7 @@ export default class ShareInventory extends Component {
                             .map(key =>
                                 <ListItem style={{ height: 40 }}>
                                     <Text style={{ ...styles.listText, color: 'rgb(0, 170, 160)' }}>
-                                       {(key === store.getState().user.uid ? "You" : this.state.users[key].username)}
+                                       {(key === store.getState().user.uid ? (LANG === 0 ? "Vy" : "You") : this.state.users[key].username)}
                                     </Text>
                                 </ListItem>
 
@@ -201,7 +205,7 @@ export default class ShareInventory extends Component {
               </Card>
 
               <Button  block danger style={{ ...styles.acordionButtonTrans, marginLeft: 15, marginRight: 15, marginBottom: 15}} onPress={()=> this.removeInv()}>
-                  <Text style={{ ...styles.acordionButtonTextTrans }}> Leave this inventory</Text>
+                  <Text style={{ ...styles.acordionButtonTextTrans }}>{textShareInventory.del[LANG]}</Text>
               </Button>
 
             </Content>

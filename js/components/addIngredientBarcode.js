@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
+import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View, Dimensions} from 'react-native';
 import {  Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
 import { RNCamera } from 'react-native-camera';
 
@@ -7,10 +7,14 @@ import { rebase } from '../../index';
 import firebase from 'firebase';
 
 import {unitToBasic} from '../helperFiles/helperFunctions';
+import {textAddBarcode} from '../helperFiles/dictionary';
 
 import store from "../store/index";
 
 import styles from '../style';
+
+const deviceHeight = Dimensions.get('window').height;
+const deviceWidth = Dimensions.get('window').width;
 
 const PendingView = () => (
   <View
@@ -301,26 +305,31 @@ export default class AddIngredientBarcode extends Component {
 
 
   render() {
+    const LANG = store.getState().lang;
+
     const PICKER_ITEMS = Object.keys(this.state.ingredients).map(ingredient =>
                 <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
             );
            PICKER_ITEMS.unshift(<Picker.Item key="0" label="" value=""/>);
-    return (
 
+    return (
         <Container>
           <Header style={{ ...styles.header}}>
-            <Left>
+            <Left style={{...styles.centerVer, paddingRight: 0, zIndex: 100 }}>
               <Button transparent onPress={() => this.handleBackPressButton()}>
                 <Icon name="md-close" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
-            <Body>
-              <Title style={{ ...styles.headerItem }}>Add ingredient</Title>
-            </Body>
-            <Right>
-              <Button transparent  onPress={()=> this.submit()}><Icon name="md-checkmark"  style={{ ...styles.headerItem }} /></Button>
+            <Col>
+              <Title style={{ ...styles.headerItem, ...styles.centerVer, width: deviceWidth*0.7 }}>{textAddBarcode.header[LANG]}</Title>
+            </Col>
+            <Right  style={{zIndex: 100 }}>
+              {
+                (Object.keys(this.state.barcodes).length > 0)
+                &&
+              <Button transparent  onPress={() => this.submit()} ><Icon name="md-checkmark"  style={{ ...styles.headerItem }}/></Button>
+              }
             </Right>
-
           </Header>
 
           <Content style={{ ...styles.content}} >
@@ -328,14 +337,14 @@ export default class AddIngredientBarcode extends Component {
             {this.state.showUnsaved
               &&
               Toast.show({
-                text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                text: textAddBarcode.messageSave[LANG],
                 duration: 4000,
                 type: 'danger'
               })
             }
 
               <View>
-                <Text style={{ ...styles.acordionButtonText }}> Hold barcode in front of the camera until you see information about the product.</Text>
+                <Text style={{ ...styles.acordionButtonText }}> {textAddBarcode.info[LANG]}</Text>
                 <Card style={{...styles.camera}}>
                  <RNCamera
                    style={{ /*flex: 1, justifyContent: 'flex-end',*/ alignItems: 'center'}}
@@ -361,13 +370,13 @@ export default class AddIngredientBarcode extends Component {
                    {  (this.state.currentBarcode.length > 0)
                      &&
                      <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
-                       <Text style={{ ...styles.acordionButtonText }}> {`Barcode value: ${this.state.currentBarcode}`} </Text>
+                       <Text style={{ ...styles.acordionButtonText }}> {textAddBarcode.barVal[LANG] + `${this.state.currentBarcode}`} </Text>
                      </Row>
                     }
                     {  (this.state.currentBarcode.length > 0 && !this.state.containsBarcode)
                       &&
                       <Row size={10} >
-                        <Text style={{ ...styles.acordionButtonText }}> There is no information about this product in our database. Please fill in the missing information below. </Text>
+                        <Text style={{ ...styles.acordionButtonText }}> {textAddBarcode.notInDB[LANG]} </Text>
                       </Row>
                      }
                    {  (this.state.currentBarcode.length > 0 && !this.state.containsBarcode)
@@ -376,7 +385,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Name
+                               {textAddBarcode.name[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -395,7 +404,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Brand
+                               {textAddBarcode.brand[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -414,7 +423,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Amount
+                               {textAddBarcode.amount[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -433,7 +442,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Unit
+                               {textAddBarcode.unit[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -458,12 +467,12 @@ export default class AddIngredientBarcode extends Component {
                                <Picker.Item key="4" label="dkg" value="dkg"/>
                                <Picker.Item key="5" label="kg" value="kg"/>
 
-                               <Picker.Item key="6" label="pcs" value="pcs"/>
+                               <Picker.Item key="6" label={LANG === 0 ? "ks" : "pcs"} value={LANG === 0 ? "ks" : "pcs"}/>
 
-                               <Picker.Item key="7" label="tsp" value="tsp"/>
-                               <Picker.Item key="8" label="tbsp" value="tbsp"/>
+                               <Picker.Item key="7" label={LANG === 0 ? "čl" : "tsp"} value={LANG === 0 ? "čl" : "tsp"}/>
+                               <Picker.Item key="8" label={LANG === 0 ? "pl" : "tbsp"} value={LANG === 0 ? "pl" : "tbsp"}/>
 
-                               <Picker.Item key="9" label="cup" value="cup"/>
+                               <Picker.Item key="9" label={LANG === 0 ? "šálka" : "cup"} value={LANG === 0 ? "šálka" : "cup"}/>
                               </Picker>
                            </Col>
                          </Row>
@@ -480,18 +489,18 @@ export default class AddIngredientBarcode extends Component {
                 &&
                 <Card>
                   <Button block style={{ ...styles.acordionButton }} onPress={() => this.submit()}>
-                      <Text style={{ ...styles.acordionButtonText }}>Pridať produkty</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textAddBarcode.add[LANG]}</Text>
                   </Button>
                   <Grid>
                     <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
                       <Col size={80}>
                         <Text style={{marginLeft: 15, ...styles.DARK_PEACH}}>
-                          Názov produktu
+                          {textAddBarcode.prodName[LANG]}
                         </Text>
                       </Col>
                       <Col size={20}>
                           <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                            Kusy
+                            {textAddBarcode.pcs[LANG]}
                           </Text>
                       </Col>
                     </Row>

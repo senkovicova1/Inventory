@@ -8,6 +8,8 @@ import Sidebar from './sidebar';
 import { rebase } from '../../index';
 import firebase from 'firebase';
 
+import {textGetRecipe} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -121,7 +123,7 @@ export default class AddRecipeBarcode extends Component {
           data: {userID: store.getState().user.uid, recID: key, approved: false, seen: false}
         }).then(newLocation => {
           this.setState({
-            message: "Recipe requested!",
+            message: textGetRecipe.messageShare[store.getState().lang],
             showMessage: true,
           });
         })
@@ -147,7 +149,7 @@ export default class AddRecipeBarcode extends Component {
       data: recipe
     }).then((x) =>
       this.setState({
-          message: "You can find your new recipe in your recipe book!",
+          message: textGetRecipe.messageGet[store.getState().lang],
           showMessage: true,
       })
     );
@@ -175,6 +177,8 @@ componentWillUnmount() {
   }
 
   render() {
+    const LANG = store.getState().lang;
+
     return (
         <Container>
             <Header style={{ ...styles.header}}>
@@ -184,7 +188,7 @@ componentWillUnmount() {
                 </Button>
               </Left>
               <Body>
-                <Title style={{ ...styles.headerItem }}>Get a recipe from a friend!</Title>
+                <Title style={{ ...styles.headerItem }}>{textGetRecipe.header[LANG]}</Title>
               </Body>
               <Button transparent onPress={() => {}} >
               </Button>
@@ -195,7 +199,7 @@ componentWillUnmount() {
               {this.state.showUnsaved
                 &&
                 Toast.show({
-                  text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                  text: textGetRecipe.messageGet[LANG],
                   duration: 4000,
                   type: 'danger'
                 })
@@ -212,21 +216,21 @@ componentWillUnmount() {
               <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
                 <Row>
                   <Text onPress={() => this.setState({addNewFriends: true})} style={{marginLeft:15, color: 'rgb(0, 170, 160)', borderColor: 'rgb(0, 170, 160)' }}>
-                    Filter recipes by name
+                    {textGetRecipe.filterName[LANG]}
                   </Text>
                 </Row>
                 <Row>
                       <Input
                         autoFocus
                         style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
-                        placeholder="Start typing here!"
+                        placeholder={textGetRecipe.filterInput[LANG]}
                         placeholderTextColor='rgb(142, 210, 210)'
                         onChangeText={(text) => this.setState({searchedWord: text})}/>
 
                 </Row>
                 <Row>
                   <Text onPress={() => this.setState({addNewFriends: true})} style={{marginLeft:15, color: 'rgb(0, 170, 160)',  borderColor: 'rgb(0, 170, 160)' }}>
-                    or filter recipes by friends!
+                    {textGetRecipe.filterUsers[LANG]}
                   </Text>
                 </Row>
                 <Row>
@@ -236,7 +240,7 @@ componentWillUnmount() {
                        selectedValue={this.state.searchedFriend}
                        onValueChange={this.onValueChange.bind(this)}
                      >
-                      <Picker.Item key={0} label={"All friends"} value={0}/>
+                      <Picker.Item key={0} label={textGetRecipe.filterPicker[LANG]} value={0}/>
                        { Object.keys(this.state.users)
                          .map(i =>
                                 <Picker.Item key={i} label={this.state.users[i].username} value={i}/>
@@ -282,14 +286,16 @@ componentWillUnmount() {
                                       <Row>
                                         <Col xs={50}>
                                             <Button transparent full style={{ ...styles.acordionButtonVio}} onPress={()=> this.handleRequest(key)} >
-                                              <Text style={{ ...styles.acordionButtonVioText }}>Ask to share</Text>
+                                              <Text style={{ ...styles.acordionButtonVioText }}>{textGetRecipe.share[LANG]}</Text>
                                             </Button>
                                         </Col>
                                         <Col xs={50}>
                                           <Button transparent full style={{ ...styles.acordionButtonVio}} onPress={()=> this.handleGet(key)} >
-                                            <Text style={{ ...styles.acordionButtonVioText }}>Get!</Text>
+                                            <Text style={{ ...styles.acordionButtonVioText }}>{textGetRecipe.get[LANG]}</Text>
                                           </Button>
                                         </Col>
+                                      </Row>
+                                      <Row style={{ height: 20}}>
                                       </Row>
                                     </Grid>
                       )

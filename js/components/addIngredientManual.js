@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
+import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View, Dimensions} from 'react-native';
 import { Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
 import { RNCamera } from 'react-native-camera';
 
@@ -9,11 +9,14 @@ import { rebase } from '../../index';
 import firebase from 'firebase';
 
 import {unitToBasic} from '../helperFiles/helperFunctions';
+import {textAddManually} from '../helperFiles/dictionary';
 
 import store from "../store/index";
 
 import styles from '../style';
 
+const deviceHeight = Dimensions.get('window').height;
+const deviceWidth = Dimensions.get('window').width;
 const PendingView = () => (
   <View
     style={{
@@ -273,6 +276,8 @@ export default class AddIngredientManual extends Component {
   }
 
   render() {
+    const LANG = store.getState().lang;
+
     const PICKER_ITEMS = Object.keys(this.state.ingredients).map(ingredient =>
                 <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
             );
@@ -283,21 +288,21 @@ export default class AddIngredientManual extends Component {
     return (
         <Container>
           <Header style={{ ...styles.header}}>
-            <Left>
+            <Left style={{...styles.centerVer, paddingRight: 0, zIndex: 100 }}>
               <Button transparent onPress={() => this.handleBackPressButton()}>
                 <Icon name="md-close" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
-            <Body>
-              <Title style={{ ...styles.headerItem }}>Add ingredient</Title>
-            </Body>
-            <Right>
+            <Col>
+              <Title style={{ ...styles.headerItem, ...styles.centerVer, width: deviceWidth*0.7 }}>{textAddManually.header[LANG]}</Title>
+            </Col>
+            <Right  style={{zIndex: 100 }}>
               {
                 (Object.keys(this.state.chosenIngredients).length > 0)
                 &&
               <Button transparent  onPress={() => this.submit()} ><Icon name="md-checkmark"  style={{ ...styles.headerItem }}/></Button>
               }
-          </Right>
+            </Right>
 
           </Header>
 
@@ -306,7 +311,7 @@ export default class AddIngredientManual extends Component {
             {this.state.showUnsaved
               &&
               Toast.show({
-                text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                text: textAddManually.messageSave[LANG],
                 duration: 4000,
                 type: 'danger'
               })
@@ -316,7 +321,7 @@ export default class AddIngredientManual extends Component {
                       <Grid >
                         <Row>
                           <Col size={100}>
-                            <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>Ingredients</Text>
+                            <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textAddManually.ingList[LANG]}</Text>
                           </Col>
                         </Row>
                        {
@@ -376,9 +381,12 @@ export default class AddIngredientManual extends Component {
 
                                    <Picker.Item key="6" label="pcs" value="pcs"/>
 
-                                   <Picker.Item key="7" label="tsp" value="tsp"/>
-                                   <Picker.Item key="8" label="tbsp" value="tbsp"/>
-                                   <Picker.Item key="9" label="cup" value="cup"/>
+                                   <Picker.Item key="6" label={LANG === 0 ? "ks" : "pcs"} value={LANG === 0 ? "ks" : "pcs"}/>
+
+                                   <Picker.Item key="7" label={LANG === 0 ? "čl" : "tsp"} value={LANG === 0 ? "čl" : "tsp"}/>
+                                   <Picker.Item key="8" label={LANG === 0 ? "pl" : "tbsp"} value={LANG === 0 ? "pl" : "tbsp"}/>
+
+                                   <Picker.Item key="9" label={LANG === 0 ? "šálka" : "cup"} value={LANG === 0 ? "šálka" : "cup"}/>
                                   </Picker>
                                 </Item>
                               </Col>
@@ -389,13 +397,13 @@ export default class AddIngredientManual extends Component {
                          <Row><Text>{"  "}</Text></Row>
                              <Row>
                                <Col size={100}>
-                               <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>Add new ingredient</Text>
+                               <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textAddManually.addIng[LANG]}</Text>
                                </Col>
                              </Row>
 
                              <Row size={10}>
                                <Col size={35}>
-                                 <Text style={{ ...styles.DARK_PEACH }}>Name</Text>
+                                 <Text style={{ ...styles.DARK_PEACH }}>{textAddManually.name[LANG]}</Text>
                                </Col>
 
                                <Col size={65}>
@@ -437,7 +445,7 @@ export default class AddIngredientManual extends Component {
 
                                <Row size={10}>
                                  <Col size={35}>
-                                   <Text style={{ ...styles.DARK_PEACH }}>Amount</Text>
+                                   <Text style={{ ...styles.DARK_PEACH }}>{textAddManually.amount[LANG]}</Text>
                                  </Col>
                                  <Col size={65}>
                                    <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
@@ -460,7 +468,7 @@ export default class AddIngredientManual extends Component {
 
                                 <Row size={10}>
                                   <Col size={35}>
-                                    <Text style={{ ...styles.DARK_PEACH }}>Unit</Text>
+                                    <Text style={{ ...styles.DARK_PEACH }}>{textAddManually.unit[LANG]}</Text>
                                   </Col>
                                   <Col size={65}>
                                     <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
@@ -490,12 +498,12 @@ export default class AddIngredientManual extends Component {
                                         <Picker.Item key="4" label="dkg" value="dkg"/>
                                         <Picker.Item key="5" label="kg" value="kg"/>
 
-                                        <Picker.Item key="6" label="pcs" value="pcs"/>
+                                        <Picker.Item key="6" label={LANG === 0 ? "ks" : "pcs"} value={LANG === 0 ? "ks" : "pcs"}/>
 
-                                        <Picker.Item key="7" label="tsp" value="tsp"/>
-                                        <Picker.Item key="8" label="tbsp" value="tbsp"/>
+                                        <Picker.Item key="7" label={LANG === 0 ? "čl" : "tsp"} value={LANG === 0 ? "čl" : "tsp"}/>
+                                        <Picker.Item key="8" label={LANG === 0 ? "pl" : "tbsp"} value={LANG === 0 ? "pl" : "tbsp"}/>
 
-                                        <Picker.Item key="9" label="cup" value="cup"/>
+                                        <Picker.Item key="9" label={LANG === 0 ? "šálka" : "cup"} value={LANG === 0 ? "šálka" : "cup"}/>
                                        </Picker>
                                    </Item>
                                  </Col>

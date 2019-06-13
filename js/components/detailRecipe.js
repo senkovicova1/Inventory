@@ -11,6 +11,7 @@ import Share from 'react-native-share';
 import RNFetchBlob from 'rn-fetch-blob'
 
 import {unitToBasic} from '../helperFiles/helperFunctions';
+import {textDetailRecipe} from '../helperFiles/dictionary';
 
 import store from "../store/index";
 
@@ -283,20 +284,15 @@ export default class DetailRecipe extends Component {
       data[ing.key] = finalAmount + " " + finalUnit;
     });
 
-    console.log(data);
-
     rebase.update(`foodInInventory/${this.state.invKey}`, {
       data: data
     });
   }
 
   render() {
-    return (
-      <Drawer
-        ref={(ref) => { this.drawer = ref; }}
-        content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
-        onClose={() => this.closeDrawer()} >
+    const LANG = store.getState().lang;
 
+    return (
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
@@ -331,14 +327,16 @@ export default class DetailRecipe extends Component {
                <Row>
                  <Col size={70}>
                    <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginLeft: 10, marginBottom: 5, paddingLeft: 10}}>
-                     Ingredient
+                     {textDetailRecipe.ingList[LANG]}
                       <Text style={{ ...styles.PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5, fontSize: 11}}>
-                        (default amount)
+                        {textDetailRecipe.dfAmount[LANG]}
                       </Text>
                   </Text>
                  </Col>
                  <Col size={30}>
-                   <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5, marginRight: 10}}>Amount</Text>
+                   <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5, marginRight: 10}}>
+                     {textDetailRecipe.amount[LANG]}
+                   </Text>
                  </Col>
              </Row>
               {this.state.ingredients
@@ -372,7 +370,7 @@ export default class DetailRecipe extends Component {
                               keyboardType='numeric'
                               value={item.amount.split(" ")[0]}
                               onChangeText={(text) =>{
-                                  let diff = parseInt(text) - parseInt(item.amout.split(" ")[0]);
+                                  let diff = parseInt(text) - parseInt(item.amount.split(" ")[0]);
                                   this.changeAmount(item.key, diff);
                                 }
                               }/>*/}
@@ -393,7 +391,7 @@ export default class DetailRecipe extends Component {
                )
                 }
                 <Row >
-                    <Text style={{ ...styles.PEACH }}> {" "} Počet osôb  {"  "}</Text>
+                    <Text style={{ ...styles.PEACH }}> {" "} {textDetailRecipe.portions[LANG]}  {"  "}</Text>
                     <Item regular style={{ borderColor: 'rgb(255, 184, 95)', width: 50, height: 24, borderRadius: 5, marginBottom: 5}}>
                       <Input
                         style={{ ...styles.PEACH }}
@@ -409,7 +407,7 @@ export default class DetailRecipe extends Component {
                   </Row>
                   <Row style={{ ...styles.right}}>
                   <Button style={{ ...styles.acordionButton}} onPress={() => this.cook()}>
-                    <Text style={{ ...styles.DARK_PEACH }}> Uvariť </Text>
+                    <Text style={{ ...styles.DARK_PEACH }}> {textDetailRecipe.cook[LANG]} </Text>
                   </Button>
                 </Row>
           </Grid>
@@ -417,14 +415,12 @@ export default class DetailRecipe extends Component {
 
 
           <Card transparent style={{ ...styles.listCard}}>
-              <Text style={{ ...styles.stepsCardHeader}}> Steps</Text>
+              <Text style={{ ...styles.stepsCardHeader}}> {textDetailRecipe.steps[LANG]}</Text>
                 <Text style={{ ...styles.stepsCardBody}}> {this.state.body}</Text>
           </Card>
 
           </Content>
         </Container>
-
-      </Drawer>
     );
   }
 }

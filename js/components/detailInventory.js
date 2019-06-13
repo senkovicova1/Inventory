@@ -7,6 +7,8 @@ import { rebase } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
+import {textDetailInventory} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -126,6 +128,7 @@ export default class DetailInventory extends Component {
               });
      }
 
+    const LANG = store.getState().lang;
 
     return (
       <Drawer
@@ -150,7 +153,7 @@ export default class DetailInventory extends Component {
                      <Input
                        autoFocus
                        style={{ ...styles.headerItem}}
-                       placeholder="search"
+                       placeholder={textDetailInventory.search[LANG]}
                        placeholderTextColor='rgb(0, 170, 160)'
                        onChangeText={(text) => this.setState({searchedWord: text})}/>
                    </View>
@@ -162,7 +165,7 @@ export default class DetailInventory extends Component {
                  <Input
                    autoFocus
                    style={{ ...styles.headerItem}}
-                   placeholder="change name"
+                   placeholder={textDetailInventory.changeName[LANG]}
                    value={this.state.name}
                    onChangeText={(text) => this.setState({name: text})}/>
                </Item>
@@ -204,7 +207,7 @@ export default class DetailInventory extends Component {
                    style={{ ...styles.genericInputStretched, width: deviceWidth*0.8 }}
                    autoFocus
                    bordered
-                   placeholder="Notes"
+                   placeholder={textDetailInventory.notes[LANG]}
                    value={this.state.notes}
                    onChangeText={(text) => this.setState({notes: text})} />
                  }
@@ -241,12 +244,12 @@ export default class DetailInventory extends Component {
                     <Row>
                       <Col size={50}>
                         <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientBarcode', {key: this.state.key})} >
-                          <Text style={{ ...styles.acordionButtonText }}>Scan barcode</Text>
+                          <Text style={{ ...styles.acordionButtonText }}>{textDetailInventory.addBar[LANG]}</Text>
                         </Button>
                      </Col>
                      <Col size={50}>
                         <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientManual', {key: this.state.key})} >
-                          <Text style={{ ...styles.acordionButtonText }}>Add manually</Text>
+                          <Text style={{ ...styles.acordionButtonText }}>{textDetailInventory.addMan[LANG]}</Text>
                         </Button>
                      </Col>
                   </Row>

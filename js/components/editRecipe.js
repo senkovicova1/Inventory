@@ -10,6 +10,8 @@ import { fb } from '../../index';
 import firebase from 'firebase';
 import RNFetchBlob from 'rn-fetch-blob'
 
+import {textEditRecipe} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -165,7 +167,7 @@ export default class EditRecipes extends Component {
          .then((x) =>
            {
              this.setState({
-                 message: "Recipe deleted from your recipe book!",
+                 message: textEditRecipe.messageDel[LANG],
                  showMessage: true,
              })
              this.props.navigation.navigate("Recipes");
@@ -182,7 +184,7 @@ export default class EditRecipes extends Component {
              }).then((x) =>
              {
                this.setState({
-                   message: "Recipe deleted from your recipe book!",
+                   message: textEditRecipe.messageDel[LANG],
                    showMessage: true,
                })
                this.props.navigation.navigate("Recipes");
@@ -283,12 +285,9 @@ export default class EditRecipes extends Component {
 
     const INGREDIENTS = this.state.ingredients.filter(ing => ing.name.toLowerCase().includes(this.state.newIngredientName.toLowerCase()) && !(this.state.ingredientsInRecipe.map(i => i.key)).includes(ing.key));
 
-    return (
-      <Drawer
-        ref={(ref) => { this.drawer = ref; }}
-        content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
-        onClose={() => this.closeDrawer()} >
+    const LANG = store.getState().lang;
 
+    return (
         <Container>
             <Header style={{ ...styles.header}}>
               <Left>
@@ -297,7 +296,7 @@ export default class EditRecipes extends Component {
                 </Button>
               </Left>
               <Body>
-                <Title style={{ ...styles.headerItem }}>Edit Recipe</Title>
+                <Title style={{ ...styles.headerItem }}>{textEditRecipe.header[LANG]}</Title>
               </Body>
             </Header>
 
@@ -314,21 +313,21 @@ export default class EditRecipes extends Component {
               {!this.state.changed
                 &&
                 <Button  transparent bordered block warning style={{ ...styles.acordionButtonTrans}} onPress={()=> this.setState({showEmpty: true})}>
-                    <Text style={{ ...styles.acordionButtonTextTrans }}> Edit </Text>
+                    <Text style={{ ...styles.acordionButtonTextTrans }}> {textEditRecipe.edit[LANG]}</Text>
                 </Button>
               }
 
               {this.state.changed
                 &&
                 <Button block style={{ ...styles.acordionButton }} onPress={()=> this.uploadImage()}>
-                    <Text style={{ ...styles.acordionButtonText }}> Edit</Text>
+                    <Text style={{ ...styles.acordionButtonText }}>{textEditRecipe.edit[LANG]}</Text>
                 </Button>
               }
 
             {this.state.showUnsaved
               &&
               Toast.show({
-                text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                text: textEditRecipe.messageSave[LANG],
                 duration: 3000,
                 type: 'danger'
               })
@@ -337,17 +336,16 @@ export default class EditRecipes extends Component {
             {this.state.showEmpty
               &&
               Toast.show({
-                text: `You need to name your recipe before saving it!`,
+                text: textEditRecipe.messageName[LANG],
                 duration: 3000,
                 type: 'danger'
               })
             }
 
             <Form>
-
                  <Input
                    style={{  ...styles.formTitle }}
-                   placeholder="Enter name"
+                   placeholder={textEditRecipe.titlePlaceholder[LANG]}
                    placeholderTextColor='rgb(255, 184, 95)'
                    value={this.state.name}
                    onChangeText={(text) => {
@@ -364,7 +362,7 @@ export default class EditRecipes extends Component {
                }
 
                <Button block style={{ ...styles.acordionButton }} onPress={() => this.setState({takePic: !this.state.takePic})}>
-                   <Text style={{ ...styles.acordionButtonText }}>{this.state.image ? "Zmeniť fotku" : "Pridať fotku"}</Text>
+                   <Text style={{ ...styles.acordionButtonText }}>{this.state.image ? textEditRecipe.changePhoto[LANG] : textEditRecipe.addPhoto[LANG]}</Text>
                </Button>
 
 
@@ -384,7 +382,7 @@ export default class EditRecipes extends Component {
                     if (status !== 'READY') return <PendingView />;
                     return (
                           <Button onPress={() => this.takePicture(camera)} style={{...styles.acordionButton, marginTop: 290}}>
-                            <Text style={{ ...styles.acordionButtonText, }}> Odfotiť </Text>
+                            <Text style={{ ...styles.acordionButtonText, }}> {textEditRecipe.snap[LANG]} </Text>
                           </Button>
                     );
                   }}
@@ -398,7 +396,7 @@ export default class EditRecipes extends Component {
                  <Grid >
                    <Row>
                      <Col size={100}>
-                       <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>Ingredients</Text>
+                       <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textEditRecipe.ingList[LANG]}</Text>
                      </Col>
                    </Row>
                   {
@@ -474,12 +472,12 @@ export default class EditRecipes extends Component {
                               <Picker.Item key="4" label="dkg" value="dkg"/>
                               <Picker.Item key="5" label="kg" value="kg"/>
 
-                              <Picker.Item key="6" label="pcs" value="pcs"/>
+                              <Picker.Item key="6" label={LANG === 0 ? "ks" : "pcs"} value={LANG === 0 ? "ks" : "pcs"}/>
 
-                              <Picker.Item key="7" label="tsp" value="tsp"/>
-                              <Picker.Item key="8" label="tbsp" value="tbsp"/>
+                              <Picker.Item key="7" label={LANG === 0 ? "čl" : "tsp"} value={LANG === 0 ? "čl" : "tsp"}/>
+                              <Picker.Item key="8" label={LANG === 0 ? "pl" : "tbsp"} value={LANG === 0 ? "pl" : "tbsp"}/>
 
-                              <Picker.Item key="9" label="cup" value="cup"/>
+                              <Picker.Item key="9" label={LANG === 0 ? "šálka" : "cup"} value={LANG === 0 ? "šálka" : "cup"}/>
                              </Picker>
                            </Item>
                          </Col>
@@ -495,13 +493,13 @@ export default class EditRecipes extends Component {
 
                     <Row>
                       <Col size={100}>
-                      <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>Add new ingredient</Text>
+                        <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textEditRecipe.addIng[LANG]} </Text>
                       </Col>
                     </Row>
 
                     <Row size={10}>
                       <Col size={35}>
-                        <Text style={{ ...styles.DARK_PEACH }}>Name</Text>
+                        <Text style={{ ...styles.DARK_PEACH }}>{textEditRecipe.name[LANG]} </Text>
                       </Col>
 
                       <Col size={65}>
@@ -543,7 +541,7 @@ export default class EditRecipes extends Component {
 
                       <Row size={10}>
                         <Col size={35}>
-                          <Text style={{ ...styles.DARK_PEACH }}>Amount</Text>
+                          <Text style={{ ...styles.DARK_PEACH }}>{textEditRecipe.amount[LANG]} </Text>
                         </Col>
                         <Col size={65}>
                           <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
@@ -566,7 +564,7 @@ export default class EditRecipes extends Component {
 
                        <Row size={10}>
                          <Col size={35}>
-                           <Text style={{ ...styles.DARK_PEACH }}>Unit</Text>
+                           <Text style={{ ...styles.DARK_PEACH }}>{textEditRecipe.unit[LANG]} </Text>
                          </Col>
                          <Col size={65}>
                            <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
@@ -596,12 +594,12 @@ export default class EditRecipes extends Component {
                                <Picker.Item key="4" label="dkg" value="dkg"/>
                                <Picker.Item key="5" label="kg" value="kg"/>
 
-                               <Picker.Item key="6" label="pcs" value="pcs"/>
+                               <Picker.Item key="6" label={LANG === 0 ? "ks" : "pcs"} value={LANG === 0 ? "ks" : "pcs"}/>
 
-                               <Picker.Item key="7" label="tsp" value="tsp"/>
-                               <Picker.Item key="8" label="tbsp" value="tbsp"/>
+                               <Picker.Item key="7" label={LANG === 0 ? "čl" : "tsp"} value={LANG === 0 ? "čl" : "tsp"}/>
+                               <Picker.Item key="8" label={LANG === 0 ? "pl" : "tbsp"} value={LANG === 0 ? "pl" : "tbsp"}/>
 
-                               <Picker.Item key="9" label="cup" value="cup"/>
+                               <Picker.Item key="9" label={LANG === 0 ? "šálka" : "cup"} value={LANG === 0 ? "šálka" : "cup"}/>
                               </Picker>
                           </Item>
                         </Col>
@@ -611,11 +609,11 @@ export default class EditRecipes extends Component {
                      </Card>
 
                      <Card transparent style={{ ...styles.formCard}}>
-                         <Text style={{ ...styles.stepsCardHeader}}> Steps</Text>
+                         <Text style={{ ...styles.stepsCardHeader}}> {textEditRecipe.steps[LANG]}</Text>
                         <Textarea
                          rowSpan={5}
                          bordered
-                         placeholder="Steps"
+                         placeholder={textEditRecipe.steps[LANG]}
                          placeholderTextColor='rgb(255, 184, 95)'
                          style={{...styles.textArea}}
                          onChangeText={(text) => this.setState({body: text, changed: true})}
@@ -624,11 +622,10 @@ export default class EditRecipes extends Component {
                 </Form>
 
                 <Button  block danger style={{ ...styles.acordionButtonTrans, marginLeft: 15, marginRight: 15, marginBottom: 15}} onPress={()=> this.removeRecipe()}>
-                    <Text style={{ ...styles.acordionButtonTextTrans }}> DELETE </Text>
+                    <Text style={{ ...styles.acordionButtonTextTrans }}> {textEditRecipe.del[LANG]} </Text>
                 </Button>
             </Content>
           </Container>
-      </Drawer>
     );
   }
 }

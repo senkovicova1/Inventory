@@ -3,7 +3,7 @@ import {Image, Platform, BackHandler} from 'react-native';
 import { Container, Content, Header, Title, Toast, Card, CardItem, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
 
 import store from "../store/index";
-import { logUser, logOffUser } from "../actions/index";
+import { logUser, logOffUser, setLang } from "../actions/index";
 
 import firebase from 'firebase';
 import { rebase } from '../../index';
@@ -75,12 +75,15 @@ export default class Login extends Component {
       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
       this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
-
-        store.dispatch(logUser({user: firebase.auth().currentUser}));
-
-        if (store.getState().user !== null){
-          this.props.navigation.push('Recipes');
-        }
+        rebase.fetch(`users/${firebase.auth().currentUser.uid}`, {
+          context: this,
+        }).then((data) => {
+          store.dispatch(logUser({user: firebase.auth().currentUser}));
+          store.dispatch(setLang({lang: data.lang}));
+          if (store.getState().user !== null){
+            this.props.navigation.push('Recipes');
+          }
+        });
       });
     }
 
@@ -98,10 +101,17 @@ export default class Login extends Component {
     login(){
       firebase.auth().signInWithEmailAndPassword(this.state.email.toLowerCase(),this.state.password1)
       .then((res)=>{
-        store.dispatch(logUser({user: firebase.auth().currentUser}));
-        if (store.getState().user !== null){
-          this.props.navigation.push('Recipes');
-        }
+        rebase.fetch(`users/${firebase.auth().currentUser.uid}`, {
+          context: this,
+        }).then((data) => {
+          console.log(data);
+          store.dispatch(logUser({user: firebase.auth().currentUser}));
+          store.dispatch(setLang({lang: data.lang}));
+          if (store.getState().user !== null){
+            this.props.navigation.push('Recipes');
+          }
+        });
+
       }).catch(error=>{
         //could be no internet
         if (error.code === "auth/wrong-password"){
@@ -140,6 +150,7 @@ export default class Login extends Component {
         .then((user) => {
 
             store.dispatch(logUser({user: firebase.auth().currentUser}));
+            store.dispatch(setLang({lang: "eng"}));
 
             let id = firebase.auth().currentUser.uid;
             let key = Date.now().toString(16).toUpperCase();
@@ -182,19 +193,18 @@ export default class Login extends Component {
         return firebase.auth().signInWithCredential(credential);
       })
       .then((user) => {
-        store.dispatch(logUser({user: firebase.auth().currentUser}));
 
         let id = firebase.auth().currentUser.uid;
 
         rebase.fetch(`users/${id}`, {
           context: this,
-        }).then((data) => {
-          if (data.length === undefined){
 
+        }).then((data) => {
+          if (data === undefined){
             let key = Date.now().toString(16).toUpperCase();
 
             rebase.post(`users/${id}`, {
-              data: {username: store.getState().user.displayName, lang: "eng", fb: store.getState().user.displayName}
+              data: {username: firebase.auth().currentUser.displayName, lang: "eng", fb: firebase.auth().currentUser.displayName}
             }).then((data) => {
               let own = {};
               own[key] = id;
@@ -207,6 +217,8 @@ export default class Login extends Component {
                   rebase.post(`foodInInventory/${key}`, {
                     data: INGREDIENTS_INV
                   }).then((data4) => {
+                    store.dispatch(logUser({user: firebase.auth().currentUser}));
+                    store.dispatch(setLang({lang: "eng"}));
                     if (store.getState().user !== null){
                       this.props.navigation.push('Recipes');
                     };
@@ -214,12 +226,14 @@ export default class Login extends Component {
                 });
               });
             });
+          } else {
+            store.dispatch(logUser({user: firebase.auth().currentUser}));
+            store.dispatch(setLang({lang: data.lang}));
+            if (store.getState().user !== null){
+              this.props.navigation.push('Recipes');
+            }
           }
         });
-
-        if (store.getState().user !== null){
-          this.props.navigation.push('Recipes');
-        }
       })
       .catch((error) => {
         const { code, message } = error;
