@@ -14,6 +14,7 @@ import DetailInventory from './components/detailInventory';
 import AddRecipeCreate from './components/addRecipeCreate';
 import AddRecipeBarcode from './components/addRecipeBarcode';
 import AddInventory from './components/addInventory';
+import ShareInventory from './components/shareInventory';
 import AddIngredientBarcode from './components/addIngredientBarcode';
 import AddIngredientManual from './components/addIngredientManual';
 
@@ -30,6 +31,8 @@ const AppNavigator = createStackNavigator(
 
     Inventory: DetailInventory,
     Recipe: DetailRecipe,
+
+    ShareInventory: ShareInventory,
 
     AddRecipeCreate: AddRecipeCreate,
     AddRecipeBarcode: AddRecipeBarcode,

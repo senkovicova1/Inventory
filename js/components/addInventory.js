@@ -1,11 +1,13 @@
 import React, {Component} from 'react';
 import {Image, Platform, BackHandler} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
+import { Toast, Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
+
+import {textAddInventory} from '../helperFiles/dictionary';
 
 import store from "../store/index";
 
@@ -20,6 +22,7 @@ export default class AddInventory extends Component {
       notes: "",
 
       showUnsaved: false,
+      showUnnamed: false,
       changed: false,
      };
 
@@ -69,6 +72,7 @@ export default class AddInventory extends Component {
   };
 
   render() {
+    const LANG = store.getState().lang;
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -82,7 +86,7 @@ export default class AddInventory extends Component {
                 </Button>
               </Left>
               <Body>
-                <Title style={{ ...styles.headerItem }}>Add Inventory</Title>
+                <Title style={{ ...styles.headerItem }}>{textAddInventory.header[LANG]}</Title>
               </Body>
               <Right>
                 { (this.state.title.length > 0)
@@ -97,20 +101,20 @@ export default class AddInventory extends Component {
               {this.state.showUnsaved
                 &&
                 Toast.show({
-                  text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                  text: textAddInventory.messageSave[LANG],
                   duration: 4000,
                   type: 'danger'
                 })
               }
 
-             <Label style={{ ...styles.formInvTitle }}>Title</Label>
+             <Label style={{ ...styles.formInvTitle }}>{textAddInventory.name[LANG]}</Label>
              <Input
                style={{ ...styles.genericInput}}
                value={this.state.title}
                onChangeText={(text) => this.setState({title: text, changed: true})}/>
 
 
-             <Label style={{ ...styles.formInvNotes }}>Notes</Label>
+             <Label style={{ ...styles.formInvNotes }}>{textAddInventory.notes[LANG]}</Label>
              <Textarea
                rowSpan={6}
                style={{ ...styles.genericInput }}

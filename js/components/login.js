@@ -3,7 +3,7 @@ import {Image, Platform, BackHandler} from 'react-native';
 import { Container, Content, Header, Title, Toast, Card, CardItem, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Badge, Form, Label, Input, Item } from 'native-base';
 
 import store from "../store/index";
-import { logUser, logOffUser } from "../actions/index";
+import { logUser, logOffUser, setLang } from "../actions/index";
 
 import firebase from 'firebase';
 import { rebase } from '../../index';
@@ -14,6 +14,34 @@ import {isEmail} from '../helperFiles/helperFunctions.js';
 //import { GoogleSignin, GoogleSigninButton } from 'react-native-google-signin';
 
 import styles from '../style';
+
+const INGREDIENTS_INV = {
+  9: "100 g",
+  13: "50 g",
+  14: "2 pcs",
+  15: "500 g",
+  16: "0.5 l",
+};
+
+const BASIC_INVENTORY = {
+  name: "My first inventory",
+  notes: "My first inventory. Both name and description can be changed by pressing the pencil icon on the right."
+};
+
+const INGREDIENTS_REC = {
+  9: "-- g",
+  13: "-- g",
+  14: "1 pcs",
+  15: "-- g",
+  16: "-- tbsp",
+};
+
+const BASIC_RECIPE = {
+  name: "Sweet potato fries",
+  image: "https://firebasestorage.googleapis.com/v0/b/inventory-28bc0.appspot.com/o/recipes%2F16A230C5848?alt=media&token=a754a461-1db2-486b-ba46-ece47139384b",
+  body: `1. Cut potatoes into stripes.\n2.Add salt, pepper and tumeric according to you preferences.\n3.Mix in some (or none) vegetable oil.\n4.Spread onto the baking sheet and bake for about 15 min on 200°C.`,
+  ingredients: INGREDIENTS_REC,
+};
 
 export default class Login extends Component {
 
@@ -47,11 +75,15 @@ export default class Login extends Component {
       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
       this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
-        store.dispatch(logUser({user: firebase.auth().currentUser}));
-
-        if (store.getState().user !== null){
-          this.props.navigation.push('Recipes');
-        }
+        rebase.fetch(`users/${firebase.auth().currentUser.uid}`, {
+          context: this,
+        }).then((data) => {
+          store.dispatch(logUser({user: firebase.auth().currentUser}));
+          store.dispatch(setLang({lang: data.lang}));
+          if (store.getState().user !== null){
+            this.props.navigation.push('Recipes');
+          }
+        });
       });
     }
 
@@ -69,10 +101,17 @@ export default class Login extends Component {
     login(){
       firebase.auth().signInWithEmailAndPassword(this.state.email.toLowerCase(),this.state.password1)
       .then((res)=>{
-        store.dispatch(logUser({user: firebase.auth().currentUser}));
-        if (store.getState().user !== null){
-          this.props.navigation.push('Recipes');
-        }
+        rebase.fetch(`users/${firebase.auth().currentUser.uid}`, {
+          context: this,
+        }).then((data) => {
+          console.log(data);
+          store.dispatch(logUser({user: firebase.auth().currentUser}));
+          store.dispatch(setLang({lang: data.lang}));
+          if (store.getState().user !== null){
+            this.props.navigation.push('Recipes');
+          }
+        });
+
       }).catch(error=>{
         //could be no internet
         if (error.code === "auth/wrong-password"){
@@ -107,19 +146,35 @@ export default class Login extends Component {
         return;
       }
 
-        firebase.auth().createUserWithEmailAndPassword(this.state.email, this.state.password1)
+        firebase.auth().createUserWithEmailAndPassword(this.state.email.toLowerCase(), this.state.password1)
         .then((user) => {
 
             store.dispatch(logUser({user: firebase.auth().currentUser}));
+            store.dispatch(setLang({lang: "eng"}));
 
             let id = firebase.auth().currentUser.uid;
+            let key = Date.now().toString(16).toUpperCase();
 
             rebase.post(`users/${id}`, {
-              data: {username: this.state.username}
+              data: {username: this.state.username, lang: "eng"}
             }).then((data) => {
-                if (store.getState().user !== null){
-                  this.props.navigation.push('Recipes');
-                };
+              let own = {};
+              own[key] = id;
+              rebase.post(`recipes/${key}`, {
+                data: {...BASIC_RECIPE, owners: own}
+              }).then((data2) => {
+                rebase.post(`inventories/${key}`, {
+                  data: {...BASIC_INVENTORY, owners: own}
+                }).then((data3) => {
+                  rebase.post(`foodInInventory/${key}`, {
+                    data: INGREDIENTS_INV
+                  }).then((data4) => {
+                    if (store.getState().user !== null){
+                      this.props.navigation.push('Recipes');
+                    };
+                  });
+                });
+              });
             });
         });
     }
@@ -138,24 +193,47 @@ export default class Login extends Component {
         return firebase.auth().signInWithCredential(credential);
       })
       .then((user) => {
-        store.dispatch(logUser({user: firebase.auth().currentUser}));
 
-        const USER_ID = store.getState().user.uid;
-        rebase.fetch(`users/${USER_ID}`, {
+        let id = firebase.auth().currentUser.uid;
+
+        rebase.fetch(`users/${id}`, {
           context: this,
-        }).then((data) => {
-          if (data.length === undefined){
-            let id = Date.now().toString(16).toUpperCase();
 
-            rebase.post(`users/${USER_ID}`, {
-              data: {username: store.getState().user.displayName}
+        }).then((data) => {
+          if (data === undefined){
+            let key = Date.now().toString(16).toUpperCase();
+
+            rebase.post(`users/${id}`, {
+              data: {username: firebase.auth().currentUser.displayName, lang: "eng", fb: firebase.auth().currentUser.displayName}
+            }).then((data) => {
+              let own = {};
+              own[key] = id;
+              rebase.post(`recipes/${key}`, {
+                data: {...BASIC_RECIPE, owners: own}
+              }).then((data2) => {
+                rebase.post(`inventories/${key}`, {
+                  data: {...BASIC_INVENTORY, owners: own}
+                }).then((data3) => {
+                  rebase.post(`foodInInventory/${key}`, {
+                    data: INGREDIENTS_INV
+                  }).then((data4) => {
+                    store.dispatch(logUser({user: firebase.auth().currentUser}));
+                    store.dispatch(setLang({lang: "eng"}));
+                    if (store.getState().user !== null){
+                      this.props.navigation.push('Recipes');
+                    };
+                  });
+                });
+              });
             });
+          } else {
+            store.dispatch(logUser({user: firebase.auth().currentUser}));
+            store.dispatch(setLang({lang: data.lang}));
+            if (store.getState().user !== null){
+              this.props.navigation.push('Recipes');
+            }
           }
         });
-
-        if (store.getState().user !== null){
-          this.props.navigation.push('Recipes');
-        }
       })
       .catch((error) => {
         const { code, message } = error;
@@ -171,7 +249,7 @@ export default class Login extends Component {
               style={styles.login}>
               <Image
                 style={{ ...styles.inventoryLogo, ...styles.center }}
-                source={require('../helperFiles/sushi.jpg')}
+                source={require('../helperFiles/logoInvTrans.png')}
                 />
               <Text style={{...styles.loginTextWelcomeInventory, ...styles.center}}>Inventory</Text>
 

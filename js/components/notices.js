@@ -7,6 +7,8 @@ import Sidebar from './sidebar';
 import { rebase } from '../../index';
 import firebase from 'firebase';
 
+import {textNotices} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
@@ -110,6 +112,7 @@ export default class Notices extends Component {
 
   render() {
     const ID = store.getState().user.uid;
+    const LANG = store.getState().lang;
 
     return (
       <Drawer
@@ -127,7 +130,7 @@ export default class Notices extends Component {
                </Left>
 
                <Body >
-                     <Title style={{ ...styles.headerItem }}>Správy</Title>
+                     <Title style={{ ...styles.headerItem }}>{textNotices.header[LANG]}</Title>
 
                </Body>
            </Header>
@@ -161,6 +164,23 @@ export default class Notices extends Component {
 
 
             <Card transparent style={{ ...styles.listCard }}>
+              {!(this.state.recipes
+                &&
+                Object.keys(this.state.recipes).length > 0
+                &&
+                this.state.users
+                &&
+                Object.keys(this.state.users).length > 0
+                &&
+                this.state.users[ID].notices
+                &&
+                Object.keys(this.state.users[ID].notices).length > 0
+                )
+                &&
+                <Text style={{ ...styles.listText}}>
+                  {textNotices.noMSG[LANG]}
+                </Text>
+              }
                {this.state.recipes
                  &&
                  Object.keys(this.state.recipes).length > 0
@@ -168,6 +188,10 @@ export default class Notices extends Component {
                  this.state.users
                  &&
                  Object.keys(this.state.users).length > 0
+                 &&
+                 this.state.users[ID].notices
+                 &&
+                 Object.keys(this.state.users[ID].notices).length > 0
                  &&
                  <List
                  dataArray={Object.keys(this.state.users[ID].notices)}
@@ -177,17 +201,16 @@ export default class Notices extends Component {
                         { key.includes("RR-")
                           &&
                            <Text style={{ ...styles.listText, width: deviceWidth*0.7}}>
-                             {`${this.state.users[this.state.users[ID].notices[key].userID].username} asked you to share this recipe with you:
-${this.state.recipes[this.state.users[ID].notices[key].recID].name}
-Status: ${this.state.users[ID].notices[key].approved ? "Approved" : "Declined"}`}
+                             {`${this.state.users[this.state.users[ID].notices[key].userID].username}` + textNotices.RR[LANG] +
+`${this.state.recipes[this.state.users[ID].notices[key].recID].name}\n` +
++ textNotices.stat[LANG] + (this.state.users[ID].notices[key].approved ? textNotices.appr[LANG] : textNotices.dec[LANG])}
                            </Text>
                         }
                         { key.includes("RRM-")
                           &&
                            <Text style={{ ...styles.listText, width: deviceWidth*0.7 }}>
-                             {`You asked you to share this recipe:
-${this.state.recipes[this.state.users[ID].notices[key].recID].name}
-Status: ${this.state.users[ID].notices[key].approved ? "Approved" : "Declined"}`}
+                             {textNotices.RRM[LANG] + `${this.state.recipes[this.state.users[ID].notices[key].recID].name}\n`
++ textNotices.stat[LANG] + (this.state.users[ID].notices[key].approved ? textNotices.appr[LANG] : textNotices.dec[LANG])}
                            </Text>
                         }
                         { key.includes("MSG-")

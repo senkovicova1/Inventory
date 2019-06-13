@@ -7,10 +7,12 @@ import Sidebar from './sidebar';
 import { rebase } from '../../index';
 import firebase from 'firebase';
 
+import {unitToBasic} from '../helperFiles/helperFunctions';
+import {textListRecipes} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
-
 
 const deviceHeight = Dimensions.get('window').height;
 const deviceWidth = Dimensions.get('window').width;
@@ -27,13 +29,18 @@ export default class ListRecipes extends Component {
       searchedWord: '',
       addOpen: false,
 
-      recipes: [],
-      inventories: [],
+      recipes: null, //{}
+      foodInInventory: null, //{}
+      inventories: null,  //[]
       users: [],
+      notices: [],
 
       text: "nothing now",
     };
 
+    this.calculationPossible.bind(this);
+    this.calculatePortions.bind(this);
+    this.getPortions.bind(this);
     this.handleBackPress.bind(this);
     this.toggleSearch.bind(this);
     this.toggleAdd.bind(this);
@@ -45,7 +52,6 @@ export default class ListRecipes extends Component {
 
   fetch(){
     const USER_ID = store.getState().user.uid;
-
       rebase.fetch(`inventories`, {
         context: this,
         withIds: true,
@@ -56,17 +62,89 @@ export default class ListRecipes extends Component {
           withIds: true,
           asArray: true
         }).then((u) => {
+          let i = inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID));
           this.setState({
-            inventories: inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID)),
+            inventories: i,
+            selectedInventory: i[0].key,
             users: u,
+          }, () => {
+            if (this.calculationPossible()){
+              this.calculatePortions();
+            }
           });
         });
     });
   }
 
+  componentDidMount() {
+    BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+
+    rebase.bindToState(`recipes`, {
+      context: this,
+      state: 'recipes',
+      then: function(rec){
+        if (this.calculationPossible()){
+          this.calculatePortions();
+        }
+      }
+    });
+
+    rebase.bindToState(`foodInInventory`, {
+      context: this,
+      state: 'foodInInventory',
+      then: function(rec){
+        if (this.calculationPossible()){
+          this.calculatePortions();
+        }
+      }
+    });
+
+    rebase.bindToState(`users/${store.getState().user.uid}/notices`, {
+      context: this,
+      state: 'notices',
+      asArray: true,
+      then: function(notices){
+        this.setState({
+          modalVisible: (this.state.notices && this.state.notices.length > 0 && this.state.notices.filter(note => !note.seen).length > 0),
+        });
+      }
+    });
+
+  }
+
+/*  componentWillReceiveProps(props){
+    if (props.navigation.getParam('id', 'NO-ID') !== this.state.key){
+      rebase.removeBinding(this.ref1);
+      this.ref1 = rebase.bindToState(`foodInInventory/${props.navigation.getParam('id', 'NO-ID')}`, {
+        context: this,
+        state: 'foodInInventory',
+        withIds: true,
+      });
+
+      this.setState({
+        name: props.navigation.getParam('title', 'NO-ID'),
+        notes: props.navigation.getParam('notes', 'NO-ID'),
+        key: props.navigation.getParam('id', 'NO-ID'),
+        owners: props.navigation.getParam('owners', 'NO-ID'),
+
+        editTitle: false,
+        editNotes: false,
+
+        showID: false,
+
+        searchOpen: false,
+        searchedWord: '',
+      });
+    }
+  }*/
+
+  componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+  }
+
     addItem(newItem){
       this.setState({
-        recipes: this.state.recipes.concat([newItem]) //updates Firebase and the local state
+        recipes: this.state.recipes.concat([newItem])
       });
     }
 
@@ -76,9 +154,11 @@ export default class ListRecipes extends Component {
       });
     }
 
-    onValueChange(value: string) {
+    onValueChange(e: string) {
       this.setState({
-        selected: value
+        selectedInventory: e
+      }, () => {
+        this.calculatePortions()
       });
     }
 
@@ -88,29 +168,89 @@ export default class ListRecipes extends Component {
       });
     }
 
-    componentDidMount() {
-        BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+      calculationPossible(){
+        let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
+        let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
+        let cond3 = this.state.inventories && this.state.inventories.length > 0;
+        return cond1 && cond2 && cond3;
+      }
 
-        rebase.bindToState(`recipes`, {
-         context: this,
-         state: 'recipes',
+      calculatePortions(){
+        let newRecipes = {};
+        Object.keys(this.state.recipes).map(key => {
+          newRecipes[key] = {...this.state.recipes[key], portions: this.getPortions(key)}
+        });
+        this.setState({
+          recipes: newRecipes,
+        })
+      }
+
+      getPortions(recId){
+        let food = this.state.foodInInventory[this.state.selectedInventory];
+        if (!food){
+          return 0;
+        }
+        let recipeIngredients = this.state.recipes[Object.keys(this.state.recipes).filter(key => key === recId)[0]].ingredients;
+        if (!recipeIngredients){
+          return -1; //recept nema ingrediencie
+        }
+
+        let amount = Infinity;
+        Object.keys(recipeIngredients).map(ingKey => {
+          if (amount < 0){  //nejaka predchadzajuca ing v inv nebola (-2) alebo jej bolo menej ako v inv (-2) alebo nemaju porovnatelne jednotky (-1)
+            return;
+          }
+
+          let arr1 = recipeIngredients[ingKey].split(" ");
+
+          if (arr1[0] === "-" || arr1[0] === "--"){
+            return;
+          }
+
+          let ingExists = food[ingKey];
+          if (!ingExists){
+            amount = -2;  //ing v inv nie je
+            return;
+          }
+
+          let amount1 = unitToBasic(arr1[0], arr1[1]);
+          let unit1 = arr1[1];
+
+          let arr2 = ingExists.split(" ");
+          let amount2 = unitToBasic(arr2[0], arr2[1]);
+          let unit2 = arr2[1];
+
+
+          if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
+              unit1 = "g";
+              unit2 = "g";
+
+          } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
+              unit1 = "ml";
+              unit2 = "ml";
+
+          } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
+              unit1 = "tsp";
+              unit2 = "tsp";
+
+          } else if (!(["pcs", "ks"].includes(unit1) && ["pcs", "ks"].includes(unit2))) {
+            amount = -1; //neporovnatelne jednotky
+            return;
+          }
+
+          if (amount1 > amount2){
+            amount = -2; //neda sa uvarit z takehoto mnozstva
+            return;
+          }
+
+          let times = Math.floor(amount2/amount1);
+          if (times < amount){
+            amount = times;
+          }
         });
 
-        rebase.bindToState(`users/${store.getState().user.uid}/notices`, {
-         context: this,
-         state: 'notices',
-         asArray: true,
-         then: function(notices){
-           this.setState({
-             modalVisible: (this.state.notices && this.state.notices.length > 0 && this.state.notices.filter(note => !note.seen).length > 0),
-           });
-         }
-       });
+        return amount;
 
-    }
-
-      componentWillUnmount() {
-        BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
       }
 
       toggleModal(visible) {
@@ -134,15 +274,14 @@ export default class ListRecipes extends Component {
         rebase.update(`users/${store.getState().user.uid}/notices/${note.key}`, {
           data: {approved: true, seen: true}
         }).then(newLocation => {
-            rebase.update(`users/${note.userId}/notices/${note.key}`, {
+            rebase.update(`users/${note.userID}/notices/${note.key}`, {
               data: {approved: true,}
             }).then((x) => {
               let id = Date.now().toString(16).toUpperCase();
-          //    let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recId)[0];
-              let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === note.recId).map(id =>  this.state.recipes[id])[0];
+              let wantedRecipe = Object.keys(this.state.recipes).filter(id => id === note.recID).map(id =>  this.state.recipes[id])[0];
                 let newOwners = {...wantedRecipe.owners};
-                newOwners[id] = note.userId;
-                  rebase.update(`recipes/${note.recId}`, {
+                newOwners[id] = note.userID;
+                  rebase.update(`recipes/${note.recID}`, {
                     data: {owners: newOwners}
                   });
             })
@@ -153,13 +292,13 @@ export default class ListRecipes extends Component {
             rebase.update(`users/${store.getState().user.uid}/notices/RR-${note.key}`, {
               data: {approved: false, seen: true}
             }).then(newLocation => {
-                rebase.update(`users/${note.userId}/notices/RRM-${note.key}`, {
+                rebase.update(`users/${note.userID}/notices/RRM-${note.key}`, {
                   data: {approved: false,}
                 }).then((x) => {
                   let id = Date.now().toString(16).toUpperCase();
-                  let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recId)[0];
+                  let wantedRecipe = this.state.recipes.filter(rec => rec.key === note.recID)[0];
                     let newOwners = {};
-                    newOwners[id] = note.userId;
+                    newOwners[id] = note.userID;
                       rebase.post(`recipes/${id}`, {
                         data: {name: wantedRecipe.name, body: wantedRecipe.body, ingredients: wantedRecipe.ingredients, image: wantedRecipe.image, owners: newOwners}
                       });
@@ -185,6 +324,7 @@ export default class ListRecipes extends Component {
     };
 
   render() {
+    const LANG = store.getState().lang;
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -206,13 +346,13 @@ export default class ListRecipes extends Component {
                    <Input
                      autoFocus
                      style={{ ...styles.headerItem}}
-                     placeholder="zadajte hľadaný výraz"
+                     placeholder={textListRecipes.search[LANG]}
                      placeholderTextColor='rgb(0, 170, 160)'
                      onChangeText={(text) => this.setState({searchedWord: text})}/>
                  }
                  {!this.state.searchOpen
                    &&
-                     <Title style={{ ...styles.headerItem }}> Recepty</Title>
+                     <Title style={{ ...styles.headerItem }}> {textListRecipes.header[LANG]} </Title>
                  }
                </Body>
 
@@ -242,20 +382,18 @@ export default class ListRecipes extends Component {
     onBackButtonPress={() => this.toggleModal(false)}
     onBackdropPress={() => this.toggleModal(false)}>
 
-      <Text style={{ ...styles.listText, color: 'rgb(255, 184, 95)', height: deviceHeight*0.07 }}> You have new messages!</Text>
+      <Text style={{ ...styles.listText, color: 'rgb(255, 184, 95)', height: deviceHeight*0.07 }}> {textListRecipes.newMess[LANG]}</Text>
       {
         this.state.notices
           .filter(note => !note.seen && note.key.includes("RR-"))
           .map(note =>
-            { console.log(this.state.users);
-              let user = this.state.users.filter(user => user.key === note.userId)[0];
-              let recipe = Object.keys(this.state.recipes).filter(key => key === note.recId).map(key => this.state.recipes[key])[0];
-              console.log("HERE");
-              console.log(recipe);
+            {
+              let user = this.state.users.filter(user => user.key === note.userID)[0];
+              let recipe = Object.keys(this.state.recipes).filter(key => key === note.recID).map(key => this.state.recipes[key])[0];
              return(
                <Grid style={{ borderRadius: 15, backgroundColor: 'rgb(104, 70, 130)', width: deviceWidth*0.76, alignSelf: 'center' }}>
                   <Text style={{ ...styles.listText }}>
-                    {`${user.username} requested to share this recipe with you:`}
+                    {`${user.username}` + textListRecipes.req[LANG]}
                   </Text>
                   <Image
                     style={{ ...styles.image, ...styles.center, width: deviceWidth*0.7 }}
@@ -267,12 +405,12 @@ export default class ListRecipes extends Component {
                 <Row style={{ height: deviceHeight*0.05}}>
                   <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.declineRequest(note)} >
-                      <Text style={{ ...styles.acordionButtonText }}>Decline</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.dec[LANG]}</Text>
                     </Button>
                   </Col>
                   <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.approveRequest(note)} >
-                      <Text style={{ ...styles.acordionButtonText }}>Accept</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.acc[LANG]}</Text>
                     </Button>
                  </Col>
                 </Row>
@@ -284,14 +422,16 @@ export default class ListRecipes extends Component {
   }
 
            <Card transparent style={{ ...styles.listCardInv }}>
-             <Text style={{ ...styles.listCardInvText, marginLeft:15 }}>Varí sa z inventára </Text>
+             <Text style={{ ...styles.listCardInvText, marginLeft:15 }}>{textListRecipes.chosenInv[LANG]}</Text>
              <Picker
                 mode="dropdown"
                 style={{ ...styles.picker }}
-                selectedValue={this.state.selected}
-                onValueChange={this.onValueChange.bind(this)}
+                selectedValue={this.state.selectedInventory}
+                onValueChange={(e) => this.onValueChange(e)}
               >
                 { this.state.inventories
+                  &&
+                  this.state.inventories
                   .map(i =>
                          <Picker.Item key={i.key} label={i.name} value={i.key}/>
                        )
@@ -318,12 +458,12 @@ export default class ListRecipes extends Component {
                 <Row>
                   <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddRecipeBarcode')} >
-                      <Text style={{ ...styles.acordionButtonText }}>Get from friend</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.getRec[LANG]}</Text>
                     </Button>
                  </Col>
                  <Col size={50}>
                     <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddRecipeCreate')} >
-                      <Text style={{ ...styles.acordionButtonText }}>Create new</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textListRecipes.createRec[LANG]}</Text>
                     </Button>
                  </Col>
               </Row>
@@ -333,28 +473,28 @@ export default class ListRecipes extends Component {
             <Card transparent style={{ ...styles.listCard }}>
                <List
                  dataArray={
-                   Object.keys(this.state.recipes)
+                   Object.keys(this.state.recipes ? this.state.recipes : {})
                    .filter(key => this.state.recipes[key].owners
                                   && Object.values(this.state.recipes[key].owners).includes(store.getState().user.uid)
                                   && this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))
                    .map(key => {
                      let item = {...this.state.recipes[key], key};
                      return item;
-                   })}
+                   })
+                   .sort((a,b) => b.portions - a.portions)
+                 }
                  renderRow={data =>
-                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {key: data.key}) }>
+                   <ListItem button style={{...styles.listItem}} noBorder onPress={() => this.props.navigation.navigate('Recipe', {key: data.key, food: this.state.foodInInventory[this.state.selectedInventory], invKey: this.state.selectedInventory, cookable: data.portions > 0}) }>
                      <Left>
                        <Thumbnail
-                         style={{ ...styles.stretch }}
+                         style={data.portions <= 0 ? { ...styles.stretch, ...styles.transparent } : { ...styles.stretch }}
                          source={{uri: data.image}}
                        />
-                     <Text style={{ ...styles.listText }}>{data.name}</Text></Left>
+                     <Text style={data.portions <= 0  ? { ...styles.listText, ...styles.transparent } : { ...styles.listText }}>{data.name}</Text></Left>
                      <Right>
-                         <Badge style={{ ...styles.listTextBadge }}>
-                           <Text style={{ ...styles.listTextBadgeText }}> </Text>
-
-                       { /*   <Text style={{ color: ACC_CREAM }}>{data.id} {data.id == 1 ? "porcia" : (data.id <= 4? "porcie" : "porcií")}</Text>*/}
-                      </Badge>
+                         <Badge style={data.portions <= 0 ? { ...styles.listTextBadge, ...styles.transparent } : { ...styles.listTextBadge }}>
+                           <Text style={data.portions <= 0 ? { ...styles.listTextBadgeText } : { ...styles.listTextBadgeText }}>{data.portions <= 0 ? "0" : data.portions} </Text>
+                        </Badge>
                      </Right>
                    </ListItem>
                  }

@@ -1,16 +1,20 @@
 import React, {Component} from 'react';
-import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View} from 'react-native';
-import { Drawer,  Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
+import {Image, Platform, BackHandler, AppRegistry, StyleSheet, TouchableOpacity, View, Dimensions} from 'react-native';
+import {  Content, Toast,  Header, Body, Title, Label, Form, Item, Card, Grid, Row, Col, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, StyleProvider, getTheme, variables } from 'native-base';
 import { RNCamera } from 'react-native-camera';
-
-import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
 import firebase from 'firebase';
 
+import {unitToBasic} from '../helperFiles/helperFunctions';
+import {textAddBarcode} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
+
+const deviceHeight = Dimensions.get('window').height;
+const deviceWidth = Dimensions.get('window').width;
 
 const PendingView = () => (
   <View
@@ -34,10 +38,10 @@ export default class AddIngredientBarcode extends Component {
 
       ingredients: [],
       ownedIngredients: {},
+      barcodes: {},
 
       currentBarcode: "",
       containsBarcode: false,
-      barcodes: {},
 
       newIngredient: {
         name: '',
@@ -45,7 +49,6 @@ export default class AddIngredientBarcode extends Component {
         unit: '',
         brand: '',
       },
-
 
       showUnsaved: false,
       changed: false,
@@ -56,17 +59,18 @@ export default class AddIngredientBarcode extends Component {
     this.changeAmount.bind(this);
 
     this.handleBackPress.bind(this);
+    this.handleBackPressButton.bind(this);
 
     this.fetch.bind(this);
-    this.fetch();
+    this.fetch(this.props.navigation.getParam('key', 'NO-ID'));
   }
 
-  fetch(){
+  fetch(id){
       rebase.fetch(`ingredients`, {
         context: this,
         withIds: true,
       }).then((ingredients) => {
-        rebase.fetch(`foodInInventory/${this.state.key}`, {
+        rebase.fetch(`foodInInventory/${id}`, {
           context: this,
           withIds: true,
         }).then(ownedIngredients => {
@@ -78,39 +82,51 @@ export default class AddIngredientBarcode extends Component {
       });
     }
 
+    componentWillReceiveProps(props){
+      if(props.navigation.getParam('key', 'NO-ID') !== this.state.key){
+        this.setState({
+          ingredients: [],
+          ownedIngredients: {},
+          barcodes: {},
+
+          currentBarcode: "",
+          containsBarcode: false,
+
+          newIngredient: {
+            name: '',
+            amount: '',
+            unit: '',
+            brand: '',
+          },
+
+          showUnsaved: false,
+          changed: false,
+        });
+        this.fetch(props.navigation.getParam('key', 'NO-ID'));
+      }
+    }
+
     submit(){
       let data = {}
 
       Object.keys(this.state.barcodes).map(key =>{
             let unit1 = this.state.barcodes[key].unit;
-            let amount1 = parseInt(this.state.barcodes[key].amount);
+            let amount1 = unitToBasic(this.state.barcodes[key].amount, unit1);
             let pieces = this.state.barcodes[key].pieces;
             let unit2Exists = Object.keys(this.state.ownedIngredients).filter(id => id === key)[0];
 
             if (unit2Exists){
               let arr = this.state.ownedIngredients[unit2Exists].split(" ");
               let unit2 = arr[1];
-              let amount2 = parseInt(arr[0]);
+              let amount2 = amount2 = unitToBasic(arr[0], arr[1]);
+
               let finalAmount = "0";
               let finalUnit = "g";
 
               if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
-                if (unit1 === "dkg"){
-                  unit1 = "g";
-                  amount1 = amount1*10;
-                }
-                if (unit1 === "kg"){
-                  unit1 = "g";
-                  amount1 = amount1*1000;
-                }
-                if (unit2 === "dkg"){
-                  unit2 = "g";
-                  amount2 = amount2*10;
-                }
-                if (unit2 === "kg"){
-                  unit2 = "g";
-                  amount2 = amount2*1000;
-                }
+                unit1 = "g";
+                unit2 = "g";
+
                 finalAmount = amount1*pieces + amount2;
                 finalUnit = "g";
 
@@ -120,22 +136,9 @@ export default class AddIngredientBarcode extends Component {
                 }
 
               } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
-                if (unit1 === "dcl"){
-                  unit1 = "ml";
-                  amount1 = amount1*100;
-                }
-                if (unit1 === "l"){
-                  unit1 = "ml";
-                  amount1 = amount1*1000;
-                }
-                if (unit2 === "dcl"){
-                  unit2 = "ml";
-                  amount2 = amount2*100;
-                }
-                if (unit2 === "l"){
-                  unit2 = "ml";
-                  amount2 = amount2*1000;
-                }
+                unit1 = "ml";
+                unit2 = "ml";
+
                 finalAmount = amount1*pieces + amount2;
                 finalUnit = "ml";
 
@@ -144,24 +147,12 @@ export default class AddIngredientBarcode extends Component {
                   finalUnit = "l";
                 }
               } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
-                if (unit1 === "tbsp" || unit1 === "pl"){
-                  unit1 = "tsp";
-                  amount1 = amount1*3;
-                }
-                if (unit1 === "cup" || unit2 === "šálka"){
-                  unit1 = "tsp";
-                  amount1 = amount1*3*16;
-                }
-                if (unit2 === "tbsp" || unit1 === "pl"){
-                  unit2 = "tsp";
-                  amount2 = amount2*3;
-                }
-                if (unit2 === "cup" || unit2 === "šálka"){
-                  unit2 = "tsp";
-                  amount2 = amount2*3*16;
-                }
+                unit1 = "tsp";
+                unit2 = "tsp";
+
                 finalAmount = amount1*pieces + amount2;
                 finalUnit = "tsp";
+
                 if (finalAmount >= 15){
                   finalAmount = finalAmount/3;
                   finalUnit = "tbsp";
@@ -228,7 +219,8 @@ export default class AddIngredientBarcode extends Component {
             amount: '',
             unit: '',
             brand: '',
-          }
+          },
+          changed: true,
         })
       );
     }
@@ -288,14 +280,19 @@ export default class AddIngredientBarcode extends Component {
       this.props.navigation.goBack();
       return true;
     }
+    console.log("im not supposed to be here");
   }
 
-  closeDrawer = () => {
-    this.drawer._root.close()
-  };
-  openDrawer = () => {
-    this.drawer._root.open()
-  };
+  handleBackPressButton(){
+    if (this.state.changed && !this.state.showUnsaved){
+      this.setState({
+        showUnsaved: true
+      });
+    } else if (this.state.showUnsaved || !this.state.changed){
+      this.props.navigation.goBack();
+    }
+  }
+
 
   takePicture = async function(camera) {
       const options = { quality: 0.5, base64: true };
@@ -308,29 +305,31 @@ export default class AddIngredientBarcode extends Component {
 
 
   render() {
+    const LANG = store.getState().lang;
+
     const PICKER_ITEMS = Object.keys(this.state.ingredients).map(ingredient =>
                 <Picker.Item key={this.state.ingredients[ingredient].key} label={this.state.ingredients[ingredient].name} value={this.state.ingredients[ingredient].name} />
             );
            PICKER_ITEMS.unshift(<Picker.Item key="0" label="" value=""/>);
+
     return (
-      <Drawer
-        ref={(ref) => { this.drawer = ref; }}
-        content={<Sidebar navigation={this.props.navigation} closeDrawer={() => this.closeDrawer()}/>}
-        onClose={() => this.closeDrawer()} >
         <Container>
           <Header style={{ ...styles.header}}>
-            <Left>
-              <Button transparent onPress={() => this.props.navigation.goBack()}>
+            <Left style={{...styles.centerVer, paddingRight: 0, zIndex: 100 }}>
+              <Button transparent onPress={() => this.handleBackPressButton()}>
                 <Icon name="md-close" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
-            <Body>
-              <Title style={{ ...styles.headerItem }}>Add ingredient</Title>
-            </Body>
-            <Right>
-              <Button transparent  onPress={()=> this.submit()}><Icon name="md-checkmark"  style={{ ...styles.headerItem }} /></Button>
+            <Col>
+              <Title style={{ ...styles.headerItem, ...styles.centerVer, width: deviceWidth*0.7 }}>{textAddBarcode.header[LANG]}</Title>
+            </Col>
+            <Right  style={{zIndex: 100 }}>
+              {
+                (Object.keys(this.state.barcodes).length > 0)
+                &&
+              <Button transparent  onPress={() => this.submit()} ><Icon name="md-checkmark"  style={{ ...styles.headerItem }}/></Button>
+              }
             </Right>
-
           </Header>
 
           <Content style={{ ...styles.content}} >
@@ -338,14 +337,14 @@ export default class AddIngredientBarcode extends Component {
             {this.state.showUnsaved
               &&
               Toast.show({
-                text: `If you leave now, your changes will not be saved! If you wish to leave without saving your changes, press back button again.`,
+                text: textAddBarcode.messageSave[LANG],
                 duration: 4000,
                 type: 'danger'
               })
             }
 
               <View>
-                <Text style={{ ...styles.acordionButtonText }}> Hold barcode in front of the camera until you see information about the product.</Text>
+                <Text style={{ ...styles.acordionButtonText }}> {textAddBarcode.info[LANG]}</Text>
                 <Card style={{...styles.camera}}>
                  <RNCamera
                    style={{ /*flex: 1, justifyContent: 'flex-end',*/ alignItems: 'center'}}
@@ -371,13 +370,13 @@ export default class AddIngredientBarcode extends Component {
                    {  (this.state.currentBarcode.length > 0)
                      &&
                      <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
-                       <Text style={{ ...styles.acordionButtonText }}> {`Barcode value: ${this.state.currentBarcode}`} </Text>
+                       <Text style={{ ...styles.acordionButtonText }}> {textAddBarcode.barVal[LANG] + `${this.state.currentBarcode}`} </Text>
                      </Row>
                     }
                     {  (this.state.currentBarcode.length > 0 && !this.state.containsBarcode)
                       &&
                       <Row size={10} >
-                        <Text style={{ ...styles.acordionButtonText }}> There is no information about this product in our database. Please fill in the missing information below. </Text>
+                        <Text style={{ ...styles.acordionButtonText }}> {textAddBarcode.notInDB[LANG]} </Text>
                       </Row>
                      }
                    {  (this.state.currentBarcode.length > 0 && !this.state.containsBarcode)
@@ -386,7 +385,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Name
+                               {textAddBarcode.name[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -405,7 +404,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Brand
+                               {textAddBarcode.brand[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -424,7 +423,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Amount
+                               {textAddBarcode.amount[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -443,7 +442,7 @@ export default class AddIngredientBarcode extends Component {
                          <Row size={10}>
                            <Col size={30}>
                              <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                               Unit
+                               {textAddBarcode.unit[LANG]}
                              </Text>
                            </Col>
                            <Col size={70}>
@@ -468,12 +467,12 @@ export default class AddIngredientBarcode extends Component {
                                <Picker.Item key="4" label="dkg" value="dkg"/>
                                <Picker.Item key="5" label="kg" value="kg"/>
 
-                               <Picker.Item key="6" label="pcs" value="pcs"/>
+                               <Picker.Item key="6" label={LANG === 0 ? "ks" : "pcs"} value={LANG === 0 ? "ks" : "pcs"}/>
 
-                               <Picker.Item key="7" label="tsp" value="tsp"/>
-                               <Picker.Item key="8" label="tbsp" value="tbsp"/>
+                               <Picker.Item key="7" label={LANG === 0 ? "čl" : "tsp"} value={LANG === 0 ? "čl" : "tsp"}/>
+                               <Picker.Item key="8" label={LANG === 0 ? "pl" : "tbsp"} value={LANG === 0 ? "pl" : "tbsp"}/>
 
-                               <Picker.Item key="9" label="cup" value="cup"/>
+                               <Picker.Item key="9" label={LANG === 0 ? "šálka" : "cup"} value={LANG === 0 ? "šálka" : "cup"}/>
                               </Picker>
                            </Col>
                          </Row>
@@ -490,18 +489,18 @@ export default class AddIngredientBarcode extends Component {
                 &&
                 <Card>
                   <Button block style={{ ...styles.acordionButton }} onPress={() => this.submit()}>
-                      <Text style={{ ...styles.acordionButtonText }}>Pridať produkty</Text>
+                      <Text style={{ ...styles.acordionButtonText }}>{textAddBarcode.add[LANG]}</Text>
                   </Button>
                   <Grid>
                     <Row size={10} style={{borderBottomWidth: 2, borderColor: 'rgb(255, 184, 95)'}}>
                       <Col size={80}>
                         <Text style={{marginLeft: 15, ...styles.DARK_PEACH}}>
-                          Názov produktu
+                          {textAddBarcode.prodName[LANG]}
                         </Text>
                       </Col>
                       <Col size={20}>
                           <Text style={{marginLeft: 10, ...styles.DARK_PEACH}}>
-                            Kusy
+                            {textAddBarcode.pcs[LANG]}
                           </Text>
                       </Col>
                     </Row>
@@ -534,7 +533,6 @@ export default class AddIngredientBarcode extends Component {
 
           </Content>
         </Container>
-      </Drawer>
     );
   }
 }

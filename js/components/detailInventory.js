@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Image, Platform} from 'react-native';
+import {Image, Platform,Dimensions} from 'react-native';
 import { Drawer,  Content, Grid, Row, Col, Card, Header, Body, Title, Label, Form, Item, Input, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
@@ -7,9 +7,14 @@ import { rebase } from '../../index';
 import firebase from 'firebase';
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
+import {textDetailInventory} from '../helperFiles/dictionary';
+
 import store from "../store/index";
 
 import styles from '../style';
+
+const deviceHeight = Dimensions.get('window').height;
+const deviceWidth = Dimensions.get('window').width;
 
 export default class DetailInventory extends Component {
 
@@ -19,6 +24,7 @@ export default class DetailInventory extends Component {
       name: this.props.navigation.getParam('title', 'NO-ID'),
       notes: this.props.navigation.getParam('notes', 'NO-ID'),
       key: this.props.navigation.getParam('id', 'NO-ID'),
+      owners: this.props.navigation.getParam('owners', 'NO-ID'),
 
       editTitle: false,
       editNotes: false,
@@ -35,7 +41,6 @@ export default class DetailInventory extends Component {
 
     this.toggleAdd.bind(this);
     this.toggleSearch.bind(this);
-    this.addItem.bind(this);
     this.submitInv.bind(this);
   }
 
@@ -53,35 +58,32 @@ export default class DetailInventory extends Component {
         });
     }
 
-    componentWillReceiveProps(){
-      rebase.removeBinding(this.ref1);
-      this.ref1 = rebase.bindToState(`foodInInventory/${this.props.navigation.getParam('id', 'NO-ID')}`, {
+    componentWillReceiveProps(props){
+      if (props.navigation.getParam('id', 'NO-ID') !== this.state.key){
+        rebase.removeBinding(this.ref1);
+        this.ref1 = rebase.bindToState(`foodInInventory/${props.navigation.getParam('id', 'NO-ID')}`, {
           context: this,
           state: 'foodInInventory',
           withIds: true,
         });
 
-      this.setState({
-        name: this.props.navigation.getParam('title', 'NO-ID'),
-        notes: this.props.navigation.getParam('notes', 'NO-ID'),
-        key: this.props.navigation.getParam('id', 'NO-ID'),
+        this.setState({
+          name: props.navigation.getParam('title', 'NO-ID'),
+          notes: props.navigation.getParam('notes', 'NO-ID'),
+          key: props.navigation.getParam('id', 'NO-ID'),
+          owners: props.navigation.getParam('owners', 'NO-ID'),
 
-        editTitle: false,
-        editNotes: false,
+          editTitle: false,
+          editNotes: false,
 
-        showID: false,
+          showID: false,
 
-        searchOpen: false,
-        searchedWord: '',
-      });
-
+          searchOpen: false,
+          searchedWord: '',
+        });
+      }
     }
 
-    addItem(newItem){
-      this.setState({
-        recipes: this.state.recipes.concat([newItem]) //updates Firebase and the local state
-      });
-    }
 
     toggleSearch(){
       this.setState({
@@ -126,6 +128,7 @@ export default class DetailInventory extends Component {
               });
      }
 
+    const LANG = store.getState().lang;
 
     return (
       <Drawer
@@ -150,7 +153,7 @@ export default class DetailInventory extends Component {
                      <Input
                        autoFocus
                        style={{ ...styles.headerItem}}
-                       placeholder="search"
+                       placeholder={textDetailInventory.search[LANG]}
                        placeholderTextColor='rgb(0, 170, 160)'
                        onChangeText={(text) => this.setState({searchedWord: text})}/>
                    </View>
@@ -162,7 +165,7 @@ export default class DetailInventory extends Component {
                  <Input
                    autoFocus
                    style={{ ...styles.headerItem}}
-                   placeholder="change name"
+                   placeholder={textDetailInventory.changeName[LANG]}
                    value={this.state.name}
                    onChangeText={(text) => this.setState({name: text})}/>
                </Item>
@@ -184,7 +187,7 @@ export default class DetailInventory extends Component {
                  <Icon name="md-checkmark" style={{ ...styles.headerItem}}/>
                </Button>
                }
-               <Button transparent onPress={() => this.setState({share: true })}>
+               <Button transparent onPress={() => this.props.navigation.navigate('ShareInventory', {key: this.state.key, owners: this.state.owners})}>
                  <Icon name="md-share-alt" style={{ ...styles.headerItem}} />
                </Button>
              </Right>
@@ -195,16 +198,16 @@ export default class DetailInventory extends Component {
              <Item style={{ ...styles.formTitle }}>
                { !this.state.editNotes
                  &&
-               <Text style={{ ...styles.formInvNotes }}>{this.state.notes}</Text>
+               <Text style={{ ...styles.formInvNotes,  width: deviceWidth*0.8 }}>{this.state.notes}</Text>
                }
                { this.state.editNotes
                  &&
                  <Textarea
                    rowSpan={6}
-                   style={{ ...styles.genericInputStretched }}
+                   style={{ ...styles.genericInputStretched, width: deviceWidth*0.8 }}
                    autoFocus
                    bordered
-                   placeholder="Notes"
+                   placeholder={textDetailInventory.notes[LANG]}
                    value={this.state.notes}
                    onChangeText={(text) => this.setState({notes: text})} />
                  }
@@ -241,12 +244,12 @@ export default class DetailInventory extends Component {
                     <Row>
                       <Col size={50}>
                         <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientBarcode', {key: this.state.key})} >
-                          <Text style={{ ...styles.acordionButtonText }}>Scan barcode</Text>
+                          <Text style={{ ...styles.acordionButtonText }}>{textDetailInventory.addBar[LANG]}</Text>
                         </Button>
                      </Col>
                      <Col size={50}>
                         <Button transparent full style={{ ...styles.acordionButton}} onPress={()=> this.props.navigation.navigate('AddIngredientManual', {key: this.state.key})} >
-                          <Text style={{ ...styles.acordionButtonText }}>Add manually</Text>
+                          <Text style={{ ...styles.acordionButtonText }}>{textDetailInventory.addMan[LANG]}</Text>
                         </Button>
                      </Col>
                   </Row>
