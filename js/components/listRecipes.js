@@ -153,8 +153,6 @@ export default class ListRecipes extends Component {
     }
 
     onValueChange(e: string) {
-      console.log("picker value");
-      console.log(e);
       this.setState({
         selectedInventory: e
       }, () => {
@@ -170,6 +168,7 @@ export default class ListRecipes extends Component {
 
       calculationPossible(){
         if (!this.state.selectedInventory && this.state.inventories) {
+      //    console.log("WTF");
           this.setState({
             selectedInventory: this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid))[0].key
           }, () => {
@@ -199,7 +198,7 @@ export default class ListRecipes extends Component {
       getPortions(recId){
         let food = this.state.foodInInventory[this.state.selectedInventory];
         if (!food){
-          return 25;
+          return 0;
         }
         let recipeIngredients = this.state.recipes[Object.keys(this.state.recipes).filter(key => key === recId)[0]].ingredients;
         if (!recipeIngredients){
@@ -334,9 +333,12 @@ export default class ListRecipes extends Component {
     };
 
   render() {
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+  /*  console.log(this.state.selectedInventory);
+    const INVENTORIES = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid));
+    if (!this.state.selectedInventory && INVENTORIES && this.calculationPossible()){
+      this.onValueChange(INVENTORIES[0].key);
+    }*/
     const LANG = store.getState().lang;
-  //  const INVENTORIES = this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid));
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -379,6 +381,10 @@ export default class ListRecipes extends Component {
 {(this.state.notices
   &&
   this.state.notices.length > 0
+  &&
+  this.state.recipes
+  &&
+  Object.keys(this.state.recipes).length > 0
   &&
   this.state.users
   &&
@@ -492,7 +498,7 @@ export default class ListRecipes extends Component {
                                   && this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))
                    .map(key => {
                      let item = {...this.state.recipes[key], key};
-                  //   item.portions = (this.calculationPossible() ? this.getPortions(key) : -1);
+                     item.portions = (this.calculationPossible() ? this.getPortions(key) : -1);
                      return item;
                    })
                    .sort((a,b) => b.portions - a.portions)

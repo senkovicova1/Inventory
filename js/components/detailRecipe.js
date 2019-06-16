@@ -359,7 +359,9 @@ export default class DetailRecipe extends Component {
                       <Col size={40}>
                         <Row>
                           <Col size={15}>
-                            { (item.amount && !item.amount.includes("-"))
+                            { this.state.cookable
+                              &&
+                              (item.amount && !item.amount.includes("-"))
                               &&
                                 <Icon name="md-arrow-dropdown" onPress={() => this.changeAmount(item.key, -1)} style={{ alignSelf: 'center', ...styles.DARK_PEACH, paddingLeft: 5, paddingRight: 5 }}/>
                               }
@@ -379,7 +381,9 @@ export default class DetailRecipe extends Component {
 
                           {/*<Button transparent small style={{ backgroundColor: "#FFFFFF"}} >*/}
                           <Col size={15}>
-                            { (item.amount && !item.amount.includes("-"))
+                            { this.state.cookable
+                              &&
+                              (item.amount && !item.amount.includes("-"))
                               &&
                                 <Icon name="md-arrow-dropup" onPress={() => this.changeAmount(item.key, 1)}  style={{ alignSelf: 'center', ...styles.DARK_PEACH, paddingLeft: 5, paddingRight: 5 }}/>
 
@@ -398,7 +402,7 @@ export default class DetailRecipe extends Component {
                         keyboardType='numeric'
                         value={this.state.ppl}
                         onChangeText={(text) =>{
-                            if (text === "" || this.checkNumber(text)){
+                            if (this.state.cookable && (text === "" || this.checkNumber(text))){
                               this.changeAmountPpl(text);
                             }
                           }
@@ -406,9 +410,12 @@ export default class DetailRecipe extends Component {
                     </Item>
                   </Row>
                   <Row style={{ ...styles.right}}>
+                    { this.state.cookable
+                      &&
                   <Button style={{ ...styles.acordionButton}} onPress={() => this.cook()}>
                     <Text style={{ ...styles.DARK_PEACH }}> {textDetailRecipe.cook[LANG]} </Text>
                   </Button>
+                }
                 </Row>
           </Grid>
         </Card>
