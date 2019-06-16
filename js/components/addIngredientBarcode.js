@@ -339,7 +339,8 @@ export default class AddIngredientBarcode extends Component {
               Toast.show({
                 text: textAddBarcode.messageSave[LANG],
                 duration: 4000,
-                type: 'danger'
+                type: 'danger',
+                onClose: () => this.setState({showUnsaved: false,})
               })
             }
 

@@ -394,7 +394,8 @@ export default class AddRecipeCreate extends Component {
                 Toast.show({
                   text: textCreateRecipe.messageSave[LANG],
                   duration: 4000,
-                  type: 'danger'
+                  type: 'danger',
+                  onClose: () => this.setState({showUnsaved: false,})
                 })
               }
 
@@ -403,7 +404,8 @@ export default class AddRecipeCreate extends Component {
                 Toast.show({
                   text: textCreateRecipe.messageName[LANG],
                   duration: 4000,
-                  type: 'danger'
+                  type: 'danger',
+                  onClose: () => this.setState({showEmpty: false,})
                 })
               }
 

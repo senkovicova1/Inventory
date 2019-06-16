@@ -307,6 +307,7 @@ export default class EditRecipes extends Component {
                 Toast.show({
                   text: this.state.message,
                   duration: 2000,
+                  onClose: () => this.setState({showMessage: false,})
                 })
               }
 

@@ -52,28 +52,15 @@ export default class ListRecipes extends Component {
 
   fetch(){
     const USER_ID = store.getState().user.uid;
-      rebase.fetch(`inventories`, {
+      rebase.fetch(`users`, {
         context: this,
         withIds: true,
         asArray: true
-      }).then((inv) => {
-        rebase.fetch(`users`, {
-          context: this,
-          withIds: true,
-          asArray: true
-        }).then((u) => {
-          let i = inv.filter(inventory => Object.values(inventory.owners).includes(USER_ID));
-          this.setState({
-            inventories: i,
-            selectedInventory: i[0].key,
-            users: u,
-          }, () => {
-            if (this.calculationPossible()){
-              this.calculatePortions();
-            }
-          });
+      }).then((u) => {
+        this.setState({
+          users: u,
         });
-    });
+      });
   }
 
   componentDidMount() {
@@ -83,6 +70,17 @@ export default class ListRecipes extends Component {
       context: this,
       state: 'recipes',
       then: function(rec){
+        if (this.calculationPossible()){
+          this.calculatePortions();
+        }
+      }
+    });
+
+    rebase.bindToState(`inventories`, {
+      context: this,
+      state: 'inventories',
+      asArray: true,
+      then: function(inv){
         if (this.calculationPossible()){
           this.calculatePortions();
         }
@@ -171,7 +169,7 @@ export default class ListRecipes extends Component {
       calculationPossible(){
         let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
         let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
-        let cond3 = this.state.inventories && this.state.inventories.length > 0;
+        let cond3 = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid)).length > 0;
         return cond1 && cond2 && cond3;
       }
 
@@ -270,7 +268,6 @@ export default class ListRecipes extends Component {
       }
 
       approveRequest(note){
-      //  console.log("approving");
         rebase.update(`users/${store.getState().user.uid}/notices/${note.key}`, {
           data: {approved: true, seen: true}
         }).then(newLocation => {
@@ -289,10 +286,10 @@ export default class ListRecipes extends Component {
       }
 
       declineRequest(note){
-            rebase.update(`users/${store.getState().user.uid}/notices/RR-${note.key}`, {
+            rebase.update(`users/${store.getState().user.uid}/notices/${note.key}`, {
               data: {approved: false, seen: true}
             }).then(newLocation => {
-                rebase.update(`users/${note.userID}/notices/RRM-${note.key}`, {
+                rebase.update(`users/${note.userID}/notices/${note.key}`, {
                   data: {approved: false,}
                 }).then((x) => {
                   let id = Date.now().toString(16).toUpperCase();
@@ -432,6 +429,7 @@ export default class ListRecipes extends Component {
                 { this.state.inventories
                   &&
                   this.state.inventories
+                  .filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid))
                   .map(i =>
                          <Picker.Item key={i.key} label={i.name} value={i.key}/>
                        )

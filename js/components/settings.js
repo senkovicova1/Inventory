@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {Image, Platform, Dimensions} from 'react-native';
-import { Container, Drawer, Header, View, Title, Card, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Row, Badge, Form, Label, Input, Item } from 'native-base';
+import { Container, Drawer, Toast, Header, View, Title, Card, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Row, Badge, Form, Label, Input, Item } from 'native-base';
 
 import Sidebar from './sidebar';
 
@@ -27,7 +27,8 @@ export default class Settings extends Component {
     this.state = {
       lang: 1,
       user: {},
-      newUsername: ""
+      newUsername: "",
+      showMessage: false
     }
     this.signOut.bind(this);
     this.changeLang.bind(this);
@@ -58,13 +59,13 @@ export default class Settings extends Component {
   }
 
   changeName(){
-    store.dispatch(setLang({lang: lang}));
     rebase.update(`users/${store.getState().user.uid}`, {
       data: {username: this.state.newUsername}
     }).then(data => {
       this.setState({
         user: {...this.state.user, username: this.state.newUsername},
-        newUsername: ""
+        newUsername: "",
+        showMessage: true,
       });
     })
   }
@@ -143,7 +144,8 @@ export default class Settings extends Component {
                 <Col size={85}>
                 <Input
                   style={{ ...styles.formTitle, borderRadius: 8 }}
-                  placeholder={this.state.newUsername.length > 0 ? this.state.newUsername : this.state.user.username}
+                  value={this.state.newUsername.length > 0 ? this.state.newUsername : this.state.user.username}
+                  placeholder="Your name"
                   placeholderTextColor='rgb(255, 184, 95)'
                   onChangeText={(text) => this.setState({newUsername: text})}/>
                 </Col>
@@ -157,6 +159,16 @@ export default class Settings extends Component {
                   </Button>
                 </Col>
               </Row>
+
+              {this.state.showMessage
+                &&
+                Toast.show({
+                  text: store.getState().lang === 0 ? "Meno zmenené." : "You name has been changed.",
+                  duration: 2000,
+                  type: "success",
+                  onClose: () => this.setState({showMessage: false,})
+                })
+              }
 
                 {(store.getState().user.providerData[0].providerId === 'facebook.com')
                   &&
