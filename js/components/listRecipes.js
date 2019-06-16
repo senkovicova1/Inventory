@@ -153,6 +153,8 @@ export default class ListRecipes extends Component {
     }
 
     onValueChange(e: string) {
+      console.log("picker value");
+      console.log(e);
       this.setState({
         selectedInventory: e
       }, () => {
@@ -167,10 +169,21 @@ export default class ListRecipes extends Component {
     }
 
       calculationPossible(){
-        let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
-        let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
-        let cond3 = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid)).length > 0;
-        return cond1 && cond2 && cond3;
+        if (!this.state.selectedInventory && this.state.inventories) {
+          this.setState({
+            selectedInventory: this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid))[0].key
+          }, () => {
+            let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
+            let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
+            let cond3 = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid)).length > 0;
+            return cond1 && cond2 && cond3;
+          });
+        } else {
+          let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
+          let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
+          let cond3 = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid)).length > 0;
+          return cond1 && cond2 && cond3;
+        }
       }
 
       calculatePortions(){
@@ -180,13 +193,13 @@ export default class ListRecipes extends Component {
         });
         this.setState({
           recipes: newRecipes,
-        })
+        });
       }
 
       getPortions(recId){
         let food = this.state.foodInInventory[this.state.selectedInventory];
         if (!food){
-          return 0;
+          return 25;
         }
         let recipeIngredients = this.state.recipes[Object.keys(this.state.recipes).filter(key => key === recId)[0]].ingredients;
         if (!recipeIngredients){
@@ -321,7 +334,9 @@ export default class ListRecipes extends Component {
     };
 
   render() {
+    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     const LANG = store.getState().lang;
+  //  const INVENTORIES = this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid));
     return (
       <Drawer
         ref={(ref) => { this.drawer = ref; }}
@@ -477,6 +492,7 @@ export default class ListRecipes extends Component {
                                   && this.state.recipes[key].name.toLowerCase().includes(this.state.searchedWord.toLowerCase()))
                    .map(key => {
                      let item = {...this.state.recipes[key], key};
+                  //   item.portions = (this.calculationPossible() ? this.getPortions(key) : -1);
                      return item;
                    })
                    .sort((a,b) => b.portions - a.portions)
