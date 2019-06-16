@@ -93,8 +93,8 @@ export const textAddInventory = {
 export const textShareInventory = {
   header: ["Zdielať inventár!", "Share this inventory!"],
   search: ["hľadať podľa názvu", "search by name"],
-  pplWAcc: ["Ludia, ktorý majú prístup k inventáru:", "People with access to this inventory:"],
-  del: ["Poznámky", "Notes"],
+  pplWAcc: ["Ludia, ktorí majú prístup k inventáru:", "People with access to this inventory:"],
+  del: ["Odstrániť", "DELETE"],
   messageDel: ["Opustili ste inventár.","You left the inventory."],
 
 }

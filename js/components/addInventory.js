@@ -103,7 +103,8 @@ export default class AddInventory extends Component {
                 Toast.show({
                   text: textAddInventory.messageSave[LANG],
                   duration: 4000,
-                  type: 'danger'
+                  type: 'danger',
+                  onClose: () => this.setState({showUnsaved: false,})
                 })
               }
 

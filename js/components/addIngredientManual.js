@@ -313,7 +313,8 @@ export default class AddIngredientManual extends Component {
               Toast.show({
                 text: textAddManually.messageSave[LANG],
                 duration: 4000,
-                type: 'danger'
+                type: 'danger',
+                onClose: () => this.setState({showUnsaved: false,})
               })
             }
 

@@ -201,7 +201,8 @@ componentWillUnmount() {
                 Toast.show({
                   text: textGetRecipe.messageGet[LANG],
                   duration: 4000,
-                  type: 'danger'
+                  type: 'danger',
+                  onClose: () => this.setState({showUnsaved: false,})
                 })
               }
 
@@ -210,6 +211,7 @@ componentWillUnmount() {
                 Toast.show({
                   text: this.state.message,
                   duration: 2000,
+                  onClose: () => this.setState({showMessage: false,})
                 })
               }
 

@@ -75,15 +75,17 @@ export default class Login extends Component {
       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
       this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
-        rebase.fetch(`users/${firebase.auth().currentUser.uid}`, {
-          context: this,
-        }).then((data) => {
-          store.dispatch(logUser({user: firebase.auth().currentUser}));
-          store.dispatch(setLang({lang: data.lang}));
-          if (store.getState().user !== null){
-            this.props.navigation.push('Recipes');
-          }
-        });
+        if (firebase.auth().currentUser){
+          rebase.fetch(`users/${firebase.auth().currentUser.uid}`, {
+            context: this,
+          }).then((data) => {
+            store.dispatch(logUser({user: firebase.auth().currentUser}));
+            store.dispatch(setLang({lang: data.lang}));
+            if (store.getState().user !== null){
+              this.props.navigation.push('Recipes');
+            }
+          });
+        }
       });
     }
 
