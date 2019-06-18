@@ -74,6 +74,23 @@ export default class Login extends Component {
   componentDidMount() {
       BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
+  /*    this.setState({
+        email:'',
+        password1:'',
+        password2:'',
+        username: '',
+        token:null,
+        avatar: null,
+        loading: true,
+        showStuff: false,
+        showSignUp: false,
+        showNotAllFieldsFilled: false,
+        validMail: false,
+
+        showError: false,
+        error: "",
+      });*/
+
       this.authSubscription = firebase.auth().onAuthStateChanged((user) => {
         if (firebase.auth().currentUser){
           rebase.fetch(`users/${firebase.auth().currentUser.uid}`, {
@@ -81,6 +98,22 @@ export default class Login extends Component {
           }).then((data) => {
             store.dispatch(logUser({user: firebase.auth().currentUser}));
             store.dispatch(setLang({lang: data.lang}));
+            this.setState({
+              email:'',
+              password1:'',
+              password2:'',
+              username: '',
+              token:null,
+              avatar: null,
+              loading: true,
+              showStuff: false,
+              showSignUp: false,
+              showNotAllFieldsFilled: false,
+              validMail: false,
+
+              showError: false,
+              error: "",
+            });
             if (store.getState().user !== null){
               this.props.navigation.push('Recipes');
             }
@@ -110,6 +143,22 @@ export default class Login extends Component {
           store.dispatch(logUser({user: firebase.auth().currentUser}));
           store.dispatch(setLang({lang: data.lang}));
           if (store.getState().user !== null){
+            this.setState({
+              email:'',
+              password1:'',
+              password2:'',
+              username: '',
+              token:null,
+              avatar: null,
+              loading: true,
+              showStuff: false,
+              showSignUp: false,
+              showNotAllFieldsFilled: false,
+              validMail: false,
+
+              showError: false,
+              error: "",
+            });
             this.props.navigation.push('Recipes');
           }
         });
@@ -171,6 +220,22 @@ export default class Login extends Component {
                   rebase.post(`foodInInventory/${key}`, {
                     data: INGREDIENTS_INV
                   }).then((data4) => {
+                    this.setState({
+                      email:'',
+                      password1:'',
+                      password2:'',
+                      username: '',
+                      token:null,
+                      avatar: null,
+                      loading: true,
+                      showStuff: false,
+                      showSignUp: false,
+                      showNotAllFieldsFilled: false,
+                      validMail: false,
+
+                      showError: false,
+                      error: "",
+                    });
                     if (store.getState().user !== null){
                       this.props.navigation.push('Recipes');
                     };
@@ -221,6 +286,22 @@ export default class Login extends Component {
                   }).then((data4) => {
                     store.dispatch(logUser({user: firebase.auth().currentUser}));
                     store.dispatch(setLang({lang: "eng"}));
+                    this.setState({
+                      email:'',
+                      password1:'',
+                      password2:'',
+                      username: '',
+                      token:null,
+                      avatar: null,
+                      loading: true,
+                      showStuff: false,
+                      showSignUp: false,
+                      showNotAllFieldsFilled: false,
+                      validMail: false,
+
+                      showError: false,
+                      error: "",
+                    });
                     if (store.getState().user !== null){
                       this.props.navigation.push('Recipes');
                     };

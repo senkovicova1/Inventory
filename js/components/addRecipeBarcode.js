@@ -223,7 +223,6 @@ componentWillUnmount() {
                 </Row>
                 <Row>
                       <Input
-                        autoFocus
                         style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
                         placeholder={textGetRecipe.filterInput[LANG]}
                         placeholderTextColor='rgb(142, 210, 210)'
@@ -244,6 +243,7 @@ componentWillUnmount() {
                      >
                       <Picker.Item key={0} label={textGetRecipe.filterPicker[LANG]} value={0}/>
                        { Object.keys(this.state.users)
+                         .filter(key => key !== store.getState().user.uid)
                          .map(i =>
                                 <Picker.Item key={i} label={this.state.users[i].username} value={i}/>
                               )

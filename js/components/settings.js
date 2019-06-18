@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { StackActions } from 'react-navigation';
 import {Image, Platform, Dimensions} from 'react-native';
 import { Container, Drawer, Toast, Header, View, Title, Card, Content, Thumbnail, Button, Icon, Left, Picker, Right, Body, Text, List, ListItem, CheckBox, Grid, Col, Row, Badge, Form, Label, Input, Item } from 'native-base';
 
@@ -73,7 +74,8 @@ export default class Settings extends Component {
   signOut(){
     firebase.auth().signOut();
     store.dispatch(logOffUser(null));
-    this.props.navigation.push('Login');
+  //  this.props.navigation.push('Login');
+  this.props.navigation.dispatch(StackActions.popToTop());
   }
 
   closeDrawer = () => {
