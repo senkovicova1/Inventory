@@ -285,6 +285,8 @@ export default class AddIngredientManual extends Component {
 
     const INGREDIENTS = this.state.ingredients.filter(ing => ing.name.toLowerCase().includes(this.state.newIngredientName.toLowerCase()));
 
+    console.log(this.state.chosenIngredients);
+
     return (
         <Container>
           <Header style={{ ...styles.header}}>
@@ -343,7 +345,7 @@ export default class AddIngredientManual extends Component {
                                       onChangeText={(text) =>{
                                           if (text.length === 0 || text === "-" || text === "--" || this.checkNumber(text)){
                                             let newChosenIngredients = {...this.state.chosenIngredients};
-                                            newChosenIngredients[amount] = text;
+                                            newChosenIngredients[key].amount = text;
 
                                             this.setState({
                                               chosenIngredients: newChosenIngredients,
@@ -363,7 +365,7 @@ export default class AddIngredientManual extends Component {
                                       selectedValue={this.state.chosenIngredients[key].unit}
                                       onValueChange={(itemValue, itemIndex) =>{
                                                         let newChosenIngredients = {...this.state.chosenIngredients};
-                                                        newChosenIngredients[unit] = itemValue;
+                                                        newChosenIngredients[key].unit = itemValue;
 
                                                         this.setState({
                                                           chosenIngredients: newChosenIngredients,

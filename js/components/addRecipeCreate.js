@@ -342,7 +342,6 @@ export default class AddRecipeCreate extends Component {
 
 
   render() {
-
     const deviceHeight = Dimensions.get('window').height;
     const deviceWidth = Dimensions.get('window').width;
     const PICKER_ITEMS = this.state.ingredients
@@ -357,7 +356,6 @@ export default class AddRecipeCreate extends Component {
     const LANG = store.getState().lang;
 
     return (
-
         <Container>
             <Header style={{ ...styles.header}}>
               <Left>
@@ -489,23 +487,23 @@ export default class AddRecipeCreate extends Component {
                           </Col>
 
                           <Col size={65}>
-                          <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
-                            <Input
-                              style={{ ...styles.PEACH }}
-                              value={this.state.newIngredientName}
-                              onChangeText={(text) =>{
-                                    this.setState({
-                                      newIngredientName: text,
-                                      changed: true,
-                                      showIngredients: true
-                                    });
+                            <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                              <Input
+                                style={{ ...styles.PEACH }}
+                                value={this.state.newIngredientName}
+                                onChangeText={(text) =>{
+                                      this.setState({
+                                        newIngredientName: text,
+                                        changed: true,
+                                        showIngredients: true
+                                      }, () => this.addNewIngredient());
+                                  }
                                 }
-                              }
-                              onBlur={() => this.setState({
-                                showIngredients: false
-                              })}
-                              />
-                          </Item>
+                                onBlur={() => this.setState({
+                                  showIngredients: false
+                                })}
+                                />
+                            </Item>
                           </Col>
                         </Row>
 
@@ -536,11 +534,11 @@ export default class AddRecipeCreate extends Component {
                                 keyboardType='numeric'
                                 value={this.state.newIngredientAmount}
                                 onChangeText={(text) =>{
-                                    if (text === "-" || text === "--" || this.checkNumber(text)){
+                                    if (text === "-" || text === "--" || this.checkNumber(text) || text.length === 0){
                                       this.setState({
                                         newIngredientAmount: text,
                                         changed: true
-                                      });
+                                      }, () => this.addNewIngredient());
                                     }
                                   }
                                 }/>
@@ -562,7 +560,7 @@ export default class AddRecipeCreate extends Component {
                                                     this.setState({
                                                       newIngredientUnit: itemValue,
                                                       changed: true
-                                                    })
+                                                    }, () => this.addNewIngredient())
                                 }>
                                 <Picker.Item key="0" label="" value=""/>
 
@@ -584,14 +582,6 @@ export default class AddRecipeCreate extends Component {
                            </Item>
                          </Col>
                        </Row>
-                       {(this.state.newIngredientName.length > 0 && this.state.newIngredientAmount.length > 0 && this.state.newIngredientUnit.length > 0)
-                         &&
-                       <Row size={10}>
-                         <Col size={10}>
-                          <Icon name='md-add' style={{ ...styles.minusIngredient }} onPress={this.addNewIngredient.bind(this)}/>
-                        </Col>
-                       </Row>
-                     }
                       </Grid>
                     </Card>
                     <Card transparent style={{ ...styles.formCard}}>

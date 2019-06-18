@@ -167,21 +167,27 @@ export default class ListRecipes extends Component {
     }
 
       calculationPossible(){
-        if (!this.state.selectedInventory && this.state.inventories) {
+        if (!this.state.inventories || this.state.inventories.lenth === 0){
+          return false;
+        }
+        const INVENTORIES = this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid));
+        if (!this.state.selectedInventory && INVENTORIES.length > 0) {
       //    console.log("WTF");
           this.setState({
-            selectedInventory: this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid))[0].key
+            selectedInventory: INVENTORIES[0].key
           }, () => {
             let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
             let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
             let cond3 = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid)).length > 0;
             return cond1 && cond2 && cond3;
           });
-        } else {
+        } else if (INVENTORIES.length > 0){
           let cond1 = this.state.recipes && Object.keys(this.state.recipes).length > 0;
           let cond2 = this.state.foodInInventory && Object.keys(this.state.foodInInventory).length > 0;
           let cond3 = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid)).length > 0;
           return cond1 && cond2 && cond3;
+        } else {
+          return false;
         }
       }
 
@@ -333,6 +339,9 @@ export default class ListRecipes extends Component {
     };
 
   render() {
+    if (!store.getState().user) {
+      return (<Text> </Text>);
+    }
   /*  console.log(this.state.selectedInventory);
     const INVENTORIES = this.state.inventories && this.state.inventories.filter(inventory => Object.values(inventory.owners).includes(store.getState().user.uid));
     if (!this.state.selectedInventory && INVENTORIES && this.calculationPossible()){

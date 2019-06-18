@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Image, Platform, BackHandler/*, Share*/} from 'react-native';
-import { Drawer,  Content, Header, Body, Title, Label, Form, Item, Input, Card, CardItem, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
+import { Drawer,  Content, Header, Body, Toast, Title, Label, Form, Item, Input, Card, CardItem, Text, Textarea, List, ListItem, Icon, Container, Picker,Thumbnail, Left, Right, Button, Badge, View, StyleProvider, Col, Row, Grid, getTheme, variables } from 'native-base';
 import Sidebar from './sidebar';
 
 import { rebase } from '../../index';
@@ -38,6 +38,7 @@ export default class DetailRecipe extends Component {
         image: null,
         owners: null,
         ppl: "1",
+        showMessage: false,
     };
 
     this.cook.bind(this);
@@ -181,39 +182,39 @@ export default class DetailRecipe extends Component {
   }
 
   cook(){
+    console.log("HEEEEY");
     let data = {};
     this.state.ingredients.map(ing => {
-      let arr1 = ing.amount.split(" ");
-      let amount1 = parseFloat(arr1[0]);
-      let unit1 = arr1[1];
-
-      if (amount1.includes("-")){
+      let arr1 = ing.amount.split(" "); //chosen ingredients in recipes
+      if (arr1[0].includes("-")){
         return;
       }
+      let amount1 = unitToBasic(arr1[0], arr1[1]);
+      let unit1 = arr1[1];
 
-      let arr2 = this.state.food[ing.key].split(" ");
-      let amount2 = parseFloat(arr2[0]);
+
+      let arr2 = this.state.food[ing.key].split(" "); //in inventory
+      let amount2 = unitToBasic(arr2[0], arr2[1]);
       let unit2 = arr2[1];
 
       let finalAmount = "0";
       let finalUnit = "g";
 
+      console.log("a1    u1    a2    u2    fA    fU");
+      console.log(amount1, unit1, amount2, unit2, finalAmount, finalUnit);
+
       if (["g", "kg", "dkg"].includes(unit1) && ["g", "kg", "dkg"].includes(unit2)){
         if (unit1 === "dkg"){
           unit1 = "g";
-          amount1 = amount1*10;
         }
         if (unit1 === "kg"){
           unit1 = "g";
-          amount1 = amount1*1000;
         }
         if (unit2 === "dkg"){
           unit2 = "g";
-          amount2 = amount2*10;
         }
         if (unit2 === "kg"){
           unit2 = "g";
-          amount2 = amount2*1000;
         }
         finalAmount = amount2 - amount1;
         finalUnit = "g";
@@ -225,19 +226,15 @@ export default class DetailRecipe extends Component {
       } else if (["ml", "dcl", "l"].includes(unit1) && ["ml", "dcl", "l"].includes(unit2)){
         if (unit1 === "dcl"){
           unit1 = "ml";
-          amount1 = amount1*100;
         }
         if (unit1 === "l"){
           unit1 = "ml";
-          amount1 = amount1*1000;
         }
         if (unit2 === "dcl"){
           unit2 = "ml";
-          amount2 = amount2*100;
         }
         if (unit2 === "l"){
           unit2 = "ml";
-          amount2 = amount2*1000;
         }
         finalAmount = amount2 - amount1;
         finalUnit = "ml";
@@ -248,19 +245,15 @@ export default class DetailRecipe extends Component {
       } else if (["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit1) && ["tsp", "tbsp", "cup", "čl", "pl", "šálka"].includes(unit2)){
         if (unit1 === "tbsp" || unit1 === "pl"){
           unit1 = "tsp";
-          amount1 = amount1*3;
         }
         if (unit1 === "cup" || unit2 === "šálka"){
           unit1 = "tsp";
-          amount1 = amount1*3*16;
         }
         if (unit2 === "tbsp" || unit1 === "pl"){
           unit2 = "tsp";
-          amount2 = amount2*3;
         }
         if (unit2 === "cup" || unit2 === "šálka"){
           unit2 = "tsp";
-          amount2 = amount2*3*16;
         }
         finalAmount = amount2 - amount1;
         finalUnit = "tsp";
@@ -286,6 +279,8 @@ export default class DetailRecipe extends Component {
 
     rebase.update(`foodInInventory/${this.state.invKey}`, {
       data: data
+    }).then(a => {
+      this.setState({showMessage: true}, () => this.props.navigation.navigate("Recipes"));
     });
   }
 
@@ -296,7 +291,7 @@ export default class DetailRecipe extends Component {
         <Container>
           <Header style={{ ...styles.header}}>
             <Left>
-              <Button transparent onPress={() => this.props.navigation.goBack()}>
+              <Button transparent onPress={() => this.props.navigation.navigate("Recipes")}>
                 <Icon name="arrow-back" style={{ ...styles.headerItem }}/>
               </Button>
             </Left>
@@ -314,7 +309,19 @@ export default class DetailRecipe extends Component {
 
           </Header>
 
+
           <Content padder style={{ ...styles.content }}>
+
+            {this.state.showMessage
+              &&
+                Toast.show({
+                  text: textDetailRecipe.messageCook[LANG],
+                  duration: 3000,
+                  onClose: () => this.setState({showMessage: false,})
+                })
+
+            }
+
 { this.state.image
   &&
               <Image

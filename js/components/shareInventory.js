@@ -142,7 +142,6 @@ export default class ShareInventory extends Component {
               <Card transparent style={{ ...styles.formCard, backgroundColor: 'rgba(142, 210, 210, 0.5)'}}>
 
                   <Input
-                    autoFocus
                     style={{ ...styles.stepsCardHeader, marginLeft:15, color: 'rgb(0, 170, 160)'}}
                     placeholder={textShareInventory.search[LANG]}
                     placeholderTextColor='rgb(142, 210, 210)'

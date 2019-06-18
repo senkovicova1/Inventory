@@ -57,6 +57,7 @@ export default class AddIngredientBarcode extends Component {
     this.submit.bind(this);
     this.addBarcode.bind(this);
     this.changeAmount.bind(this);
+    this.addNewIngredientWithBarcodeToDB.bind(this);
 
     this.handleBackPress.bind(this);
     this.handleBackPressButton.bind(this);
@@ -200,29 +201,33 @@ export default class AddIngredientBarcode extends Component {
     }
 
     addNewIngredientWithBarcodeToDB(){
+      if (this.state.newIngredient.name !== ""
+      && this.state.newIngredient.brand !== ""
+      && this.state.newIngredient.amount !== ""
+      && this.state.newIngredient.unit !== ""){
+        let newBarcodes = {...this.state.barcodes};
+        newBarcodes[this.state.currentBarcode] = {...this.state.newIngredient, pieces: 1};
 
-      let newBarcodes = {...this.state.barcodes};
-      newBarcodes[this.state.currentBarcode] = {...this.state.newIngredient, pieces: 1};
+        let newIngredients = {...this.state.ingredients};
+        newIngredients[this.state.currentBarcode] = {...this.state.newIngredient};
 
-      let newIngredients = {...this.state.ingredients};
-      newIngredients[this.state.currentBarcode] = {...this.state.newIngredient};
-
-      rebase.update(`ingredients/${this.state.currentBarcode}`, {
-        data: this.state.newIngredient
-      }).then((data) => this.setState({
-          barcodes: newBarcodes,
-          ingredients: newIngredients,
-          currentBarcode: "",
-          containsBarcode: false,
-          newIngredient: {
-            name: '',
-            amount: '',
-            unit: '',
-            brand: '',
-          },
-          changed: true,
-        })
-      );
+        rebase.update(`ingredients/${this.state.currentBarcode}`, {
+          data: this.state.newIngredient
+        }).then((data) => this.setState({
+            barcodes: newBarcodes,
+            ingredients: newIngredients,
+            currentBarcode: "",
+            containsBarcode: false,
+            newIngredient: {
+              name: '',
+              amount: '',
+              unit: '',
+              brand: '',
+            },
+            changed: true,
+          })
+        );
+      }
     }
 
     removeIngredient(key){
@@ -302,7 +307,9 @@ export default class AddIngredientBarcode extends Component {
     //    console.log(data.uri);
     };
 
-
+  checkNumber(text){
+    return !isNaN(text) && !isNaN(parseFloat(text));
+  }
 
   render() {
     const LANG = store.getState().lang;
@@ -324,11 +331,11 @@ export default class AddIngredientBarcode extends Component {
               <Title style={{ ...styles.headerItem, ...styles.centerVer, width: deviceWidth*0.7 }}>{textAddBarcode.header[LANG]}</Title>
             </Col>
             <Right  style={{zIndex: 100 }}>
-              {
+              {/*
                 (Object.keys(this.state.barcodes).length > 0)
                 &&
               <Button transparent  onPress={() => this.submit()} ><Icon name="md-checkmark"  style={{ ...styles.headerItem }}/></Button>
-              }
+              */}
             </Right>
           </Header>
 
@@ -390,16 +397,20 @@ export default class AddIngredientBarcode extends Component {
                              </Text>
                            </Col>
                            <Col size={70}>
-                             <Input
-                              style={{ ...styles.amountInput }}
-                              value={this.state.newIngredient.name}
-                              onChangeText={(text) => {
-                                      let newIng = {...this.state.newIngredient};
-                                      newIng.name = text;
-                                      this.setState({
-                                        newIngredient: newIng,
-                                      });
-                              }}/>
+                             <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                               <Input
+                                 style={{ ...styles.PEACH }}
+                                 value={this.state.newIngredient.name}
+                                 onChangeText={(text) =>{
+                                       let newIng = {...this.state.newIngredient};
+                                       newIng.name = text;
+                                       this.setState({
+                                         newIngredient: newIng,
+                                       }, () => this.addNewIngredientWithBarcodeToDB());
+                                   }
+                                 }
+                                 />
+                             </Item>
                            </Col>
                          </Row>
                          <Row size={10}>
@@ -409,16 +420,20 @@ export default class AddIngredientBarcode extends Component {
                              </Text>
                            </Col>
                            <Col size={70}>
-                             <Input
-                              style={{ ...styles.amountInput }}
-                              value={this.state.newIngredient.brand}
-                              onChangeText={(text) => {
-                                      let newIng = {...this.state.newIngredient};
-                                      newIng.brand = text;
-                                      this.setState({
-                                        newIngredient: newIng,
-                                      });
-                              }}/>
+                             <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                               <Input
+                                 style={{ ...styles.PEACH }}
+                                 value={this.state.newIngredient.brand}
+                                 onChangeText={(text) =>{
+                                         let newIng = {...this.state.newIngredient};
+                                         newIng.brand = text;
+                                         this.setState({
+                                           newIngredient: newIng,
+                                         }, () => this.addNewIngredientWithBarcodeToDB());
+                                   }
+                                 }
+                                 />
+                             </Item>
                            </Col>
                          </Row>
                          <Row size={10}>
@@ -428,16 +443,21 @@ export default class AddIngredientBarcode extends Component {
                              </Text>
                            </Col>
                            <Col size={70}>
-                             <Input
-                              style={{ ...styles.amountInput }}
-                              value={this.state.newIngredient.amount}
-                              onChangeText={(text) => {
-                                      let newIng = {...this.state.newIngredient};
-                                      newIng.amount = text;
-                                      this.setState({
-                                        newIngredient: newIng,
-                                      });
-                              }}/>
+                             <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                <Input
+                                  style={{ ...styles.PEACH }}
+                                  value={this.state.newIngredient.amount}
+                                  keyboardType='numeric'
+                                  onChangeText={(text) => {
+                                        if (text.length === 0 || this.checkNumber(text)){
+                                          let newIng = {...this.state.newIngredient};
+                                          newIng.amount = text;
+                                          this.setState({
+                                            newIngredient: newIng,
+                                          }, () => this.addNewIngredientWithBarcodeToDB());
+                                        }
+                                  }}/>
+                              </Item>
                            </Col>
                          </Row>
                          <Row size={10}>
@@ -447,16 +467,17 @@ export default class AddIngredientBarcode extends Component {
                              </Text>
                            </Col>
                            <Col size={70}>
+                             <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
                              <Picker
                                 mode="dropdown"
-                                style={{ ...styles.unitPicker }}
+                                style={{ ...styles.unitPicker, ...styles.PEACH, height: 24 }}
                                 selectedValue={this.state.newIngredient.unit}
                                 onValueChange={(itemValue, itemIndex) => {
                                         let newIng = {...this.state.newIngredient};
                                         newIng.unit = itemValue;
                                         this.setState({
                                           newIngredient: newIng,
-                                       });
+                                       }, () => this.addNewIngredientWithBarcodeToDB());
                                 }}>
                                <Picker.Item key="0" label="" value=""/>
 
@@ -475,12 +496,10 @@ export default class AddIngredientBarcode extends Component {
 
                                <Picker.Item key="9" label={LANG === 0 ? "šálka" : "cup"} value={LANG === 0 ? "šálka" : "cup"}/>
                               </Picker>
+                            </Item>
                            </Col>
                          </Row>
 
-                         <Row size={10}>
-                           <Icon name='md-add' style={{ ...styles.minusIngredient }} onPress={this.addNewIngredientWithBarcodeToDB.bind(this)}/>
-                         </Row>
                        </Grid>
                     }
                  </Grid>

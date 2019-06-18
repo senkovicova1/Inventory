@@ -47,6 +47,7 @@ export const textDetailRecipe = {
   portions: ["Počet porcií","Number of portions"],
   cook: ["Uvariť", "Cook"],
   steps: ["Postup", "Steps"],
+  messageCook: ["Uvarené! Dobrú chuť! :)","Cooked! Enjoy your meal! :)"],
 }
 
 export const textEditRecipe = {
