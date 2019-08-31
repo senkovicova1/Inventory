@@ -373,85 +373,88 @@ export default class AddRecipeCreate extends Component {
 
             <Content style={{ ...styles.content }} >
 
-              {this.state.title.length === 0
-                &&
-                <Button  bordered block warning style={{ ...styles.acordionButtonTrans }} onPress={()=> this.setState({showEmpty: true})}>
-                    <Text style={{ ...styles.acordionButtonTextTrans }}> {textCreateRecipe.create[LANG]}</Text>
-                </Button>
-              }
 
-              {this.state.title.length > 0
-                &&
-                <Button block style={{ ...styles.acordionButton }} onPress={() => this.uploadImage()}>
-                    <Text style={{ ...styles.acordionButtonText }}> {textCreateRecipe.create[LANG]}</Text>
-                </Button>
-              }
-
-              {this.state.showUnsaved
-                &&
-                Toast.show({
-                  text: textCreateRecipe.messageSave[LANG],
-                  duration: 4000,
-                  type: 'danger',
-                  onClose: () => this.setState({showUnsaved: false,})
-                })
-              }
-
-              {this.state.showEmpty
-                &&
-                Toast.show({
-                  text: textCreateRecipe.messageName[LANG],
-                  duration: 4000,
-                  type: 'danger',
-                  onClose: () => this.setState({showEmpty: false,})
-                })
-              }
-
-                <Form>
-                    <Input
-                      style={{ ...styles.formTitle }}
-                      placeholder={textCreateRecipe.titlePlaceholder[LANG]}
-                      placeholderTextColor='rgb(255, 184, 95)'
-                      onChangeText={(text) => this.handleTitle(text)}/>
-
-                {this.state.image
+                {this.state.title.length === 0
                   &&
-                  <Image
-                    style={{ ...styles.image, ...styles.center }}
-                    source={{uri: this.state.image}}
-                    />
+                  <Button  bordered block warning style={{ ...styles.acordionButtonTrans }} onPress={()=> this.setState({showEmpty: true})}>
+                      <Text style={{ ...styles.acordionButtonTextTrans }}> {textCreateRecipe.create[LANG]}</Text>
+                  </Button>
                 }
 
-                <Button  style={{ ...styles.acordionButton }} onPress={() => this.setState({takePic: !this.state.takePic})}>
-                    <Text style={{ ...styles.acordionButtonText }}>{this.state.image ? textCreateRecipe.changePhoto[LANG]: textCreateRecipe.addPhoto[LANG]}</Text>
-                </Button>
+                {this.state.title.length > 0
+                  &&
+                  <Button block style={{ ...styles.acordionButton }} onPress={() => this.uploadImage()}>
+                      <Text style={{ ...styles.acordionButtonText }}> {textCreateRecipe.create[LANG]}</Text>
+                  </Button>
+                }
+
+                {this.state.showUnsaved
+                  &&
+                  Toast.show({
+                    text: textCreateRecipe.messageSave[LANG],
+                    duration: 4000,
+                    type: 'danger',
+                    onClose: () => this.setState({showUnsaved: false,})
+                  })
+                }
+
+                {this.state.showEmpty
+                  &&
+                  Toast.show({
+                    text: textCreateRecipe.messageName[LANG],
+                    duration: 4000,
+                    type: 'danger',
+                    onClose: () => this.setState({showEmpty: false,})
+                  })
+                }
+
+                  <Form>
+                    <View style={{padding: 10}}>
+
+                  <Input
+                    style={{ ...styles.formTitle }}
+                    placeholder={textCreateRecipe.titlePlaceholder[LANG]}
+                    placeholderTextColor='rgb(255, 184, 95)'
+                    onChangeText={(text) => this.handleTitle(text)}/>
+
+                  {this.state.image
+                    &&
+                    <Image
+                      style={{ ...styles.image, ...styles.center }}
+                      source={{uri: this.state.image}}
+                      />
+                  }
+
+                  <Button  style={{ ...styles.acordionButton }} onPress={() => this.setState({takePic: !this.state.takePic})}>
+                      <Text style={{ ...styles.acordionButtonText }}>{this.state.image ? textCreateRecipe.changePhoto[LANG]: textCreateRecipe.addPhoto[LANG]}</Text>
+                  </Button>
 
 
-              {this.state.takePic
-                &&
-                <Card style={{...styles.camera, marginBottom: 0}}>
-                 <RNCamera
-                   style={{marginTop: -140}}
-                   type={RNCamera.Constants.Type.back}
-                   flashMode={RNCamera.Constants.FlashMode.auto}
-                   captureAudio={false}
-                   ratio='1:1'
-                   permissionDialogTitle={'Permission to use camera'}
-                   permissionDialogMessage={'We need your permission to use your camera phone'}
-                 >
-                   {({ camera, status, recordAudioPermissionStatus }) => {
-                     if (status !== 'READY') return <PendingView />;
-                     return (
-                           <Button onPress={() => this.takePicture(camera)} style={{...styles.acordionButton, marginTop: 290}}>
-                             <Text style={{ ...styles.acordionButtonText, }}> {textCreateRecipe.snap[LANG]} </Text>
-                           </Button>
-                     );
-                   }}
-                 </RNCamera>
-               </Card>
+                {this.state.takePic
+                  &&
+                  <Card style={{...styles.camera, marginBottom: 0}}>
+                   <RNCamera
+                     style={{marginTop: -140}}
+                     type={RNCamera.Constants.Type.back}
+                     flashMode={RNCamera.Constants.FlashMode.auto}
+                     captureAudio={false}
+                     ratio='1:1'
+                     permissionDialogTitle={'Permission to use camera'}
+                     permissionDialogMessage={'We need your permission to use your camera phone'}
+                   >
+                     {({ camera, status, recordAudioPermissionStatus }) => {
+                       if (status !== 'READY') return <PendingView />;
+                       return (
+                             <Button onPress={() => this.takePicture(camera)} style={{...styles.acordionButton, marginTop: 290}}>
+                               <Text style={{ ...styles.acordionButtonText, }}> {textCreateRecipe.snap[LANG]} </Text>
+                             </Button>
+                       );
+                     }}
+                   </RNCamera>
+                 </Card>
 
-              }
-
+                }
+            </View>
 
                   <Card transparent style={{ ...styles.formCard}}>
                     <Grid >
@@ -477,7 +480,7 @@ export default class AddRecipeCreate extends Component {
 
                       <Row>
                         <Col size={100}>
-                        <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textCreateRecipe.addIng[LANG]}</Text>
+                          <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textCreateRecipe.addIng[LANG]}</Text>
                         </Col>
                       </Row>
 
@@ -585,9 +588,8 @@ export default class AddRecipeCreate extends Component {
                       </Grid>
                     </Card>
                     <Card transparent style={{ ...styles.formCard}}>
-                      <CardItem header style={{ ...styles.textArea, height: 20}}>
-                        <Text style={{ ...styles.DARK_PEACH}}>{textCreateRecipe.steps[LANG]}</Text>
-                      </CardItem>
+                        <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textCreateRecipe.steps[LANG]}</Text>
+
                       <Textarea
                         rowSpan={5}
                         bordered
@@ -597,6 +599,67 @@ export default class AddRecipeCreate extends Component {
                         onChangeText={(text) => this.setState({body: text, changed: true})}
                         value={this.state.body}/>
                     </Card>
+
+                    <Card transparent style={{ ...styles.formCard}}>
+                      <Grid >
+                        <Row>
+                          <Col size={100}>
+                            <Text style={{ ...styles.DARK_PEACH, borderBottomWidth: 2, borderColor: 'rgb(255, 122, 90)', marginBottom: 5}}>{textCreateRecipe.ingList[LANG]}</Text>
+                          </Col>
+                        </Row>
+                        {
+                          Object.keys(this.state.chosenIgredientsName).map(key =>
+                          <Row>
+                            <Col size={90}>
+                            <Text style={{ ...styles.PEACH}}>{`${this.state.chosenIgredientsName[key]}  ${this.state.chosenIgredientsAmount[key]} ${this.state.chosenIgredientsUnit[key]}`}</Text>
+                            </Col>
+                            <Col size={10}>
+                              <Icon name='md-remove-circle' style={{ ...styles.minusIngredient, ...styles.PEACH}} onPress={() => this.removeIngredient(key)}/>
+                            </Col>
+                          </Row>
+                        )
+                      }
+
+                      <Row><Text>{"  "}</Text></Row>
+
+                          <Row size={10}>
+                            <Col size={90}>
+                              <Item regular style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                <Input
+                                  style={{ ...styles.PEACH }}
+                                  value={this.state.newIngredientName}
+                                  placeholder="Add tag"
+                                  onChangeText={(text) =>{
+                                        this.setState({
+                                          newIngredientName: text,
+                                          changed: true,
+                                          showIngredients: true
+                                        }, () => this.addNewIngredient());
+                                    }
+                                  }
+                                  onBlur={() => this.setState({
+                                    showIngredients: false
+                                  })}
+                                  />
+                              </Item>
+                            </Col>
+                          </Row>
+
+                        { this.state.showIngredients
+                          &&
+                          INGREDIENTS.map(ing =>
+                              <Row size={10}>
+                                <Col size={100}>
+                                  <Item regular onPress={() => this.setState({newIngredientName: ing.name, showIngredients: false})} style={{ borderColor: 'rgb(255, 184, 95)', height: 24, borderRadius: 5, marginBottom: 5}}>
+                                      <Text style={{ ...styles.PEACH}}>{`${ing.name}`}</Text>
+                                  </Item>
+                                </Col>
+                              </Row>
+                            )
+                        }
+
+                        </Grid>
+                      </Card>
                 </Form>
 
 

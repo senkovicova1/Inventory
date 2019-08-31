@@ -155,12 +155,14 @@ export default {
   },
   formTitle: {
     margin: deviceWidth*0.02,
-    marginRight: deviceWidth*0.04,
+//    marginRight: deviceWidth*0.04,
     marginBottom: deviceWidth*0.04,
-    backgroundColor: colours.ACC_CREAM,
+    backgroundColor: colours.ACC_WHITE,
     color: colours.ACC_DARK_PEACH,
     borderBottomWidth: 2,
     borderColor: colours.ACC_DARK_PEACH,
+    borderRadius: 8,
+
   },
   ingredientPicker: {
      color: colours.ACC_DARK_PEACH,
@@ -191,9 +193,9 @@ export default {
     borderColor: 'transparent'
   },
   textArea:{
-    backgroundColor: colours.ACC_PEACH_A,
+    backgroundColor: colours.ACC_WHITE,
     borderWidth: 2,
-    borderColor: colours.ACC_PEACH_A,
+    borderColor: colours.ACC_WHITE,
     borderRadius: 5,
     color: colours.ACC_DARK_PEACH
   },

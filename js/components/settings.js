@@ -145,7 +145,7 @@ export default class Settings extends Component {
               <Row style={{ marginBottom: 20 }}>
                 <Col size={85}>
                 <Input
-                  style={{ ...styles.formTitle, borderRadius: 8 }}
+                  style={{ ...styles.formTitle }}
                   value={this.state.newUsername.length > 0 ? this.state.newUsername : this.state.user.username}
                   placeholder="Your name"
                   placeholderTextColor='rgb(255, 184, 95)'
